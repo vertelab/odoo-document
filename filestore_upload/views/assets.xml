@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <template id="assets_backend" name="filestore upload" inherit_id="mail.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/filestore_upload/static/src/js/attachment_box.js"></script>
+            </xpath>
+        </template>
+    </data>
+</odoo>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="mail.AttachmentBox" t-inherit-mode="extension">
+        <xpath expr="//button[hasclass('o_AttachmentBox_buttonAdd')]" position="after">
+            <button class="o_AttachmentBox_buttonAdd btn btn-link" type="button" t-on-click="_onClickAddLargeFile">
+                <i class="fa fa-plus-square"/>
+                Add Large Attachments
+            </button>
+        </xpath>
+    </t>
+</templates>

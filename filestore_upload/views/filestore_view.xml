@@ -1,0 +1,31 @@
+<odoo>
+    <data>
+        <record id="file_store_form_view" model="ir.ui.view">
+            <field name="name">upload.filestore</field>
+            <field name="model">upload.filestore</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="host"/>
+                                <field name="port"/>
+                                <field name="file_path"/>
+                                <field name="res_model" invisible="1"/>
+                                <field name="res_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="username"/>
+                                <field name="password"/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <footer>
+                        <button name="action_upload" string="Upload File" type="object" class="oe_highlight"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>
