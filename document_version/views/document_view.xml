@@ -1,0 +1,41 @@
+<odoo>
+    <data>
+        <record id="dms_form_view" model="ir.ui.view">
+            <field name="name">dms.file.form</field>
+            <field name="model">dms.file</field>
+            <field name="inherit_id" ref="dms.view_dms_file_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+                    <button name="action_previous_doc_view" class="oe_stat_button" icon="fa-file-text-o" type="object" string="Previous Version"/>
+                    <button name="action_next_doc_view" class="oe_stat_button" icon="fa-file-text-o" type="object" string="Next Version"/>
+                </xpath>
+
+                <xpath expr="//page[last()]" position="after">
+                    <page string="Version">
+                        <group>
+                            <group>
+                                <field name="document_version"/>
+                            </group>
+                            <group>
+                                <field name="document_previous_version"/>
+                                <field name="document_current_version"/>
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+
+        <record id="dms_tree_view" model="ir.ui.view">
+            <field name="name">dms.file.tree</field>
+            <field name="model">dms.file</field>
+            <field name="inherit_id" ref="dms.view_dms_file_tree"/>
+            <field name="arch" type="xml">
+                <field name="size" position="after">
+                    <field name="document_version"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>
