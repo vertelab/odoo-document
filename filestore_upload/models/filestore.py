@@ -3,8 +3,10 @@ import paramiko
 import io
 import base64
 import tempfile
-
+from odoo.exceptions import UserError, ValidationError
 from odoo import models, fields, api, _
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class FileStore(models.TransientModel):
@@ -25,6 +27,8 @@ class FileStore(models.TransientModel):
         try:
             client = paramiko.SSHClient()
             client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            if not port:
+                port = 22
             client.connect(hostname=host, username=self.username, password=self.password, port=port)
             sftp_client = client.open_sftp()
             remote_file = sftp_client.open(self.file_path)
@@ -38,6 +42,8 @@ class FileStore(models.TransientModel):
                 'datas': base64.encodebytes(remote_file.read()),
             })
         except Exception as e:
-            pass
+                _logger.warning(e)
+                raise UserError(f'Something went wrong, exception: {e}')
+                pass
 
 
