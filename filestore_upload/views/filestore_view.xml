@@ -8,15 +8,17 @@
                     <sheet>
                         <group>
                             <group>
-                                <field name="host"/>
-                                <field name="port"/>
-                                <field name="file_path"/>
+                                <field name="request_type"/>
+                                <field name="host" attrs="{'invisible': [('request_type', '=', 'wget')]}"/>
+                                <field name="port" attrs="{'invisible': [('request_type', '=', 'wget')]}"/>
+                                <field name="file_path" attrs="{'invisible': [('request_type', '=', 'wget')]}"/>
                                 <field name="res_model" invisible="1"/>
                                 <field name="res_id" invisible="1"/>
                             </group>
                             <group>
-                                <field name="username"/>
-                                <field name="password"/>
+                                <field name="username" attrs="{'invisible': [('request_type', '=', 'wget')]}"/>
+                                <field name="password" attrs="{'invisible': [('request_type', '=', 'wget')]}"/>
+                                <field name="url" attrs="{'invisible': [('request_type', '=', 'sftp')], 'required': [('request_type', '=', 'wget')]}"/>
                             </group>
                         </group>
                     </sheet>

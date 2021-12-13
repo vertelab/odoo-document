@@ -19,7 +19,7 @@
         'static/src/xml/attachment_box.xml'
     ],
     'external_dependencies': {
-        'python': ['pysftp'],
+        'python': ['paramiko'],
     },
     'installable': True,
 }
