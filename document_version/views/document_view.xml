@@ -14,11 +14,11 @@
                     <page string="Version">
                         <group>
                             <group>
-                                <field name="document_version"/>
+                                <field name="document_version" readonly="1" force_save="1"/>
                             </group>
                             <group>
                                 <field name="document_previous_version"/>
-                                <field name="document_current_version"/>
+                                <field name="document_next_version"/>
                             </group>
                         </group>
                     </page>
@@ -35,6 +35,20 @@
                 <field name="size" position="after">
                     <field name="document_version"/>
                 </field>
+            </field>
+        </record>
+
+
+        <record id="dms_kanban_view" model="ir.ui.view">
+            <field name="name">dms.file.kanban</field>
+            <field name="model">dms.file</field>
+            <field name="inherit_id" ref="dms.view_dms_file_kanban"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[hasclass('o_kanban_details')]/div[1]/div[hasclass('o_kanban_record_body')]/field[@name='tag_ids']" position="after">
+                    <span t-if="record.document_version.raw_value">
+                        Version: <field name="document_version" />
+                    </span>
+                </xpath>
             </field>
         </record>
     </data>
