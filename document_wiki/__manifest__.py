@@ -12,8 +12,11 @@
     'website': 'https://www.vertel.se',
     'depends': ['website'],
     'data': [
+        'security/ir.model.access.csv',
         'views/assets.xml',
-
+        'views/website_page_view.xml',
+        'views/document_wiki_snippet.xml',
+        'views/document_wiki_widget.xml',
     ],
     "qweb": [
         'static/src/xml/website.pageProperties.xml'

@@ -1,0 +1,29 @@
+<odoo>
+    <!-- Snippet - Wiki - List -->
+    <template id="s_document_wiki_pages_list" name="Document Wiki Pages">
+        <div class="document_wiki_pages_list">
+            <t t-if="wiki_pages">
+                <div class="container">
+                    <h6 class="o_wevent_sidebar_title">
+                        Wiki Pages
+                    </h6>
+                    <div class="row">
+                        <ul class="mb-3 col-lg-12">
+                            <div class="row">
+                                <t t-foreach="wiki_pages" t-as="page">
+                                    <div class="col-lg-3 s_col_no_bgcolor pb24">
+                                        <li class="row list-group-item d-flex justify-content-between" style="border:unset !important">
+                                            <a t-att-href="page['url']">
+                                                <span t-esc="page['name']"/>
+                                            </a>
+                                        </li>
+                                    </div>
+                                </t>
+                            </div>
+                        </ul>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </template>
+</odoo>
