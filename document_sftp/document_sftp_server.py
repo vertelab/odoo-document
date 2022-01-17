@@ -8,8 +8,9 @@ try:
     from paramiko.py3compat import decodebytes
 except ImportError:
     pass
-from openerp.exceptions import AccessDenied
-
+from odoo.exceptions import AccessDenied
+import logging
+_logger = logging.getLogger(__name__)
 
 class DocumentSFTPServer(ServerInterface):
     def __init__(self, env):
@@ -21,7 +22,7 @@ class DocumentSFTPServer(ServerInterface):
             user = self.env['res.users'].search([('login', '=', username)])
             if not user:
                 return AUTH_FAILED
-            user.sudo(user.id).check_credentials(password)
+            user.sudo(user.id)._check_credentials(password, False)
             return AUTH_SUCCESSFUL
         except AccessDenied:
             pass
@@ -36,8 +37,7 @@ class DocumentSFTPServer(ServerInterface):
                 continue
             key_type, key_data = line.split(' ', 2)[:2]
             if key_type != 'ssh-rsa':
-                self.logger.info(
-                    'Ignoring key of unknown type for line %s', line)
+                _logger.warning('Ignoring key of unknown type for line %s', line)
                 continue
             if RSAKey(data=decodebytes(key_data)) == key:
                 return AUTH_SUCCESSFUL

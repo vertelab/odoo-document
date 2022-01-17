@@ -68,13 +68,9 @@ class DocumentSFTP(models.AbstractModel):
 
             # ~ key = BytesIO(self.env['ir.config_parameter'].get_param('document_sftp.hostkey'))
             key = self.env['ir.config_parameter'].get_param('document_sftp.hostkey')
-            
-            
-            host_key = paramiko.ecdsakey.ECDSAKey.from_private_key(StringIO(key))
-            
-            key.close()
-            pdb.set_trace()
-            transport = DocumentSFTPTransport(self.env.cr.dbname, conn)
+            host_key = paramiko.Ed25519Key.from_private_key(StringIO(key))
+
+            transport = DocumentSFTPTransport(self.env.cr, conn)
             transport.add_server_key(host_key)
             transport.set_subsystem_handler(
                 'sftp', DocumentSFTPSftpServer,

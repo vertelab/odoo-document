@@ -9,7 +9,7 @@
     'author': 'Vertel AB',
     'license': 'AGPL-3',
     'website': 'https://www.vertel.se',
-    'depends': ['mail'],
+    'depends': ['yt'],
     'data': [
         'views/filestore_view.xml',
         'views/assets.xml',

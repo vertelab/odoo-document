@@ -7,16 +7,16 @@ try:
 except ImportError:
     pass
 from odoo import api, SUPERUSER_ID
-from odoo.modules.registry import RegistryManager
+from odoo.modules.registry import Registry
 
 
 class DocumentSFTPTransport(Transport):
     def __init__(
-        self, dbname, sock, default_window_size=DEFAULT_WINDOW_SIZE,
+        self, cr, sock, default_window_size=DEFAULT_WINDOW_SIZE,
         default_max_packet_size=DEFAULT_MAX_PACKET_SIZE, gss_kex=False,
         gss_deleg_creds=True
     ):
-        self.dbname = dbname
+        self.cr = cr
         super(DocumentSFTPTransport, self).__init__(
             sock, default_window_size=default_window_size,
             default_max_packet_size=default_max_packet_size, gss_kex=gss_kex,
@@ -25,8 +25,7 @@ class DocumentSFTPTransport(Transport):
 
     def run(self):
         with api.Environment.manage():
-            self.env = api.Environment(
-                RegistryManager.get(self.dbname).cursor(), SUPERUSER_ID, {})
+            self.env = api.Environment(self.cr , SUPERUSER_ID, {})
             result = super(DocumentSFTPTransport, self).run()
-        self.env.cr.close()
+        # self.env.cr.close()
         return result
