@@ -28,13 +28,11 @@ class WikiDoc(http.Controller):
             ('url', '=', sub_url),
             ('website_id', '=', current_website_id.id)
         ], limit=1)
-        print(page_id)
         result = {'wiki_pages': []}
         if page_id and page_id.wiki_ids:
             for wiki_page in page_id.wiki_ids:
-                # result['wiki_pages'].append(wiki_page)
                 result['wiki_pages'].append({
                     'url': wiki_page.page_id.url,
                     'name': wiki_page.page_id.name,
                 })
-        return request.env['ir.ui.view']._render_template("document_wiki.s_document_wiki_pages_list", result)
+        return result
