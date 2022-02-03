@@ -3,6 +3,9 @@ import datetime
 import json
 import os
 import logging
+import werkzeug.urls
+import werkzeug.utils
+import werkzeug.wrappers
 
 import odoo
 
@@ -36,3 +39,36 @@ class WikiDoc(http.Controller):
                     'name': wiki_page.page_id.name,
                 })
         return result
+
+
+class NewPage(Website):
+
+    @http.route(['/website/add/', '/website/add/<path:path>'], type='http', auth="user", website=True, methods=['POST'])
+    def pagenew(self, path="", noredirect=False, add_menu=False, parent_page_id=False, template=False, **kwargs):
+        # for supported mimetype, get correct default template
+        _, ext = os.path.splitext(path)
+        ext_special_case = ext and ext in _guess_mimetype() and ext != '.html'
+
+        if not template and ext_special_case:
+            default_templ = 'website.default_%s' % ext.lstrip('.')
+            if request.env.ref(default_templ, False):
+                template = default_templ
+
+        template = template and dict(template=template) or {}
+        page = request.env['website'].new_page(path, add_menu=add_menu, **template)
+
+        # current page
+        current_page_id = request.env['website.page'].search([('view_id', '=', page.get('view_id'))])
+        if current_page_id and parent_page_id:
+            request.env['wiki.page'].create({
+                'parent_id': parent_page_id,
+                'page_id': current_page_id.id
+            })
+
+        url = page['url']
+        if noredirect:
+            return werkzeug.wrappers.Response(url, mimetype='text/plain')
+
+        if ext_special_case:  # redirect non html pages to backend to edit
+            return werkzeug.utils.redirect('/web#id=' + str(page.get('view_id')) + '&view_type=form&model=ir.ui.view')
+        return werkzeug.utils.redirect(url + "?enable_editor=1")

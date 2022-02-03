@@ -18,8 +18,9 @@
         'views/document_wiki_snippet.xml',
     ],
     "qweb": [
-        'static/src/xml/website.pageProperties.xml'
-        'static/src/xml/document_wiki.xml'
+        'static/src/xml/website_editor.xml',
+        'static/src/xml/website.pageProperties.xml',
+        'static/src/xml/document_wiki.xml',
     ],
     'installable': True,
 }
