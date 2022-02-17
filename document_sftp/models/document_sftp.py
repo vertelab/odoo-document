@@ -25,7 +25,7 @@ class DocumentSFTP(models.AbstractModel):
 
     def _run_server(self, dbname, stop):
         registry = Registry.new(dbname)
-        _logger.warning('Registry %s DBname %s stop %s' % (registry,dbname,stop))
+        _logger.warning('Registry %s DBname %s stop %s' % (registry, dbname, stop))
         with api.Environment.manage():
             # ~ with Registry.get(dbname,key=0).cursor() as cr:
             with registry.cursor() as cr:
@@ -53,7 +53,6 @@ class DocumentSFTP(models.AbstractModel):
         server_socket.settimeout(2)
 
         import pdb
-        
 
         while not stop.is_set():
             try:

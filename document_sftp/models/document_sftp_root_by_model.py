@@ -14,6 +14,7 @@ class DocumentSFTPRootByModel(models.Model):
     _name = 'document.sftp.root.by_model'
     _virtual_root = 'By model'
     _virtual_root_by_id = 'By id'
+    _description = 'Document SFTP Root'
 
     @api.model
     def _get_root_attributes(self):

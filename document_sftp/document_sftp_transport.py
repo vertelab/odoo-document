@@ -25,7 +25,7 @@ class DocumentSFTPTransport(Transport):
 
     def run(self):
         with api.Environment.manage():
-            self.env = api.Environment(self.cr , SUPERUSER_ID, {})
+            self.env = api.Environment(self.cr, SUPERUSER_ID, {})
             result = super(DocumentSFTPTransport, self).run()
         # self.env.cr.close()
         return result

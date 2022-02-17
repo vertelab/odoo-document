@@ -4,12 +4,10 @@ from . import models
 
 
 import logging
-from io import StringIO
+import io
 import socket
 from lxml import etree
-from odoo import SUPERUSER_ID, tools
-
-
+from odoo import SUPERUSER_ID, tools, api
 
 
 try:
@@ -21,28 +19,23 @@ _logger = logging.getLogger(__name__)
 
 def install_hook(cr, registry):
     _logger.warning('Socket %s' % socket.getfqdn())
+    env = api.Environment(cr, SUPERUSER_ID, {})
     
     if socket.getfqdn().endswith('odoo-community.org'):  # pragma: no cover
         # we need a different default listeing address on runbot
-        pool['ir.config_parameter'].set_param(
-            cr, SUPERUSER_ID, 'document_sftp.bind', '%s:0' % socket.getfqdn())
-    hostkey = pool['ir.config_parameter'].get_param(
-        cr, SUPERUSER_ID, 'document_sftp.hostkey')
+        env['ir.config_parameter'].set_param('document_sftp.bind', '%s:0' % socket.getfqdn())
+    hostkey = env['ir.config_parameter'].get_param('document_sftp.hostkey')
     parameters = etree.parse(
         tools.file_open('document_sftp/data/ir_config_parameter.xml'))
     default_value = None
-    for node in parameters.xpath(
-        "//record[@id='param_hostkey']//field[@name='value']"
-    ):
+    for node in parameters.xpath("//record[@id='param_hostkey']//field[@name='value']"):
         default_value = node.text
     if not hostkey or hostkey == default_value:
         _logger.info('Generating host key for database %s', cr.dbname)
-        key = StringIO.StringIO()
+        key = io.StringIO()
         ECDSAKey.generate().write_private_key(key)
-        pool['ir.config_parameter'].set_param(
-            cr, SUPERUSER_ID, 'document_sftp.hostkey', key.getvalue())
+        env['ir.config_parameter'].set_param('document_sftp.hostkey', key.getvalue())
         key.close()
-
 
 
 def uninstall_hook(cr, registry):
