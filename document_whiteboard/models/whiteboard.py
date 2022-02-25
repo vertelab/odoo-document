@@ -3,7 +3,9 @@ from odoo.exceptions import ValidationError
 
 
 class Whiteboard(models.Model):
-    _inherit = 'dms.file'
+    _inherit = 'ir.attachment'
+    
+    
 
    
 
