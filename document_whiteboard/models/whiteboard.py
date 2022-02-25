@@ -6,7 +6,8 @@ import uuid
 class Whiteboard(models.Model):
     _inherit = 'ir.attachment'
     
-    type = fields.Selection(selection_add=[('whiteboard', 'Whiteboard')]) 
+    type = fields.Selection(selection_add=[('whiteboard', 'Whiteboard')],
+        ondelete={"url": "set default"},)
 
     @api.model
     def create(self, vals):
