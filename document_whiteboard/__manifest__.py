@@ -28,7 +28,7 @@
     'description': 'To get a UUID filename for a new document (an url to the document is formed by the server / uuid)',
     #'sequence': '1'
     'author': 'Vertel AB',
-    'website': 'https://vertel.se/apps/',
+    'website': 'https://vertel.se/apps/odoo-document',
     'images': ['/static/description/banner.png'], # 560x280 px.
     'license': 'AGPL-3',
     'contributor': '',
