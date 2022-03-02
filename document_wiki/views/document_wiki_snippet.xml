@@ -1,0 +1,20 @@
+<odoo>
+    <template id="s_document_wiki_pages" name="Wiki Page">
+        <section class="s_wiki_section pt32 pb32">
+            <div t-attf-class="container oe_wiki_pages #{_classes}">
+                <div class="document_wiki_pages_list">
+                    <h6 class="o_wevent_sidebar_title">
+                        Wiki Pages
+                    </h6>
+                </div>
+            </div>
+        </section>
+    </template>
+
+    <template id="wiki_static_snippet" name="Wiki Document Snippets" inherit_id="website.snippets">
+        <xpath expr="//div[@id='snippet_structure']/div[hasclass('o_panel_body')]" position="inside">
+            <t t-snippet="document_wiki.s_document_wiki_pages" t-thumbnail="/web/image/website.s_product_catalog_default_image"/>
+        </xpath>
+    </template>
+
+</odoo>

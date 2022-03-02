@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="document_wiki.parent_page">
+        <label class="col-form-label col-md-3">Parent Page</label>
+        <div class="col-md-9">
+            <select id="parent_page" class="form-control">
+                <option value="">Select Page</option>
+                <t t-foreach="website_pages" t-as="website_page">
+                    <option t-att-value="website_page.id">
+                        <t t-esc="website_page.name"/>
+                    </option>
+                </t>
+            </select>
+        </div>
+    </t>
+</templates>
