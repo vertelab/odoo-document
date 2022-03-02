@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+
+
+        <record id="add_approver_view" model="ir.ui.view">
+            <field name="name">dms.add.approver.view</field>
+            <field name="model">dms.approver.add.wizard</field>
+            <field name="arch" type="xml">
+                <form>
+                    <field name="document"/>
+                    <field name="user_id"/>
+                    <button name="set_approver" type="object" string="Add Approver" class="btn-primary"/>
+                </form>
+            </field>
+        </record>
+        <record model="ir.actions.act_window" id="add_approver_action">
+            <field name="name">Add Approver</field>
+            <field name="res_model">dms.approver.add.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="view_id" ref="add_approver_view"/>
+        </record>
+    </data>
+</odoo>

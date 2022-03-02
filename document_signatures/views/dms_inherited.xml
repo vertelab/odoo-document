@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record model="ir.ui.view" id="document_approval_inherited">
+      <field name="name">dms.file.form.approval.inherited</field>
+      <field name="model">dms.file</field>
+      <field name="inherit_id" ref="dms.view_dms_file_form"/>
+      <field name="arch" type="xml">
+        <xpath expr="//page[@name='page_technical']" position="after">
+          <page string="Employee Signatures" name="employee_signatures">
+            <group>
+              <field name="document_locked" invisible="1"/>
+              <field name="signed_document"/>
+            </group>
+            <group>
+              <button name="%(add_approver_action)d" class="oe_highlight"
+                    string="Add Approver" type="action"/>
+              <field name="approval_ids" mode="tree">
+                <tree string="Approval lines" create="0" edit="0" delete="1">
+                  <field name="approver_id"/>
+                  <field name="approval_status"/>
+                  <field name="signed_document"/>
+                  <field name="signer_ca"/>
+                  <field name="assertion"/>
+                  <field name="relay_state"/>
+                </tree>
+              </field>
+            </group>
+          </page>
+        </xpath>
+        <xpath expr="//button[@name='lock']" position="before">
+            <field name="document_fully_approved" invisible="1"/>
+            <field name="document_locked" invisible="1"/>
+            <field name="check_approve_ability" invisible="1"/>
+            <field name="is_approved" invisible="1"/>
+            <field name="page_visibility" invisible="1"/>
+            <button name="document_approve" class="oe_highlight"
+                    string="Approve and Lock" type="object"
+                    groups="res_user_groups_skogsstyrelsen.group_sks_signerare"
+                    attrs="{'invisible': ['|','|',('check_approve_ability', '!=', True),('document_fully_approved', '=', True),('is_approved','=',True)]}"/>
+            <button name="document_unlock" class="oe_highlight"
+                    string="Unlock and Unapprove" type="object"/>
+        </xpath>
+        <xpath expr="//field[@name='content']" position="after">
+          <field name="signed_document"/>
+        </xpath>
+        
+      </field>
+    </record>
+</odoo>
