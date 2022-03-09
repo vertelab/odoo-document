@@ -96,6 +96,7 @@ class DmsFile(models.Model):
     approval_ids = fields.One2many('dms.approval.line', 'document_id')
     is_approved = fields.Boolean(compute='_compute_is_approved')
     document_locked = fields.Boolean()
+    show_on_customer_portal = fields.Boolean(string="Show on Customer Portal")
     signed_document = fields.Binary(string='Signed Document', readonly=1)
     signer_ca = fields.Binary(string='Signer Ca', readonly=1)
     assertion = fields.Binary(string='Assertion', readonly=1)

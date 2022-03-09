@@ -7,14 +7,20 @@
       <field name="arch" type="xml">
         <xpath expr="//page[@name='page_technical']" position="after">
           <page string="Employee Signatures" name="employee_signatures">
-            <group>
-              <field name="document_locked" invisible="1"/>
-              <field name="signed_document"/>
-            </group>
-            <group>
+              <group>
+                  <group>
+                      <field name="signed_document"/>
+                  </group>
+                  <group>
+                      <field name="document_locked" invisible="1"/>
+                  </group>
+              </group>
+             <group>
               <button name="%(add_approver_action)d" class="oe_highlight"
                     string="Add Approver" type="action"/>
-              <field name="approval_ids" mode="tree">
+             </group>
+             <group>
+              <field name="approval_ids" mode="tree" nolabel="1">
                 <tree string="Approval lines" create="0" edit="0" delete="1">
                   <field name="approver_id"/>
                   <field name="approval_status"/>
@@ -43,6 +49,7 @@
         </xpath>
         <xpath expr="//field[@name='content']" position="after">
           <field name="signed_document"/>
+          <field name="show_on_customer_portal"/>
         </xpath>
         <field name="storage_id" position="after">
           <field name="project_id"/>

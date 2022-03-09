@@ -28,5 +28,6 @@
         'views/dms_approval_view.xml',
         'views/dms_inherited.xml',
         'views/templates.xml',
+        'views/dms_portal_templates.xml',
     ],
 }
