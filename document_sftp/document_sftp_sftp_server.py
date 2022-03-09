@@ -6,6 +6,13 @@ try:
 except ImportError:
     pass
 from odoo import api
+import os
+import os.path
+from os import path
+import pathlib
+import base64
+from io import BytesIO
+from PIL import Image, ImageFile
 
 
 class DocumentSFTPSftpServerInterface(SFTPServerInterface):
@@ -46,6 +53,34 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
 
     def session_started(self):
         self.env = self.env(cr=self.env.registry.cursor())
+        self._sales_team()
+
+    def _sales_team(self):
+        self.env = self.env(cr=self.env.registry.cursor())
+        team_id = self.env['crm.team'].search([])
+
+        for rec in team_id:
+            current_dir = pathlib.Path().resolve()
+            sale_dir_path = f"{current_dir}/{rec.name}-{rec._name}-{rec.id}"
+            if not path.exists(sale_dir_path):
+                try:
+                    os.mkdir(sale_dir_path)
+                except OSError as error:
+                    print(error)
+            self._get_sales_team_attachment(rec._name, rec.id, sale_dir_path)
+
+    def _get_sales_team_attachment(self, model, res_id, dir_path):
+        ir_attachment = self.env['ir.attachment'].search([
+            ('res_model', '=', model),
+            ('res_id', '=', res_id)
+        ])
+        if ir_attachment:
+            for attachment in ir_attachment:
+                team_attachment = f"{dir_path}/{attachment.name}"
+                if not path.exists(team_attachment):
+                    with open(team_attachment, 'wb') as f:
+                        stream = base64.b64decode(attachment.datas)
+                        f.write(stream)
 
 
 class DocumentSFTPSftpServer(SFTPServer):
