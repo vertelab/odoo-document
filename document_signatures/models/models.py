@@ -21,9 +21,7 @@ class DmsAddApproverWizard(models.TransientModel):
     @api.model
     def _get_approvers_domain(self):
         group_ids = []
-        group_ids.append(self.env.ref('sale_multi_approval.group_approve_manager').id)
-        group_ids.append(self.env.ref('sale_multi_approval.group_approver').id)
-        group_ids.append(self.env.ref('res_user_groups_skogsstyrelsen.group_sks_saljare').id)
+        group_ids.append(self.env.ref('res_user_groups_skogsstyrelsen.group_sks_signerare').id)
         offlimit_ids = [i.id for i in self.env["dms.file"].browse(self.env.context.get('active_ids')).approval_ids]
         return [('groups_id', 'in', group_ids), ('id', 'not in', offlimit_ids)]
 
@@ -33,7 +31,7 @@ class DmsAddApproverWizard(models.TransientModel):
     def set_approver(self):
         line = self.env["dms.approval.line"].create({'approver_id': self.user_id.id, 'document_id': self.document.id, 'approval_status': False})
         self.document.write({'approval_ids': [(4, line.id, 0)]})
-    
+
 
 
 class SignportRequest(models.TransientModel):
@@ -81,8 +79,13 @@ class DmsApprovalLine(models.Model):
     signer_ca = fields.Binary(string='Signer Ca', readonly=1)
     assertion = fields.Binary(string='Assertion', readonly=1)
     relay_state = fields.Binary(string='Relay State', readonly=1)
+    signed_on = fields.Datetime(string='Signed on')
     
     
+class Project(models.Model):
+    _inherit = "project.project"
+
+    document_ids = fields.One2many(comodel_name='dms.file', inverse_name='project_id', string='Documents')
     
 
 class DmsFile(models.Model):
@@ -98,6 +101,8 @@ class DmsFile(models.Model):
     assertion = fields.Binary(string='Assertion', readonly=1)
     relay_state = fields.Binary(string='Relay State', readonly=1)
     page_visibility = fields.Boolean(compute='_compute_page_visibility')
+    project_id = fields.Many2one(comodel_name='project.project', string='Project')
+    
 
     @api.depends('approval_ids')
     def _compute_page_visibility(self):
@@ -142,7 +147,7 @@ class DmsFile(models.Model):
     def document_unlock(self):
         self.document_locked = False
         for signature in self.approval_ids:
-            signature.write({'approval_status': False, 'signed_document': None, 'signer_ca': None, 'assertion': None, 'relay_state': None})
+            signature.write({'approval_status': False, 'signed_document': None, 'signer_ca': None, 'assertion': None, 'relay_state': None, 'signed_on': False})
         self.signed_document = False
 
     @api.depends('approval_ids.approver_id')
@@ -327,8 +332,10 @@ class RestApiSignport(models.Model):
                 limit=1,
             )
         )
+        
         self.env['dms.file'].browse(document_id).signed_document = res["document"][0]["content"]
         approval_line = self.env["dms.approval.line"].search([("document_id", "=", document_id), ("approver_id", "=", self.env.uid)], limit=1)
+        approval_line.signed_on = fields.Datetime.now()
         approval_line.signed_document = res["document"][0]["content"]
         approval_line.signer_ca = res["signerCa"]
         approval_line.assertion = res["assertion"]

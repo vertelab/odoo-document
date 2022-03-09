@@ -19,9 +19,10 @@
                   <field name="approver_id"/>
                   <field name="approval_status"/>
                   <field name="signed_document"/>
-                  <field name="signer_ca"/>
-                  <field name="assertion"/>
-                  <field name="relay_state"/>
+                  <field name="signed_on"/>
+                  <field name="signer_ca" groups="base.group_no_one"/>
+                  <field name="assertion" groups="base.group_no_one"/>
+                  <field name="relay_state" groups="base.group_no_one"/>
                 </tree>
               </field>
             </group>
@@ -43,7 +44,24 @@
         <xpath expr="//field[@name='content']" position="after">
           <field name="signed_document"/>
         </xpath>
-        
+        <field name="storage_id" position="after">
+          <field name="project_id"/>
+        </field>
       </field>
+    </record>
+    <record id="edit_project_dms" model="ir.ui.view">
+            <field name="name">project.project.form.dms</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="arch" type="xml">
+              <page name="settings" position="after">
+                <page name="documents" string="Documents">
+                  <group>
+                   <field name="document_ids"/>
+                  </group>
+                </page>
+              </page>
+           </field>
+
     </record>
 </odoo>
