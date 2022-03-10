@@ -85,9 +85,8 @@
                                         <form id="accept" method="POST" t-att-data-order-id="dms_file.id" class="js_accept_json modal-content js_website_submit_form">
                                             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                             <header class="modal-header">
-                                                <h4 class="modal-title">Sign Document</h4>
+                                                <h4 class="modal-title">Sign Document: </h4>
                                                 <h4 class="modal-title"><t t-esc="dms_file.name"/></h4>
-                                                <h4 class="modal-title"><t t-esc="dms_file"/></h4>
                                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
                                             </header>
                                             <main class="modal-body" id="sign-document-dialog">
@@ -96,7 +95,7 @@
                                                         <field name="dms_file.id" id="document_id" invisible="1"/>
                                                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                                         <header class="modal-header">
-                                                            <h4 class="modal-title">Validate Order</h4>
+                                                            <h4 class="modal-title">Sign Document</h4>
                                                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
                                                         </header>
                                                         <main class="modal-body" id="sign-dialog">
@@ -107,8 +106,8 @@
                                                                 </ul>
                                                             </p>
                                                             Personnummer:
-                                                            <input id="personnumber" name="Personnummer"/>
-                                                            <button type="button" id="start_signing_document_bankid" custom="click_cost">Signera</button>
+                                                            <input id="personnumber" class="form-control" name="Personnummer"/>
+                                                            <button type="button" id="start_signing_document_bankid" class="btn btn-primary btn-block mb8" custom="click_cost">Signera</button>
                                                             <div id="bankid_form">
                                                             </div>
                                                         </main>
