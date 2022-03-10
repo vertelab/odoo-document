@@ -35,7 +35,7 @@
                                 <span t-esc="dms_directory.count_elements" /> element(s)
                             </td>
                             <td t-if="dms_files">
-                                <span t-esc="dms_directory.create_uid.name" />
+                                <span t-esc="dms_directory.create_uid.sudo().name" />
                             </td>
                             <td>
                                 <span
@@ -65,7 +65,7 @@
                                     <span t-esc="dms_file.get_human_size()" />
                                 </td>
                                 <td>
-                                    <span t-esc="dms_file.create_uid.name" />
+                                    <span t-esc="dms_file.create_uid.sudo().name" />
                                 </td>
                                 <td>
                                     <span
