@@ -80,51 +80,44 @@
                                     </a>
                                 </td>
                                 <!-- modal relative to the actions sign and pay -->
-                                <div role="dialog" class="modal fade" id="modalaccept">
-                                    <div class="modal-dialog" style="background: white;">
-                                        <form id="accept" method="POST" t-att-data-order-id="dms_file.id" class="js_accept_json modal-content js_website_submit_form">
-                                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                                            <header class="modal-header">
-                                                <h4 class="modal-title">Sign Document: </h4>
-                                                <h4 class="modal-title"><t t-esc="dms_file.name"/></h4>
-                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
-                                            </header>
-                                            <main class="modal-body" id="sign-document-dialog">
-                                                <div class="modal-dialog">
-                                                    <form id="accept" method="POST" t-att-data-order-id="dms_file.id" class="js_accept_json modal-content">
-                                                        <field name="dms_file.id" id="document_id" invisible="1"/>
-                                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                                                        <header class="modal-header">
-                                                            <h4 class="modal-title">Sign Document</h4>
-                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
-                                                        </header>
-                                                        <main class="modal-body" id="sign-dialog">
-                                                            <p>
-                                                                <span>By signing this proposal, I agree to the following terms:</span>
-                                                                <ul>
-                                                                    <li><span>Accepted on the behalf of:</span> <b t-field="dms_file.project_id.partner_id.commercial_partner_id"/></li>
-                                                                </ul>
-                                                            </p>
-                                                            Personnummer:
-                                                            <input id="personnumber" class="form-control" name="Personnummer"/>
-                                                            <button type="button" id="start_signing_document_bankid" class="btn btn-primary btn-block mb8" custom="click_cost">Signera</button>
-                                                            <div id="bankid_form">
-                                                            </div>
-                                                        </main>
-                                                    </form>
-                                                    <form id="autosubmit" action="" method="POST" class="js_accept_json modal-content">
-                                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                                                        <input type="hidden" name="relayState" id="relayState" />
-                                                        <input type="hidden" name="eidSignRequest" id="eidSignRequest"/>
-                                                        <input type="hidden" name="binding" id="binding"/>
-                                                    </form>
-                                                </div>
-                                            </main>
-                                        </form>
+                                <div class="modal fade" id="modalaccept" tabindex="-1" role="dialog" aria-labelledby="modalacceptTitle" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="modalacceptTitle">Sign Document</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">x</button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form id="accept" method="POST" t-att-data-document-id="dms_file.id" class="js_accept_json">
+                                                    <field name="dms_file.id" id="document_id" invisible="1" t-att-value="dms_file.id"/>
+                                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                    <main class="modal-body" id="sign-dialog">
+                                                        <p>
+                                                            <span>By signing this proposal, I agree to the following terms:</span>
+                                                            <ul>
+                                                                <li><span>Accepted on the behalf of:</span> <b t-field="dms_file.project_id.partner_id.commercial_partner_id"/></li>
+                                                            </ul>
+                                                        </p>
+                                                        Personnummer:
+                                                        <input id="personnumber" name="Personnummer" class="form-control"/>
+                                                        <button type="button" id="start_signing_document_bankid" class="btn btn-primary" custom="click_cost">Signera</button>
+                                                        <div id="bankid_form">
+                                                        </div>
+                                                    </main>
+                                                </form>
+                                                <form id="autosubmit" action="" method="POST" class="js_accept_json">
+                                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                    <input type="hidden" name="relayState" id="relayState" />
+                                                    <input type="hidden" name="eidSignRequest" id="eidSignRequest"/>
+                                                    <input type="hidden" name="binding" id="binding"/>
+                                                </form>
+                                            </div>
+                                            <div class="modal-footer">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </tr>
-
                         </t>
                     </t>
                 </tbody>
