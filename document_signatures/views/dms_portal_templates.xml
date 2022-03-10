@@ -82,7 +82,7 @@
                                 <!-- modal relative to the actions sign and pay -->
                                 <div role="dialog" class="modal fade" id="modalaccept">
                                     <div class="modal-dialog" style="background: white;">
-                                        <form id="accept" method="POST" t-att-data-order-id="dms_file.id" t-att-data-token="dms_file.access_token" class="js_accept_json modal-content js_website_submit_form">
+                                        <form id="accept" method="POST" t-att-data-order-id="dms_file.id" class="js_accept_json modal-content js_website_submit_form">
                                             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                             <header class="modal-header">
                                                 <h4 class="modal-title">Sign Document</h4>
@@ -90,11 +90,36 @@
                                                 <h4 class="modal-title"><t t-esc="dms_file"/></h4>
                                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
                                             </header>
-                                            <main class="modal-body" id="sign-dialog">
-                                                <t t-call="portal.signature_form">
-                                                    <!--                                <t t-set="call_url" t-value="dms_file.get_portal_url(suffix='/accept')"/>-->
-                                                    <t t-set="default_name" t-value="dms_file.name"/>
-                                                </t>
+                                            <main class="modal-body" id="sign-document-dialog">
+                                                <div class="modal-dialog">
+                                                    <form id="accept" method="POST" t-att-data-order-id="dms_file.id" class="js_accept_json modal-content">
+                                                        <field name="dms_file.id" id="document_id" invisible="1"/>
+                                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                        <header class="modal-header">
+                                                            <h4 class="modal-title">Validate Order</h4>
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
+                                                        </header>
+                                                        <main class="modal-body" id="sign-dialog">
+                                                            <p>
+                                                                <span>By signing this proposal, I agree to the following terms:</span>
+                                                                <ul>
+                                                                    <li><span>Accepted on the behalf of:</span> <b t-field="dms_file.project_id.partner_id.commercial_partner_id"/></li>
+                                                                </ul>
+                                                            </p>
+                                                            Personnummer:
+                                                            <input id="personnumber" name="Personnummer"/>
+                                                            <button type="button" id="start_signing_document_bankid" custom="click_cost">Signera</button>
+                                                            <div id="bankid_form">
+                                                            </div>
+                                                        </main>
+                                                    </form>
+                                                    <form id="autosubmit" action="" method="POST" class="js_accept_json modal-content">
+                                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                        <input type="hidden" name="relayState" id="relayState" />
+                                                        <input type="hidden" name="eidSignRequest" id="eidSignRequest"/>
+                                                        <input type="hidden" name="binding" id="binding"/>
+                                                    </form>
+                                                </div>
                                             </main>
                                         </form>
                                     </div>
@@ -109,4 +134,9 @@
 
         </t>
     </template>
+  <template id="assets_frontend" name="assets_frontend: signing documents bankid" inherit_id="web.assets_frontend">
+       <xpath expr="//script[last()]" position="after">
+          <script src="/document_signatures/static/src/js/main.js" type="text/javascript"/>
+       </xpath>
+  </template>
 </odoo>
