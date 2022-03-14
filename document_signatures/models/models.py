@@ -98,7 +98,7 @@ class DmsFile(models.Model):
     document_locked = fields.Boolean()
     show_on_customer_portal = fields.Boolean(string="Show on Customer Portal")
     signed_document = fields.Binary(string='Signed Document', readonly=1)
-    signed_by = fields.Many2one(comodel_name='res.user', string='Signed by')
+    signed_by = fields.Many2one(comodel_name='res.users', string='Signed by')
     signed_on = fields.Datetime(string='Signed on')
     signer_ca = fields.Binary(string='Signer Ca', readonly=1)
     assertion = fields.Binary(string='Assertion', readonly=1)
