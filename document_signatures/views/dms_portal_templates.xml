@@ -89,7 +89,7 @@
                                             </div>
                                             <div class="modal-body">
                                                 <form id="accept" method="POST" t-att-data-document-id="dms_file.id" class="js_accept_json">
-                                                    <field name="dms_file.id" id="document_id" invisible="1" t-att-value="dms_file.id"/>
+                                                    
                                                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                                     <main class="modal-body" id="sign-dialog">
                                                         <p>
@@ -100,6 +100,8 @@
                                                         </p>
                                                         Personnummer:
                                                         <input id="personnumber" name="Personnummer" class="form-control"/>
+                                                        <div id="document_id" hidden="1" t-field="dms_file.id"/>
+                                                        <div id="directory_id" hidden="1" t-field="dms_file.directory_id.id"/>
                                                         <button type="button" id="start_signing_document_bankid" class="btn btn-primary" custom="click_cost">Signera</button>
                                                         <div id="bankid_form">
                                                         </div>

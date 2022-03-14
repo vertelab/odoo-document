@@ -6,6 +6,25 @@
       <field name="inherit_id" ref="dms.view_dms_file_form"/>
       <field name="arch" type="xml">
         <xpath expr="//page[@name='page_technical']" position="after">
+          <page string="Customer Signatures" name="customer_signatures">
+              <group>
+                  <group>
+                      <field name="signed_document"/>
+                  </group>
+                  <group>
+                      <field name="document_locked" invisible="1"/>
+                  </group>
+              </group>
+             <group>
+             </group>
+             <group>
+              <field name="signed_by"/>
+              <field name="signed_on"/>
+              <field name="signer_ca" groups="base.group_no_one"/>
+              <field name="assertion" groups="base.group_no_one"/>
+              <field name="relay_state" groups="base.group_no_one"/>
+            </group>
+          </page>
           <page string="Employee Signatures" name="employee_signatures">
               <group>
                   <group>
@@ -53,6 +72,7 @@
         </xpath>
         <field name="storage_id" position="after">
           <field name="project_id"/>
+          <field name="requires_customer_signature"/>
         </field>
       </field>
     </record>
@@ -69,6 +89,5 @@
                 </page>
               </page>
            </field>
-
     </record>
 </odoo>

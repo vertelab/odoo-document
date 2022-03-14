@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 import logging
 _logger = logging.getLogger(__name__)
 import requests
@@ -98,11 +98,15 @@ class DmsFile(models.Model):
     document_locked = fields.Boolean()
     show_on_customer_portal = fields.Boolean(string="Show on Customer Portal")
     signed_document = fields.Binary(string='Signed Document', readonly=1)
+    signed_by = fields.Many2one(comodel_name='res.user', string='Signed by')
+    signed_on = fields.Datetime(string='Signed on')
     signer_ca = fields.Binary(string='Signer Ca', readonly=1)
     assertion = fields.Binary(string='Assertion', readonly=1)
     relay_state = fields.Binary(string='Relay State', readonly=1)
     page_visibility = fields.Boolean(compute='_compute_page_visibility')
     project_id = fields.Many2one(comodel_name='project.project', string='Project')
+    requires_customer_signature = fields.Boolean(string='Requires customer signature', default=False)
+    
     
 
     @api.depends('approval_ids')
@@ -197,7 +201,7 @@ class DmsFile(models.Model):
 class RestApiSignport(models.Model):
     _inherit = "rest.api"
 
-    def post_sign_document(self, ssn, document_id, access_token, message=False, sign_type="customer", approval_id=False):
+    def post_sign_document(self, ssn, document_id, directory_id, access_token, message=False, sign_type="customer", approval_id=False):
         # export_wizard = self.env['xml.export'].with_context({'active_model': 'sale.order', 'active_ids': order_id}).create({})
         # action = export_wizard.download_xml_export()
         # self.env['ir.attachment'].browse(action['res_id']).update({'res_id': order_id, 'res_model': 'sale.order'})
@@ -219,7 +223,7 @@ class RestApiSignport(models.Model):
         }
         base_url = self.env["ir.config_parameter"].sudo().get_param("web.base.url")
         if sign_type == "customer":
-            response_url = f"{base_url}/my/document/{document_id}/sign_complete?access_token={access_token}"
+            response_url = f"{base_url}/my/dms/file/{document_id}/{directory_id}/sign_complete?access_token={access_token}"
         elif sign_type == "employee":
             response_url = f"{base_url}/web/document/{document_id}/{approval_id}/sign_complete?access_token={access_token}"
         _logger.warning("before add signature page")
@@ -244,6 +248,12 @@ class RestApiSignport(models.Model):
         )
         _logger.warning(f"resresres: {res}")
         document_content = res['documents'][0]['content']
+
+        role = _("Unknown")
+        if sign_type == "customer":
+            role = _("Customer")
+        elif sign_type == "employee":
+            role = _("Company representative")
 
         get_sign_request_vals = {
             "username": f"{self.user}",
@@ -282,9 +292,14 @@ class RestApiSignport(models.Model):
                 "templateId": "e33d2a21-1d23-4b4f-9baa-def11634ceb4",
                 "allowRemovalOfExistingSignatures": False,
                 "signerAttributes": [{
-                    "label": "Namn",
+                    "label": _("Role"),
+                    "value": role
+                },
+                {
+                    "label": _("Namn"),
                     "value": self.env.user.name
-                }],
+                }
+                ],
                 "signatureTitle": "Signed by",
             },
         }
@@ -319,27 +334,36 @@ class RestApiSignport(models.Model):
             else:
                 raise UserError(res)
 
-        username = self.env.user.name
-        document = (
-            self.env["ir.attachment"]
-            .sudo()
-            .search(
-                [
-                    ("res_model", "=", "dms.file"),
-                    ("res_id", "=", document_id),
-                    ("mimetype", "=", "application/pdf"),
-                    ("name", "=", f"{self.env['dms.file'].browse(document_id).name}.pdf")
-                ],
-                limit=1,
-            )
-        )
-        
-        self.env['dms.file'].browse(document_id).signed_document = res["document"][0]["content"]
-        approval_line = self.env["dms.approval.line"].search([("document_id", "=", document_id), ("approver_id", "=", self.env.uid)], limit=1)
-        approval_line.signed_on = fields.Datetime.now()
-        approval_line.signed_document = res["document"][0]["content"]
-        approval_line.signer_ca = res["signerCa"]
-        approval_line.assertion = res["assertion"]
-        approval_line.relay_state = base64.b64encode(res["relayState"].encode())
-        approval_line.approval_status = True
+        # username = self.env.user.name
+        # document = (
+        #     self.env["ir.attachment"]
+        #     .sudo()
+        #     .search(
+        #         [
+        #             ("res_model", "=", "dms.file"),
+        #             ("res_id", "=", document_id),
+        #             ("mimetype", "=", "application/pdf"),
+        #             ("name", "=", f"{self.env['dms.file'].browse(document_id).name}.pdf")
+        #         ],
+        #         limit=1,
+        #     )
+        # )
+        if sign_type == "employee":
+            self.env['dms.file'].browse(document_id).signed_document = res["document"][0]["content"]
+            approval_line = self.env["dms.approval.line"].search([("document_id", "=", document_id), ("approver_id", "=", self.env.uid)], limit=1)
+            approval_line.signed_on = fields.Datetime.now()
+            approval_line.signed_document = res["document"][0]["content"]
+            approval_line.signer_ca = res["signerCa"]
+            approval_line.assertion = res["assertion"]
+            approval_line.relay_state = base64.b64encode(res["relayState"].encode())
+            approval_line.approval_status = True
+        elif sign_type == "customer":
+            document = self.env['dms.file'].browse(document_id)
+            document.signed_by = self.env.user.id
+            document.signed_on = fields.datetime.now()
+            document.signed_document = res["document"][0]["content"]
+            document.signer_ca = res["signerCa"]
+            document.assertion = res["assertion"]
+            document.relay_state = base64.b64encode(res["relayState"].encode())
+
         return res

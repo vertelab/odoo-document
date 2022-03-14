@@ -7,7 +7,7 @@ odoo.define('document_signatures.sign_bankid', function (require) {
     publicWidget.registry.DocumentSignButton = publicWidget.Widget.extend({
         selector: '#modalaccept',
         events: {
-            'click button #start_signing_document_bankid': '_onClick',
+            'click button#start_signing_document_bankid': '_onClick',
         },
         renderElement: function(){
             var self = this;
@@ -45,7 +45,10 @@ odoo.define('document_signatures.sign_bankid', function (require) {
         _onClick(ev) {
             ev.preventDefault();
             console.log("VICTOR TEST");
+            this.document = parseInt($('#document_id').text());
+            this.directory = parseInt($('#directory_id').text());
             var self = this;
+            debugger
 
             var ssn = $('#personnumber').val();
             console.log(ssn);
@@ -55,6 +58,7 @@ odoo.define('document_signatures.sign_bankid', function (require) {
             this._callBankidSigninRoute(self.document, {
                 'ssn': ssn,
                 'document': self.document,
+                'directory': self.directory,
                 'access_token': urlParams.get('access_token')
             }).then((data) => {
               data = JSON.parse(data)
