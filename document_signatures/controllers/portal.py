@@ -97,12 +97,12 @@ class ExtendCustomerPortal(CustomerPortal):
                 request.env["dms.file"].sudo().search(domain, order=sort_br)
             )
             grouped_dms_file_items = [
-                request.env['dms.file'].concat(*g) for k, g in groupbyelem(dms_file_items, itemgetter('project_id'))
+                request.env['dms.file'].sudo().concat(*g) for k, g in groupbyelem(dms_file_items, itemgetter('project_id'))
             ]
         else:
             dms_file_items = request.env["dms.file"].search(domain, order=sort_br)
             grouped_dms_file_items = [
-                request.env['dms.file'].concat(*g) for k, g in groupbyelem(dms_file_items, itemgetter('project_id'))
+                request.env['dms.file'].sudo().concat(*g) for k, g in groupbyelem(dms_file_items, itemgetter('project_id'))
             ]
         request.session["my_dms_file_history"] = dms_file_items.ids
         dms_parent_categories = dms_directory_sudo.sudo()._get_parent_categories(
