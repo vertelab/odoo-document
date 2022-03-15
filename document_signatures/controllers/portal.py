@@ -8,9 +8,9 @@ from odoo.osv.expression import OR
 # from odoo.addons.portal.controllers.portal import CustomerPortal
 from odoo.addons.dms.controllers.portal import CustomerPortal
 from odoo.addons.web.controllers.main import content_disposition, ensure_db
-
-
-
+from odoo.tools import groupby as groupbyelem
+from collections import OrderedDict
+from operator import itemgetter
 
 from odoo import fields, http, _
 import json
@@ -19,6 +19,7 @@ import binascii
 from odoo.osv import expression
 import logging
 _logger = logging.getLogger(__name__)
+
 
 class ExtendCustomerPortal(CustomerPortal):
 
@@ -35,6 +36,7 @@ class ExtendCustomerPortal(CustomerPortal):
         filterby=None,
         search=None,
         search_in="name",
+        groupby=None,
         access_token=None,
         **kw
     ):
@@ -94,8 +96,14 @@ class ExtendCustomerPortal(CustomerPortal):
             dms_file_items = (
                 request.env["dms.file"].sudo().search(domain, order=sort_br)
             )
+            grouped_dms_file_items = [
+                request.env['dms.file'].sudo().concat(*g) for k, g in groupbyelem(dms_file_items, itemgetter('project_id'))
+            ]
         else:
             dms_file_items = request.env["dms.file"].search(domain, order=sort_br)
+            grouped_dms_file_items = [
+                request.env['dms.file'].sudo().concat(*g) for k, g in groupbyelem(dms_file_items, itemgetter('project_id'))
+            ]
         request.session["my_dms_file_history"] = dms_file_items.ids
         dms_parent_categories = dms_directory_sudo.sudo()._get_parent_categories(
             access_token
@@ -113,6 +121,7 @@ class ExtendCustomerPortal(CustomerPortal):
             "access_token": access_token,
             "dms_directory": dms_directory_sudo,
             "dms_files": dms_file_items,
+            "grouped_dms_file_items": grouped_dms_file_items,
             "dms_parent_categories": dms_parent_categories,
         }
         return request.render("dms.portal_my_dms", values)
