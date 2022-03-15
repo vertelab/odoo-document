@@ -1,4 +1,14 @@
 <odoo>
+    <template id="dms.portal_my_home_dms" name="Portal My Home : dms entries" inherit_id="portal.portal_my_home" priority="20">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-if="dms_file_count" t-call="portal.portal_docs_entry">
+                <t t-set="title">Documents</t>
+                <t t-set="url" t-value="'/my/dms/files'" />
+                <t t-set="count" t-value="dms_file_count" />
+            </t>
+        </xpath>
+    </template>
+
     <template id="dms.portal_my_dms" name="My DMS">
         <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs_searchbar" t-value="True" />
@@ -131,13 +141,12 @@
                     </t>
                 </tbody>
             </t>
-
-
         </t>
     </template>
-  <template id="assets_frontend" name="assets_frontend: signing documents bankid" inherit_id="web.assets_frontend">
-       <xpath expr="//script[last()]" position="after">
-          <script src="/document_signatures/static/src/js/main.js" type="text/javascript"/>
-       </xpath>
-  </template>
+
+    <template id="assets_frontend" name="assets_frontend: signing documents bankid" inherit_id="web.assets_frontend">
+        <xpath expr="//script[last()]" position="after">
+            <script src="/document_signatures/static/src/js/main.js" type="text/javascript"/>
+        </xpath>
+    </template>
 </odoo>

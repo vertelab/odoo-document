@@ -23,6 +23,88 @@ _logger = logging.getLogger(__name__)
 
 class ExtendCustomerPortal(CustomerPortal):
 
+    def _prepare_portal_layout_values(self):
+        values = super()._prepare_portal_layout_values()
+        ids = request.env["dms.file"].search([
+            ("is_hidden", "=", False),
+            ("project_id.partner_id", "=", request.env.user.partner_id.id),
+            ("show_on_customer_portal", "=", True)
+        ])
+        values.update({"dms_file_count": len(ids)})
+        return values
+
+    @http.route(
+        ["/my/dms/files"],
+        type="http",
+        auth="public",
+        website=True,
+    )
+    def portal_my_dms_directory_files(
+            self,
+            sortby=None,
+            filterby=None,
+            search=None,
+            search_in="name",
+            access_token=None,
+            **kw
+    ):
+        ensure_db()
+        # operations
+        searchbar_sortings = {"name": {"label": _("Name"), "order": "name asc"}}
+        # default sortby br
+        if not sortby:
+            sortby = "name"
+        sort_br = searchbar_sortings[sortby]["order"]
+        # search
+        searchbar_inputs = {
+            "name": {"input": "name", "label": _("Name")},
+        }
+        if not filterby:
+            filterby = "name"
+
+        # dms_files_count
+        domain = [
+            ("is_hidden", "=", False),
+            ("project_id.partner_id", "=", request.env.user.partner_id.id),
+            ("show_on_customer_portal", "=", True)
+        ]
+        # search
+        if search and search_in:
+            search_domain = []
+            if search_in == "name":
+                search_domain = OR([search_domain, [("name", "ilike", search)]])
+            domain += search_domain
+        # items
+        if access_token:
+            dms_file_items = (
+                request.env["dms.file"].sudo().search(domain, order=sort_br)
+            )
+            grouped_dms_file_items = [
+                request.env['dms.file'].sudo().concat(*g) for k, g in
+                groupbyelem(dms_file_items, itemgetter('project_id'))
+            ]
+        else:
+            dms_file_items = request.env["dms.file"].search(domain, order=sort_br)
+            grouped_dms_file_items = [
+                request.env['dms.file'].sudo().concat(*g) for k, g in
+                groupbyelem(dms_file_items, itemgetter('project_id'))
+            ]
+        request.session["my_dms_file_history"] = dms_file_items.ids
+
+        values = {
+            "page_name": "dms_directory",
+            "default_url": "/my/dms/files",
+            "searchbar_sortings": searchbar_sortings,
+            "searchbar_inputs": searchbar_inputs,
+            "search_in": search_in,
+            "sortby": sortby,
+            "filterby": filterby,
+            "access_token": access_token,
+            "dms_files": dms_file_items,
+            "grouped_dms_file_items": grouped_dms_file_items,
+        }
+        return request.render("dms.portal_my_dms", values)
+
     @http.route(
         ["/my/dms/directory/<int:dms_directory_id>"],
         type="http",
