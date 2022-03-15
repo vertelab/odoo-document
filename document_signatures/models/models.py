@@ -14,10 +14,13 @@ import uuid
 
     
 class DmsAddApproverWizard(models.TransientModel):
-    _name="dms.approver.add.wizard"
+    _name = "dms.approver.add.wizard"
+    _description = "DMS Approval Wizard"
+
     def _get_document(self):
         document = self.env["dms.file"].browse(self.env.context.get('active_ids'))
         return document
+
     @api.model
     def _get_approvers_domain(self):
         group_ids = []
@@ -33,20 +36,19 @@ class DmsAddApproverWizard(models.TransientModel):
         self.document.write({'approval_ids': [(4, line.id, 0)]})
 
 
-
 class SignportRequest(models.TransientModel):
     _name = 'signport.request'
+    _description = "Sign Port Request"
 
     relay_state = fields.Char()
     eid_sign_request = fields.Char()
     binding = fields.Char()
     signing_service_url = fields.Char()
-    
-    
 
     def apply_configuration(self):
         """Function for applying the approval configuration"""
         return True
+
 
 class DmsApproval(models.Model):
     _name = 'dms.approval'
@@ -60,8 +62,6 @@ class DmsApproval(models.Model):
     document_approver_ids = fields.Many2many('res.users', 'document_id', string='Document Approver', domain=lambda self: [
         ('groups_id', 'in', self.env.ref('base.group_user').id)],
                                             help='In this field you can add the approvers for the document')
-    
-    
 
     def apply_configuration(self):
         """Function for applying the approval configuration"""
@@ -98,7 +98,7 @@ class DmsFile(models.Model):
     document_locked = fields.Boolean()
     show_on_customer_portal = fields.Boolean(string="Show on Customer Portal")
     signed_document = fields.Binary(string='Signed Document', readonly=1)
-    signed_by = fields.Many2one(comodel_name='res.user', string='Signed by')
+    signed_by = fields.Many2one(comodel_name='res.users', string='Signed by')
     signed_on = fields.Datetime(string='Signed on')
     signer_ca = fields.Binary(string='Signer Ca', readonly=1)
     assertion = fields.Binary(string='Assertion', readonly=1)
@@ -106,8 +106,6 @@ class DmsFile(models.Model):
     page_visibility = fields.Boolean(compute='_compute_page_visibility')
     project_id = fields.Many2one(comodel_name='project.project', string='Project')
     requires_customer_signature = fields.Boolean(string='Requires customer signature', default=False)
-    
-    
 
     @api.depends('approval_ids')
     def _compute_page_visibility(self):
@@ -149,6 +147,7 @@ class DmsFile(models.Model):
                     'target': 'self',
                     'url': f"{base_url}/web/signport_form/document/{self.id}/{signport_request.id}/start_sign",
                 }
+
     def document_unlock(self):
         self.document_locked = False
         for signature in self.approval_ids:
@@ -195,7 +194,6 @@ class DmsFile(models.Model):
             self.document_fully_approved = True
         else:
             self.document_fully_approved = False
-
 
 
 class RestApiSignport(models.Model):
