@@ -104,10 +104,22 @@ class DmsFile(models.Model):
     assertion = fields.Binary(string='Assertion', readonly=1)
     relay_state = fields.Binary(string='Relay State', readonly=1)
     page_visibility = fields.Boolean(compute='_compute_page_visibility')
-    project_id = fields.Many2one(comodel_name='project.project', string='Project')
+    project_id = fields.Many2one(comodel_name='project.project', string='Project', compute='_compute_project_id')
     requires_customer_signature = fields.Boolean(string='Requires customer signature', default=False)
     
     
+    @api.depends('directory_id')
+    def _compute_project_id(self):
+        """Compute function for making the approval page visible/invisible"""
+        for document in self:
+            _logger.warning("#"*99)
+            _logger.warning(document.directory_id.model_id.model)
+            if document.project_id:
+                return
+            elif document.directory_id.model_id.model == "project.project":
+                _logger.warning(document.directory_id.record_ref)
+                document.project_id = document.directory_id.record_ref
+
 
     @api.depends('approval_ids')
     def _compute_page_visibility(self):
