@@ -36,7 +36,6 @@
     'repository': 'https://github.com/vertelab/odoo-document',
     'depends': ['base'],
     'data': [
-        # 'views/assets.xml',
         'views/ir_attachment_view.xml',
         'data/ir_config_parameter.xml',
     ],
