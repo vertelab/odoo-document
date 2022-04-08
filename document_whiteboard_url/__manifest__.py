@@ -7,7 +7,7 @@
     "author": "Vertelab AB",
     "website": "https://vertelab.com",
     "license": "AGPL-3",
-    "depends": ["document_url"],
+    "depends": ["document_url", "document_whiteboard"],
     "data": [
         "wizard/document_url_view.xml",
     ],

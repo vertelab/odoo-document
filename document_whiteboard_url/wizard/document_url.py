@@ -33,7 +33,7 @@ class WhiteboardWizard(models.TransientModel):
             for active_id in self.env.context.get("active_ids", []):
                 attachment = {
                     "name": form.name,
-                    "type": "whiteboard" if self.is_whiteboard_url else "url",
+                    "type": "url",
                     "url": url.geturl(),
                     "res_id": active_id,
                     "res_model": self.env.context["active_model"],
