@@ -9,6 +9,7 @@
     "summary": "Access your documents via SFTP",
     "depends": [
         'base',
+        'mail'
     ],
     "demo": [
         "demo/res_users.xml",
@@ -17,6 +18,7 @@
         "demo/res_users.xml",
         "views/res_users.xml",
         "data/ir_config_parameter.xml",
+        "data/ir_cron.xml",
     ],
 #    "post_init_hook": 'install_hook',
 #    'uninstall_hook': 'uninstall_hook',

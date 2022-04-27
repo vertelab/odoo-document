@@ -97,11 +97,12 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
 
     def _sales_team(self):
         # self.env = self.env(cr=self.env.registry.cursor())
+        document_sftp_path = self.env['ir.config_parameter'].sudo().get_param('document_sftp.path')
         team_id = self.env['crm.team'].search([])
 
         for rec in team_id:
             current_dir = pathlib.Path().resolve()
-            sale_dir_path = f"{current_dir}/{rec.name}-{rec._name}-{rec.id}"
+            sale_dir_path = f"{document_sftp_path}/{rec.name}-{rec._name}-{rec.id}"
             if not path.exists(sale_dir_path):
                 try:
                     os.mkdir(sale_dir_path)

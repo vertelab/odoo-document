@@ -5,6 +5,9 @@ import base64
 import os
 from odoo import api, models, SUPERUSER_ID
 from odoo.modules.registry import Registry
+import os.path
+from os import path
+import pathlib
 
 try:
     from paramiko import SFTP_NO_SUCH_FILE, SFTP_PERMISSION_DENIED
@@ -122,3 +125,18 @@ class DocumentSFTPRootByModel(models.Model):
                 'name': filename,
                 'type': 'binary'
             })
+
+    # cron job to upload to odoo frequently
+    def _upload_attachments_to_crm(self):
+        document_sftp_path = self.env['ir.config_parameter'].sudo().get_param('document_sftp.path')
+        team_id = self.env['crm.team'].search([])
+
+        for rec in team_id:
+            sale_dir_path = f"{document_sftp_path}/{rec.name}-{rec._name}-{rec.id}"
+            if path.exists(sale_dir_path):
+                for x_dir in os.listdir(sale_dir_path):
+                    attachment_id = self.env['ir.attachment'].search([('name', '=', x_dir)])
+                    f = open(f"{sale_dir_path}/{x_dir}", 'rb')
+                    if not attachment_id:
+                        self._upload(f, f"{sale_dir_path}/{x_dir}")
+
