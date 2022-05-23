@@ -5,10 +5,10 @@ odoo.define('document_signatures.sign_bankid', function (require) {
     var publicWidget = require('web.public.widget');
 
     publicWidget.registry.DocumentSignButton = publicWidget.Widget.extend({
-        selector: '#modalaccept',
+        selector: '.modal',
         events: {
             'click button#start_signing_document_bankid': '_onClick',
-        },
+        }, 
         renderElement: function(){
             var self = this;
             this._super();
@@ -38,19 +38,21 @@ odoo.define('document_signatures.sign_bankid', function (require) {
             this.document = this.$el.find('document_id').data();
         },
         /**
-         * Reacts to the click on the -/+ buttons
+         * Reacts to the press of the sign button in the sign document modal
          *
-         * @param {Event} ev
+         * @param {Event} e
          */
-        _onClick(ev) {
-            ev.preventDefault();
+        _onClick(e) {
+            console.log(e)
+            e.preventDefault();
             console.log("VICTOR TEST");
-            this.document = parseInt($('#document_id').text());
-            this.directory = parseInt($('#directory_id').text());
+            this.document = parseInt($(e.delegateTarget).find('#document_id')[0]['innerText']);
+            this.directory = parseInt($(e.delegateTarget).find('#directory_id')[0]['innerText']);
+            console.log("document_id: " + this.document);
             var self = this;
             debugger
 
-            var ssn = $('#personnumber').val();
+            var ssn = $(e.delegateTarget).find('#personnumber').val();
             console.log(ssn);
             const queryString = window.location.search;
             const urlParams = new URLSearchParams(queryString);

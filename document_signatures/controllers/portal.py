@@ -25,9 +25,11 @@ class ExtendCustomerPortal(CustomerPortal):
 
     def _prepare_portal_layout_values(self):
         values = super()._prepare_portal_layout_values()
+        _logger.warning("row 28")
         ids = request.env["dms.file"].search([
             ("is_hidden", "=", False),
-            ("project_id.partner_id", "=", request.env.user.partner_id.id),
+            ("record_ref._name", "=", "project.project"),
+            ("record_ref.partner_id", "=", request.env.user.partner_id.id),
             ("show_on_customer_portal", "=", True)
         ])
         values.update({"dms_file_count": len(ids)})
@@ -65,7 +67,8 @@ class ExtendCustomerPortal(CustomerPortal):
         # dms_files_count
         domain = [
             ("is_hidden", "=", False),
-            ("project_id.partner_id", "=", request.env.user.partner_id.id),
+            ("record_ref._name", "=", "project.project"),
+            ("record_ref.partner_id", "=", request.env.user.partner_id.id),
             ("show_on_customer_portal", "=", True)
         ]
         # search
@@ -76,18 +79,19 @@ class ExtendCustomerPortal(CustomerPortal):
             domain += search_domain
         # items
         if access_token:
+            _logger.warning("row 82")
             dms_file_items = (
                 request.env["dms.file"].sudo().search(domain, order=sort_br)
-            )
+            ).sudo()
             grouped_dms_file_items = [
                 request.env['dms.file'].sudo().concat(*g) for k, g in
-                groupbyelem(dms_file_items, itemgetter('project_id'))
+                groupbyelem(dms_file_items, itemgetter('record_ref'))
             ]
         else:
-            dms_file_items = request.env["dms.file"].search(domain, order=sort_br)
+            dms_file_items = request.env["dms.file"].search(domain, order=sort_br).sudo()
             grouped_dms_file_items = [
                 request.env['dms.file'].sudo().concat(*g) for k, g in
-                groupbyelem(dms_file_items, itemgetter('project_id'))
+                groupbyelem(dms_file_items, itemgetter('record_ref'))
             ]
         request.session["my_dms_file_history"] = dms_file_items.ids
 
@@ -164,7 +168,8 @@ class ExtendCustomerPortal(CustomerPortal):
         domain = [
             ("is_hidden", "=", False),
             ("directory_id", "=", dms_directory_id),
-            ("project_id.partner_id", "=", request.env.user.partner_id.id),
+            ("record_ref._name", "=", "project.project"),
+            ("record_ref.partner_id", "=", request.env.user.partner_id.id),
             ("show_on_customer_portal", "=", True)
         ]
         # search
@@ -175,16 +180,19 @@ class ExtendCustomerPortal(CustomerPortal):
             domain += search_domain
         # items
         if access_token:
+            _logger.warning("row 183")
             dms_file_items = (
                 request.env["dms.file"].sudo().search(domain, order=sort_br)
             )
+            _logger.warning("row 187")
             grouped_dms_file_items = [
-                request.env['dms.file'].sudo().concat(*g) for k, g in groupbyelem(dms_file_items, itemgetter('project_id'))
+                request.env['dms.file'].sudo().concat(*g) for k, g in groupbyelem(dms_file_items, itemgetter('record_ref'))
             ]
         else:
-            dms_file_items = request.env["dms.file"].search(domain, order=sort_br)
+            dms_file_items = request.env["dms.file"].sudo().search(domain, order=sort_br)
+            _logger.warning(f"row 193: {dms_file_items=}")
             grouped_dms_file_items = [
-                request.env['dms.file'].sudo().concat(*g) for k, g in groupbyelem(dms_file_items, itemgetter('project_id'))
+                request.env['dms.file'].sudo().concat(*g) for k, g in groupbyelem(dms_file_items, itemgetter('record_ref'))
             ]
         request.session["my_dms_file_history"] = dms_file_items.ids
         dms_parent_categories = dms_directory_sudo.sudo()._get_parent_categories(
@@ -279,8 +287,10 @@ class ExtendCustomerPortal(CustomerPortal):
     )
     def start_sign(self, document_id):
         _logger.warning("3"*999)
+        _logger.warning(f"{document_id=}")
         data = json.loads(request.httprequest.data)
         ssn = data.get("params", {}).get("ssn")
+        _logger.warning(f"{ssn=}")
         if not ssn:
             return False
         api_signport = self.get_signport_api()

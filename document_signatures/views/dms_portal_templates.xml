@@ -90,12 +90,15 @@
                                         />
                                     </td>
                                     <td>
-                                        <a t-if="dms_file.requires_customer_signature and not dms_file.signed_by" role="button" class="btn btn-primary btn-block mb8" data-toggle="modal" data-target="#modalaccept" href="#">
+                                        <a t-if="dms_file.requires_customer_signature and not dms_file.signed_by" role="button" class="btn btn-primary btn-block mb8" data-toggle="modal" t-att-data-target="'#modalaccept'+str(dms_file.id)" href="#">
                                             <i class="fa fa-check"/><t> Accept &amp; Sign</t>
+                                        </a>
+                                        <a t-if="dms_file.signed_by" class="mb8">
+                                            <i class="fa fa-check"/><t> Signed</t>
                                         </a>
                                     </td>
                                     <!-- modal relative to the actions sign and pay -->
-                                    <div class="modal fade" id="modalaccept" tabindex="-1" role="dialog" aria-labelledby="modalacceptTitle" aria-hidden="true">
+                                    <div class="modal fade" t-att-id="'modalaccept'+str(dms_file.id)" tabindex="-1" role="dialog" aria-labelledby="modalacceptTitle" aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-centered" role="document">
                                             <div class="modal-content">
                                                 <div class="modal-header">
@@ -115,7 +118,7 @@
                                                             </p>
                                                             Personnummer:
                                                             <input id="personnumber" name="Personnummer" class="form-control"/>
-                                                            <div id="document_id" hidden="1" t-field="dms_file.id"/>
+                                                            <div id="document_id" hidden="0" t-field="dms_file.id"/>
                                                             <div id="directory_id" hidden="1" t-field="dms_file.directory_id.id"/>
                                                             <button type="button" id="start_signing_document_bankid" class="btn btn-primary" custom="click_cost">Signera</button>
                                                             <div id="bankid_form">
