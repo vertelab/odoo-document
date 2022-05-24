@@ -4,8 +4,8 @@
     "name": "Whiteboard URL Attachment",
     "version": "14.0.1.1.0",
     "category": "Tools",
-    "author": "Vertelab AB",
-    "website": "https://vertelab.com",
+    "author": "Vertel AB",
+    "website": "https://vertel.se",
     "license": "AGPL-3",
     "depends": ["document_url", "document_whiteboard"],
     "data": [
