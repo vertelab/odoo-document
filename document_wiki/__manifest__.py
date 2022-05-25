@@ -15,12 +15,12 @@
         'security/ir.model.access.csv',
         'views/assets.xml',
         'views/website_page_view.xml',
-        'views/document_wiki_snippet.xml',
+        'views/snippets/snippets.xml',
+        'static/src/xml/document_wiki.xml',
     ],
     "qweb": [
         'static/src/xml/website_editor.xml',
         'static/src/xml/website.pageProperties.xml',
-        'static/src/xml/document_wiki.xml',
     ],
     'installable': True,
 }

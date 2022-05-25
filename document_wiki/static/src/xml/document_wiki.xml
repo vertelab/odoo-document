@@ -1,30 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<templates xml:space="preserve">
+<odoo>
     <!-- Recently Viewed Products Carousel -->
-    <t t-name="document_wiki.wiki_pages">
+    <template id="latest_document_wiki" name="Document Wiki Posts">
         <div class="container">
-            <t t-if="wiki_pages">
-                <div class="container">
-                    <h6 class="o_wevent_sidebar_title">
+            <div class="container">
+                <h6 class="o_wevent_sidebar_title">
                         Wiki Pages
-                    </h6>
-                    <div class="row">
-                        <ul class="mb-3 col-lg-12">
-                            <div class="row">
-                                <t t-foreach="wiki_pages" t-as="page">
-                                    <div class="col-lg-3 s_col_no_bgcolor pb24">
-                                        <li class="row list-group-item d-flex justify-content-between" style="border:unset !important">
-                                            <a t-att-href="page['url']">
-                                                <span t-esc="page['name']"/>
-                                            </a>
-                                        </li>
-                                    </div>
-                                </t>
-                            </div>
-                        </ul>
-                    </div>
+                </h6>
+                <div class="row">
+                    <ul class="mb-3 col-lg-12">
+                        <div class="row">
+                            <t t-foreach="pages" t-as="page">
+                                <div class="col-lg-3 s_col_no_bgcolor pb24">
+                                    <li class="row list-group-item d-flex justify-content-between" style="border:unset !important">
+                                        <a t-att-href="page['url']">
+                                            <span t-esc="page['name']"/>
+                                        </a>
+                                    </li>
+                                </div>
+                            </t>
+                        </div>
+                    </ul>
                 </div>
-            </t>
+            </div>
         </div>
-    </t>
-</templates>
+    </template>
+</odoo>

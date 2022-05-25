@@ -1,48 +1,50 @@
-odoo.define('document_wiki.advanced_wiki_snippet',function(require) {
+odoo.define('document_wiki.advanced_wiki_snippet', function (require) {
     'use strict';
 
     var core = require('web.core');
-    var options = require('web_editor.snippets.options');
-    var rpc = require('web.rpc');
-    var wUtils = require('website.utils');
-    var _t = core._t;
 
     var qweb = core.qweb;
 
     var publicWidget = require('web.public.widget');
 
     publicWidget.registry.advanced_wiki = publicWidget.Widget.extend({
-        selector: '.s_wiki_section',
-        xmlDependencies: ['/document_wiki/static/src/xml/document_wiki.xml'],
+        selector: '.oe_wiki_pages',
+        // xmlDependencies: ['/document_wiki/static/src/xml/document_wiki.xml'],
         disabledInEditableMode: false,
 
         init: function () {
             this._super.apply(this, arguments);
-            let url = window.location.href
-            this.url = url.substr(0, url.indexOf('#'))
+            this.url = window.location.href
         },
 
 
         start: function () {
-            this._fetch()
+            this._render_posts()
             return this._super.apply(this, arguments);
         },
+        _render_posts: function () {
+            var self = this;
+            const data = self.$target[0].dataset;
+            // Implimpent const depth = parseInt(data.treeDepth) || 4;
+            const template = data.template || '';
+            const order = data.order || '';
 
-        _fetch: function () {
-            const self = this;
-            return this._rpc({
-                route: '/website/wiki/pages',
-                params: {current_url: self.url}
-            }).then(res => {
-                self._render(res)
+            self.$target.empty();
+            self.$target.attr('contenteditable', 'False');
 
-            });
+            var prom = new Promise(function (resolve) {
+                self._rpc({
+                    route: '/website/wiki/render_wiki_pages',
+                    params: {
+                        current_url: self.url,
+                        template: template,
+                        order: order
+                    }
+                }).then(function (posts) {
+                    self.$target.html(posts)
+                    resolve()
+                })
+            })
         },
-
-        _render: function (res) {
-            this.$(".document_wiki_pages_list").replaceWith(
-                $(qweb.render('document_wiki.wiki_pages', res))
-            )
-        }
     })
 });

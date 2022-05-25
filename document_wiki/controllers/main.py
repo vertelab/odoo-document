@@ -2,6 +2,7 @@ import base64
 import datetime
 import json
 import os
+import re
 import logging
 import werkzeug.urls
 import werkzeug.utils
@@ -24,11 +25,10 @@ class WikiDoc(http.Controller):
 
     @http.route('/website/wiki/pages', type='json', auth="public", website=True)
     def website_wiki(self, **kwargs):
-        base_url = request.env['ir.config_parameter'].get_param('web.base.url')
-        sub_url = kwargs.get('current_url').split(base_url)[1]
+        sub_url = re.split("(?<=[a-z,0-9])/{1}", kwargs.get('current_url'))[1]
         current_website_id = request.website
         page_id = request.env['website.page'].search([
-            ('url', '=', sub_url),
+            ('url', '=', f'/{sub_url}'),
             ('website_id', '=', current_website_id.id)
         ], limit=1)
         result = {'wiki_pages': []}
@@ -39,6 +39,19 @@ class WikiDoc(http.Controller):
                     'name': wiki_page.page_id.name,
                 })
         return result
+
+    @http.route(['/website/wiki/render_wiki_pages'], type='json', auth='public', website=True)
+    def render_latest_posts(self, template, order, **kwargs):
+        sub_url = re.split("(?<=[a-z,0-9])/{1}", kwargs.get('current_url'))[1]
+        if '#' in sub_url:
+            sub_url = sub_url.replace('#', '');
+        current_website_id = request.website
+        page_id = request.env['website.page'].search([
+            ('url', '=', f'/{sub_url}'),
+            ('website_id', '=', current_website_id.id)
+        ], limit=1)
+        pages = page_id.wiki_ids.page_id
+        return request.website.viewref(template)._render({'pages': pages})
 
 
 class NewPage(Website):
