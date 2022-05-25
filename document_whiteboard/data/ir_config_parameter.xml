@@ -1,0 +1,8 @@
+<odoo>
+    <data noupdate="1">
+        <record id="whiteboard_base_url" model="ir.config_parameter">
+            <field name="key">whiteboard_base_url</field>
+            <field name="value"></field>
+        </record>
+    </data>
+</odoo>

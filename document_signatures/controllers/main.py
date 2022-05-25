@@ -33,6 +33,7 @@ class DocumentMultiApproval(http.Controller):
             'binding': signport_request.binding,
             'signing_service_url': signport_request.signing_service_url,
         }
+        _logger.warning(f"/web/signport_form/document/<int:document_id>/<int:signport_id>/start_sign {values=}")
         return request.render("document_signatures.signport_form", values)
 
 
@@ -51,6 +52,7 @@ class DocumentMultiApproval(http.Controller):
             "eidSignResponse": res["EidSignResponse"],
             "binding": res["Binding"],
         }
+        _logger.warning("complete"*999)
 
         api_signport = request.env.ref("rest_signport.api_signport")
         res = api_signport.sudo().document_signport_post(data, document_id, "/CompleteSigning", sign_type="employee")

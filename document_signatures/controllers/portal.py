@@ -8,9 +8,9 @@ from odoo.osv.expression import OR
 # from odoo.addons.portal.controllers.portal import CustomerPortal
 from odoo.addons.dms.controllers.portal import CustomerPortal
 from odoo.addons.web.controllers.main import content_disposition, ensure_db
-
-
-
+from odoo.tools import groupby as groupbyelem
+from collections import OrderedDict
+from operator import itemgetter
 
 from odoo import fields, http, _
 import json
@@ -20,7 +20,94 @@ from odoo.osv import expression
 import logging
 _logger = logging.getLogger(__name__)
 
+
 class ExtendCustomerPortal(CustomerPortal):
+
+    def _prepare_portal_layout_values(self):
+        values = super()._prepare_portal_layout_values()
+        _logger.warning("row 28")
+        ids = request.env["dms.file"].search([
+            ("is_hidden", "=", False),
+            ("record_ref._name", "=", "project.project"),
+            ("record_ref.partner_id", "=", request.env.user.partner_id.id),
+            ("show_on_customer_portal", "=", True)
+        ])
+        values.update({"dms_file_count": len(ids)})
+        return values
+
+    @http.route(
+        ["/my/dms/files"],
+        type="http",
+        auth="public",
+        website=True,
+    )
+    def portal_my_dms_directory_files(
+            self,
+            sortby=None,
+            filterby=None,
+            search=None,
+            search_in="name",
+            access_token=None,
+            **kw
+    ):
+        ensure_db()
+        # operations
+        searchbar_sortings = {"name": {"label": _("Name"), "order": "name asc"}}
+        # default sortby br
+        if not sortby:
+            sortby = "name"
+        sort_br = searchbar_sortings[sortby]["order"]
+        # search
+        searchbar_inputs = {
+            "name": {"input": "name", "label": _("Name")},
+        }
+        if not filterby:
+            filterby = "name"
+
+        # dms_files_count
+        domain = [
+            ("is_hidden", "=", False),
+            ("record_ref._name", "=", "project.project"),
+            ("record_ref.partner_id", "=", request.env.user.partner_id.id),
+            ("show_on_customer_portal", "=", True)
+        ]
+        # search
+        if search and search_in:
+            search_domain = []
+            if search_in == "name":
+                search_domain = OR([search_domain, [("name", "ilike", search)]])
+            domain += search_domain
+        # items
+        if access_token:
+            _logger.warning("row 82")
+            dms_file_items = (
+                request.env["dms.file"].sudo().search(domain, order=sort_br)
+            ).sudo()
+            grouped_dms_file_items = [
+                request.env['dms.file'].sudo().concat(*g) for k, g in
+                groupbyelem(dms_file_items, itemgetter('record_ref'))
+            ]
+        else:
+            dms_file_items = request.env["dms.file"].search(domain, order=sort_br).sudo()
+            grouped_dms_file_items = [
+                request.env['dms.file'].sudo().concat(*g) for k, g in
+                groupbyelem(dms_file_items, itemgetter('record_ref'))
+            ]
+        request.session["my_dms_file_history"] = dms_file_items.ids
+
+        values = {
+            "page_name": "dms_directory",
+            "default_url": "/my/dms/files",
+            "searchbar_sortings": searchbar_sortings,
+            "searchbar_inputs": searchbar_inputs,
+            "search_in": search_in,
+            "sortby": sortby,
+            "filterby": filterby,
+            "access_token": access_token,
+            "dms_files": dms_file_items,
+            "grouped_dms_file_items": grouped_dms_file_items,
+        }
+        return request.render("dms.portal_my_dms", values)
 
     @http.route(
         ["/my/dms/directory/<int:dms_directory_id>"],
@@ -35,6 +122,7 @@ class ExtendCustomerPortal(CustomerPortal):
         filterby=None,
         search=None,
         search_in="name",
+        groupby=None,
         access_token=None,
         **kw
     ):
@@ -80,7 +168,8 @@ class ExtendCustomerPortal(CustomerPortal):
         domain = [
             ("is_hidden", "=", False),
             ("directory_id", "=", dms_directory_id),
-            ("project_id.partner_id", "=", request.env.user.partner_id.id),
+            ("record_ref._name", "=", "project.project"),
+            ("record_ref.partner_id", "=", request.env.user.partner_id.id),
             ("show_on_customer_portal", "=", True)
         ]
         # search
@@ -91,11 +180,20 @@ class ExtendCustomerPortal(CustomerPortal):
             domain += search_domain
         # items
         if access_token:
+            _logger.warning("row 183")
             dms_file_items = (
                 request.env["dms.file"].sudo().search(domain, order=sort_br)
             )
+            _logger.warning("row 187")
+            grouped_dms_file_items = [
+                request.env['dms.file'].sudo().concat(*g) for k, g in groupbyelem(dms_file_items, itemgetter('record_ref'))
+            ]
         else:
-            dms_file_items = request.env["dms.file"].search(domain, order=sort_br)
+            dms_file_items = request.env["dms.file"].sudo().search(domain, order=sort_br)
+            _logger.warning(f"row 193: {dms_file_items=}")
+            grouped_dms_file_items = [
+                request.env['dms.file'].sudo().concat(*g) for k, g in groupbyelem(dms_file_items, itemgetter('record_ref'))
+            ]
         request.session["my_dms_file_history"] = dms_file_items.ids
         dms_parent_categories = dms_directory_sudo.sudo()._get_parent_categories(
             access_token
@@ -113,6 +211,7 @@ class ExtendCustomerPortal(CustomerPortal):
             "access_token": access_token,
             "dms_directory": dms_directory_sudo,
             "dms_files": dms_file_items,
+            "grouped_dms_file_items": grouped_dms_file_items,
             "dms_parent_categories": dms_parent_categories,
         }
         return request.render("dms.portal_my_dms", values)
@@ -188,8 +287,10 @@ class ExtendCustomerPortal(CustomerPortal):
     )
     def start_sign(self, document_id):
         _logger.warning("3"*999)
+        _logger.warning(f"{document_id=}")
         data = json.loads(request.httprequest.data)
         ssn = data.get("params", {}).get("ssn")
+        _logger.warning(f"{ssn=}")
         if not ssn:
             return False
         api_signport = self.get_signport_api()

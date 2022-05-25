@@ -1,4 +1,14 @@
 <odoo>
+    <template id="dms.portal_my_home_dms" name="Portal My Home : dms entries" inherit_id="portal.portal_my_home" priority="20">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-if="dms_file_count" t-call="portal.portal_docs_entry">
+                <t t-set="title">Documents</t>
+                <t t-set="url" t-value="'/my/dms/files'" />
+                <t t-set="count" t-value="dms_file_count" />
+            </t>
+        </xpath>
+    </template>
+
     <template id="dms.portal_my_dms" name="My DMS">
         <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs_searchbar" t-value="True" />
@@ -13,6 +23,7 @@
                         <th t-if="dms_directories">Size</th>
                         <th t-if="dms_files">Created By</th>
                         <th>Last update</th>
+                        <th t-if="dms_files"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -46,91 +57,99 @@
                         </tr>
                     </t>
                     <t t-if="dms_files">
-                        <t t-foreach="dms_files" t-as="dms_file">
-                            <tr class="tr_dms_file">
-                                <td>
-                                    <a
-                                        t-attf-href="/my/dms/file/#{dms_file.id}/download?{{ keep_query() }}"
-                                        t-attf-class="tr_dms_file_link"
-                                        t-att-title="dms_file.name"
-                                    >
-                                        <img
-                                            class="o_portal_contact_img"
-                                            t-att-src="dms_file.icon_url"
+                        <t t-foreach="grouped_dms_file_items" t-as="dms_files">
+                            <th>
+                                <em class="font-weight-normal text-muted">Documents for project:</em>
+                                <span t-field="dms_files[0].sudo().project_id.name"/>
+                            </th>
+                            <t t-foreach="dms_files" t-as="dms_file">
+                                <tr class="tr_dms_file">
+                                    <td>
+                                        <a
+                                                t-attf-href="/my/dms/file/#{dms_file.id}/download?{{ keep_query() }}"
+                                                t-attf-class="tr_dms_file_link"
+                                                t-att-title="dms_file.name"
+                                        >
+                                            <img
+                                                    class="o_portal_contact_img"
+                                                    t-att-src="dms_file.icon_url"
+                                            />
+                                            <span t-esc="dms_file.name" />
+                                        </a>
+                                    </td>
+                                    <td t-if="dms_directories">
+                                        <span t-esc="dms_file.get_human_size()" />
+                                    </td>
+                                    <td>
+                                        <span t-esc="dms_file.create_uid.sudo().name" />
+                                    </td>
+                                    <td>
+                                        <span
+                                                t-esc="dms_file.write_date"
+                                                t-options="{'widget': 'date'}"
                                         />
-                                        <span t-esc="dms_file.name" />
-                                    </a>
-                                </td>
-                                <td t-if="dms_directories">
-                                    <span t-esc="dms_file.get_human_size()" />
-                                </td>
-                                <td>
-                                    <span t-esc="dms_file.create_uid.sudo().name" />
-                                </td>
-                                <td>
-                                    <span
-                                        t-esc="dms_file.write_date"
-                                        t-options="{'widget': 'date'}"
-                                    />
-                                </td>
-                                <td>
-<!--                                    t-if="not dms_file.signed_document" -->
-                                    <a role="button" class="btn btn-primary btn-block mb8" data-toggle="modal" data-target="#modalaccept" href="#">
-                                        <i class="fa fa-check"/><t> Accept &amp; Pay</t>
-                                    </a>
-                                </td>
-                                <!-- modal relative to the actions sign and pay -->
-                                <div class="modal fade" id="modalaccept" tabindex="-1" role="dialog" aria-labelledby="modalacceptTitle" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered" role="document">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="modalacceptTitle">Sign Document</h5>
-                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">x</button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <form id="accept" method="POST" t-att-data-document-id="dms_file.id" class="js_accept_json">
-                                                    
-                                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                                                    <main class="modal-body" id="sign-dialog">
-                                                        <p>
-                                                            <span>By signing this proposal, I agree to the following terms:</span>
-                                                            <ul>
-                                                                <li><span>Accepted on the behalf of:</span> <b t-field="dms_file.project_id.partner_id.commercial_partner_id"/></li>
-                                                            </ul>
-                                                        </p>
-                                                        Personnummer:
-                                                        <input id="personnumber" name="Personnummer" class="form-control"/>
-                                                        <div id="document_id" hidden="1" t-field="dms_file.id"/>
-                                                        <div id="directory_id" hidden="1" t-field="dms_file.directory_id.id"/>
-                                                        <button type="button" id="start_signing_document_bankid" class="btn btn-primary" custom="click_cost">Signera</button>
-                                                        <div id="bankid_form">
-                                                        </div>
-                                                    </main>
-                                                </form>
-                                                <form id="autosubmit" action="" method="POST" class="js_accept_json">
-                                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                                                    <input type="hidden" name="relayState" id="relayState" />
-                                                    <input type="hidden" name="eidSignRequest" id="eidSignRequest"/>
-                                                    <input type="hidden" name="binding" id="binding"/>
-                                                </form>
-                                            </div>
-                                            <div class="modal-footer">
+                                    </td>
+                                    <td>
+                                        <a t-if="dms_file.requires_customer_signature and not dms_file.signed_by" role="button" class="btn btn-primary btn-block mb8" data-toggle="modal" t-att-data-target="'#modalaccept'+str(dms_file.id)" href="#">
+                                            <i class="fa fa-check"/><t> Accept &amp; Sign</t>
+                                        </a>
+                                        <a t-if="dms_file.signed_by" class="mb8">
+                                            <i class="fa fa-check"/><t> Signed</t>
+                                        </a>
+                                    </td>
+                                    <!-- modal relative to the actions sign and pay -->
+                                    <div class="modal fade" t-att-id="'modalaccept'+str(dms_file.id)" tabindex="-1" role="dialog" aria-labelledby="modalacceptTitle" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="modalacceptTitle">Sign Document</h5>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">x</button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <form id="accept" method="POST" t-att-data-document-id="dms_file.id" class="js_accept_json">
+
+                                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                        <main class="modal-body" id="sign-dialog">
+                                                            <p>
+                                                                <span>By signing this proposal, I agree to the following terms:</span>
+                                                                <ul>
+                                                                    <li><span>Accepted on the behalf of:</span> <b t-field="dms_file.project_id.partner_id.commercial_partner_id"/></li>
+                                                                </ul>
+                                                            </p>
+                                                            Personnummer:
+                                                            <input id="personnumber" name="Personnummer" class="form-control"/>
+                                                            <div id="document_id" hidden="0" t-field="dms_file.id"/>
+                                                            <div id="directory_id" hidden="1" t-field="dms_file.directory_id.id"/>
+                                                            <button type="button" id="start_signing_document_bankid" class="btn btn-primary" custom="click_cost">Signera</button>
+                                                            <div id="bankid_form">
+                                                            </div>
+                                                        </main>
+                                                    </form>
+                                                    <form id="autosubmit" action="" method="POST" class="js_accept_json">
+                                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                        <input type="hidden" name="relayState" id="relayState" />
+                                                        <input type="hidden" name="eidSignRequest" id="eidSignRequest"/>
+                                                        <input type="hidden" name="binding" id="binding"/>
+                                                    </form>
+                                                </div>
+                                                <div class="modal-footer">
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </tr>
+                                </tr>
+                            </t>
+
                         </t>
                     </t>
                 </tbody>
             </t>
-
-
         </t>
     </template>
-  <template id="assets_frontend" name="assets_frontend: signing documents bankid" inherit_id="web.assets_frontend">
-       <xpath expr="//script[last()]" position="after">
-          <script src="/document_signatures/static/src/js/main.js" type="text/javascript"/>
-       </xpath>
-  </template>
+
+    <template id="assets_frontend" name="assets_frontend: signing documents bankid" inherit_id="web.assets_frontend">
+        <xpath expr="//script[last()]" position="after">
+            <script src="/document_signatures/static/src/js/main.js" type="text/javascript"/>
+        </xpath>
+    </template>
 </odoo>

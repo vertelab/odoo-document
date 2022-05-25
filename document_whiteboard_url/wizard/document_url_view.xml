@@ -1,0 +1,14 @@
+<odoo>
+    <data>
+        <record id="document_whiteboard_form_view" model="ir.ui.view">
+            <field name="name">ir.attachment.add_url</field>
+            <field name="model">ir.attachment.add_url</field>
+            <field name="inherit_id" ref="document_url.view_ir_attachment_add_url_form"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="is_whiteboard_url"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>

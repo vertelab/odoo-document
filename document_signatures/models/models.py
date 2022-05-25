@@ -14,10 +14,13 @@ import uuid
 
     
 class DmsAddApproverWizard(models.TransientModel):
-    _name="dms.approver.add.wizard"
+    _name = "dms.approver.add.wizard"
+    _description = "DMS Approval Wizard"
+
     def _get_document(self):
         document = self.env["dms.file"].browse(self.env.context.get('active_ids'))
         return document
+
     @api.model
     def _get_approvers_domain(self):
         group_ids = []
@@ -33,20 +36,19 @@ class DmsAddApproverWizard(models.TransientModel):
         self.document.write({'approval_ids': [(4, line.id, 0)]})
 
 
-
 class SignportRequest(models.TransientModel):
     _name = 'signport.request'
+    _description = "Sign Port Request"
 
     relay_state = fields.Char()
     eid_sign_request = fields.Char()
     binding = fields.Char()
     signing_service_url = fields.Char()
-    
-    
 
     def apply_configuration(self):
         """Function for applying the approval configuration"""
         return True
+
 
 class DmsApproval(models.Model):
     _name = 'dms.approval'
@@ -60,8 +62,6 @@ class DmsApproval(models.Model):
     document_approver_ids = fields.Many2many('res.users', 'document_id', string='Document Approver', domain=lambda self: [
         ('groups_id', 'in', self.env.ref('base.group_user').id)],
                                             help='In this field you can add the approvers for the document')
-    
-    
 
     def apply_configuration(self):
         """Function for applying the approval configuration"""
@@ -107,7 +107,17 @@ class DmsFile(models.Model):
     project_id = fields.Many2one(comodel_name='project.project', string='Project')
     requires_customer_signature = fields.Boolean(string='Requires customer signature', default=False)
     
-    
+    @api.depends('directory_id')
+    def _compute_project_id(self):
+        for document in self:
+            _logger.warning("#"*99)
+            _logger.warning(document.directory_id.model_id.model)
+            if document.project_id:
+                _logger.info("Project id already set")
+            elif document.directory_id.model_id.model == "project.project":
+                _logger.warning(document.directory_id.record_ref)
+                document.project_id = document.record_ref
+
 
     @api.depends('approval_ids')
     def _compute_page_visibility(self):
@@ -122,6 +132,8 @@ class DmsFile(models.Model):
         updates the approval table values according to the
         approval of the users"""
         self.ensure_one()
+        _logger.warning("hej"*999)
+        _logger.warning(f"{self.record_ref=}")
         current_user = self.env.uid
         for approval_id in self.approval_ids:
             if current_user == approval_id.approver_id.id:
@@ -131,6 +143,7 @@ class DmsFile(models.Model):
                 res = signport.sudo().post_sign_document(
                     ssn=self.env.user.partner_id.social_sec_nr and self.env.user.partner_id.social_sec_nr.replace("-", "") or False,
                     document_id=self.id,
+                    directory_id=self.directory_id,
                     access_token=access_token,
                     message="Signering av dokument",
                     sign_type="employee",
@@ -149,6 +162,7 @@ class DmsFile(models.Model):
                     'target': 'self',
                     'url': f"{base_url}/web/signport_form/document/{self.id}/{signport_request.id}/start_sign",
                 }
+
     def document_unlock(self):
         self.document_locked = False
         for signature in self.approval_ids:
@@ -197,7 +211,6 @@ class DmsFile(models.Model):
             self.document_fully_approved = False
 
 
-
 class RestApiSignport(models.Model):
     _inherit = "rest.api"
 
@@ -215,7 +228,7 @@ class RestApiSignport(models.Model):
             document_content = self.env['dms.file'].browse(document_id).signed_document.decode()
         else:
             document_content = document.content.decode()
-        _logger.warning(document_content)
+        _logger.warning(f"document content: {document_content}")
 
         headers = {
             "accept": "application/json",
@@ -248,12 +261,11 @@ class RestApiSignport(models.Model):
         )
         _logger.warning(f"resresres: {res}")
         document_content = res['documents'][0]['content']
-
         role = _("Unknown")
         if sign_type == "customer":
-            role = _("Customer")
+            role = self.customer_string
         elif sign_type == "employee":
-            role = _("Company representative")
+            role = self.employee_string
 
         get_sign_request_vals = {
             "username": f"{self.user}",
@@ -312,6 +324,7 @@ class RestApiSignport(models.Model):
         return res
 
     def document_signport_post(self, data_vals={}, document_id=False, endpoint=False, sign_type="customer"):
+        _logger.warning("document_signport_post"*99)
         headers = {
             "accept": "application/json",
             "Content-Type": "application/json; charset=utf8",
@@ -349,6 +362,7 @@ class RestApiSignport(models.Model):
         #     )
         # )
         if sign_type == "employee":
+            _logger.warning("if"*99)
             self.env['dms.file'].browse(document_id).signed_document = res["document"][0]["content"]
             approval_line = self.env["dms.approval.line"].search([("document_id", "=", document_id), ("approver_id", "=", self.env.uid)], limit=1)
             approval_line.signed_on = fields.Datetime.now()
@@ -358,7 +372,9 @@ class RestApiSignport(models.Model):
             approval_line.relay_state = base64.b64encode(res["relayState"].encode())
             approval_line.approval_status = True
         elif sign_type == "customer":
+            _logger.warning("else"*99)
             document = self.env['dms.file'].browse(document_id)
+            _logger.warning(f"{document=}, {self.env.user.id=}, {fields.datetime.now()=}")
             document.signed_by = self.env.user.id
             document.signed_on = fields.datetime.now()
             document.signed_document = res["document"][0]["content"]
