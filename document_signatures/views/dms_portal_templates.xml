@@ -23,7 +23,7 @@
                         <th t-if="dms_directories">Size</th>
                         <th t-if="dms_files">Created By</th>
                         <th>Last update</th>
-                        <th t-if="dms_files"></th>
+                        <th t-if="dms_files">Signature</th>
                     </tr>
                 </thead>
                 <tbody>
