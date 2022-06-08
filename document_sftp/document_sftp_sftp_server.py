@@ -108,7 +108,7 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
                 try:
                     os.mkdir(sale_dir_path)
                 except OSError as error:
-                    _logger.info('OSError %s', OSError)
+                    _logger.info('OSError %s', error)
             self._get_sales_team_attachment(rec._name, rec.id, sale_dir_path)
 
     def _get_sales_team_attachment(self, model, res_id, dir_path):
