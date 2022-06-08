@@ -15,5 +15,9 @@
             <field name="group_ids" eval="[(4, ref('base.group_system'))]" />
 -->
         </record>
+        <record id="document_sftp_path" model="ir.config_parameter">
+            <field name="key">document_sftp.path</field>
+            <field name="value">/home</field>
+        </record>
     </data>
 </openerp>

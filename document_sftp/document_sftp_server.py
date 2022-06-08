@@ -8,9 +8,11 @@ try:
     from paramiko.py3compat import decodebytes
 except ImportError:
     pass
+
 from odoo.exceptions import AccessDenied
 import logging
 _logger = logging.getLogger(__name__)
+
 
 class DocumentSFTPServer(ServerInterface):
     def __init__(self, env):
@@ -22,8 +24,11 @@ class DocumentSFTPServer(ServerInterface):
             user = self.env['res.users'].search([('login', '=', username)])
             if not user:
                 return AUTH_FAILED
-            user.sudo(user.id)._check_credentials(password, False)
-            return AUTH_SUCCESSFUL
+            valid_user = user.with_user(user.id)._check_credentials(password, {'interactive': True})
+            if valid_user:
+                return AUTH_SUCCESSFUL
+            else:
+                return AUTH_FAILED
         except AccessDenied:
             pass
         return AUTH_FAILED

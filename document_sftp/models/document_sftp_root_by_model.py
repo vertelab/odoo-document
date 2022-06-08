@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
 # © 2016 Therp BV <http://therp.nl>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
+import base64
 import os
-from odoo import api, models
+from odoo import api, models, SUPERUSER_ID
+from odoo.modules.registry import Registry
+import os.path
+from os import path
+import pathlib
+
 try:
     from paramiko import SFTP_NO_SUCH_FILE, SFTP_PERMISSION_DENIED
 except ImportError:   # pragma: no cover
@@ -14,6 +20,7 @@ class DocumentSFTPRootByModel(models.Model):
     _name = 'document.sftp.root.by_model'
     _virtual_root = 'By model'
     _virtual_root_by_id = 'By id'
+    _description = 'Document SFTP Root'
 
     @api.model
     def _get_root_attributes(self):
@@ -94,3 +101,42 @@ class DocumentSFTPRootByModel(models.Model):
                 ('name', '=', components[-1]),
             ], limit=1))
         return SFTP_PERMISSION_DENIED
+
+    def _upload(self, f, path):
+        try:
+            split_path = path.split('/')
+            filename = split_path[-1]
+            res_data = split_path[-2].split('-')
+            res_id = res_data[-1]
+            res_model = res_data[-2]
+        except IndexError:
+            filename = 'SFTP Attachment'
+            res_id = False
+            res_model = False
+
+        db_name = self._cr.dbname
+        db_registry = Registry.new(db_name)
+        with api.Environment.manage(), db_registry.cursor() as cr:
+            env = api.Environment(cr, SUPERUSER_ID, {})
+            env['ir.attachment'].create({
+                'res_model': res_model,
+                'res_id': res_id,
+                'datas': base64.b64encode(f.read()),
+                'name': filename,
+                'type': 'binary'
+            })
+
+    # cron job to upload to odoo frequently
+    def _upload_attachments_to_crm(self):
+        document_sftp_path = self.env['ir.config_parameter'].sudo().get_param('document_sftp.path')
+        team_id = self.env['crm.team'].search([])
+
+        for rec in team_id:
+            sale_dir_path = f"{document_sftp_path}/{rec.name}-{rec._name}-{rec.id}"
+            if path.exists(sale_dir_path):
+                for x_dir in os.listdir(sale_dir_path):
+                    attachment_id = self.env['ir.attachment'].search([('name', '=', x_dir)])
+                    f = open(f"{sale_dir_path}/{x_dir}", 'rb')
+                    if not attachment_id:
+                        self._upload(f, f"{sale_dir_path}/{x_dir}")
+
