@@ -103,11 +103,12 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
         for rec in team_id:
             current_dir = pathlib.Path().resolve()
             sale_dir_path = f"{document_sftp_path}/{rec.name}-{rec._name}-{rec.id}"
+            _logger.info('sale_dir_path %s', sale_dir_path)
             if not path.exists(sale_dir_path):
                 try:
                     os.mkdir(sale_dir_path)
                 except OSError as error:
-                    print(error)
+                    _logger.info('OSError %s', OSError)
             self._get_sales_team_attachment(rec._name, rec.id, sale_dir_path)
 
     def _get_sales_team_attachment(self, model, res_id, dir_path):
