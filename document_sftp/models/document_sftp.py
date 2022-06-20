@@ -25,7 +25,7 @@ class DocumentSFTP(models.AbstractModel):
 
     def _run_server(self, dbname, stop):
         db_registry = Registry.new(dbname)
-        _logger.warning('Registry %s db name %s stop %s' % (db_registry, dbname, stop))
+        # _logger.warning('Registry %s db name %s stop %s' % (db_registry, dbname, stop))
         with api.Environment.manage(), db_registry.cursor() as cr:
             env = api.Environment(cr, SUPERUSER_ID, {})
             env[self._name].__run_server(stop)
@@ -73,6 +73,8 @@ class DocumentSFTP(models.AbstractModel):
             server = DocumentSFTPServer(self.env)
             try:
                 transport.start_server(server=server)
+                # DocumentSFTPClient.from_transport(transport)
+                # transport.start_client()
                 channel = transport.accept()
                 if channel:
                     _channels.append(channel)

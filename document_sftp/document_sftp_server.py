@@ -22,6 +22,8 @@ class DocumentSFTPServer(ServerInterface):
     def check_auth_password(self, username, password):
         try:
             user = self.env['res.users'].search([('login', '=', username)])
+            print(user)
+            print(user.name)
             if not user:
                 return AUTH_FAILED
             valid_user = user.with_user(user.id)._check_credentials(password, {'interactive': True})
@@ -52,6 +54,7 @@ class DocumentSFTPServer(ServerInterface):
         return 'password,publickey'
 
     def check_channel_request(self, kind, chanid):
+        print('check_channel_request', kind, chanid)
         if kind in ('session',):
             return OPEN_SUCCEEDED
         return OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
