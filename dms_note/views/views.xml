@@ -1,0 +1,18 @@
+<odoo>
+  <data>
+    <record id="edit_event_dms_file" model="ir.ui.view">
+      <field name="name">note.note.form.dms</field>
+      <field name="model">note.note</field>
+      <field name="inherit_id" ref="note.view_note_note_form"/>
+      <field name="arch" type="xml">
+         <xpath expr="//sheet/*" position="before">
+            <div class="oe_button_box" name="button_box">
+              <button class="oe_stat_button" name="dms_tree_view" type="object" icon="fa-file-text-o">
+                <field string="Documents" name="doc_count" widget="statinfo"/>
+              </button>
+            </div>
+        </xpath>
+      </field>
+    </record>
+  </data>
+</odoo>
