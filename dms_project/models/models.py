@@ -32,6 +32,13 @@ class Project(models.Model):
             action['binding_view_types'] = 'kanban, form'
             return action
 
+    def action_view_docs(self):
+        action = self.with_context(active_id=self.id, active_ids=self.ids) \
+            .env.ref('dms.view_dms_file_kanban') \
+            .sudo().read()[0]
+        action['display_name'] = self.name
+        return action
+
 class Project(models.Model):
     _inherit = "project.task"
 

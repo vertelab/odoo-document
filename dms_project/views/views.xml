@@ -26,5 +26,14 @@
         </xpath>
       </field>
     </record>
+
+    <template id="kanban_doc_count" inherit_id="project.view_project_kanban">
+        <xpath expr="//div[@class='o_project_kanban_boxes']" position="inside">         
+          <a class="o_project_kanban_box" name="action_view_docs" type="object">
+            <field string="Documents" name="doc_count" widget="statinfo"/>
+          </a>
+        </xpath>
+    </template>
+
   </data>
 </odoo>

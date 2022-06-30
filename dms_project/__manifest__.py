@@ -20,7 +20,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'project', 'dms'],
+    'depends': ['project', 'dms'],
 
     # always loaded
     'data': [
@@ -28,4 +28,5 @@
         'views/views.xml',
     ],
     # only loaded in demonstration mode
+    'auto_install': True,
 }
