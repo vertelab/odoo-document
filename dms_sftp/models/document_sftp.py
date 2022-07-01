@@ -4,17 +4,17 @@ import logging
 import socket
 from io import StringIO,BytesIO
 import threading
+import paramiko
+
 from odoo.service.server import server
 
 from odoo import SUPERUSER_ID, api, models
 from odoo.modules.registry import Registry
-try:
-    import paramiko
-    from ..document_sftp_transport import DocumentSFTPTransport
-    from ..document_sftp_server import DocumentSFTPServer
-    from ..document_sftp_sftp_server import DocumentSFTPSftpServerInterface, DocumentSFTPSftpServer
-except ImportError:   # pragma: no cover
-    pass
+    
+from ..helpers.document_sftp_transport import DocumentSFTPTransport
+from ..helpers.document_sftp_server import DocumentSFTPServer
+from ..helpers.document_sftp_sftp_server import DocumentSFTPSftpServerInterface, DocumentSFTPSftpServer
+
 _db2thread = {}
 _channels = []
 _logger = logging.getLogger(__name__)
@@ -69,23 +69,6 @@ class DocumentSFTP(models.AbstractModel):
             except (paramiko.SSHException, EOFError):
                 continue
 
-    @api.model
-    def _get_root_handlers(self):
-        return [
-            self.env['document.sftp.root.by_model'],
-        ]
-
-    @api.model
-    def _get_root_entries(self):
-        entries = []
-        for model in self._get_root_handlers():
-            entries.append(model._get_root_attributes())
-        return entries
-
-    @api.model
-    def _get_handler_for(self, path):
-        # TODO: this can be smarter
-        return self.env['document.sftp.root.by_model']
 
     def _register_hook(self):
         cr = self._cr
