@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
-
+import logging
 from odoo import models, fields, api
+
+_logger = logging.getLogger(__name__)
 
 class Project(models.Model):
     _inherit = "project.project"
 
+    doc_count = fields.Integer(compute='_compute_attached_docs_count', string="Number of documents attached")
 
     def _compute_attached_docs_count(self):
         Document = self.env['dms.file']
@@ -17,7 +20,7 @@ class Project(models.Model):
                 ('res_model', '=', 'project.task'), ('res_id', 'in', project.task_ids.ids)
             ])
 
-    def dms_tree_view(self):
+    def dms_kanban_view(self):
             action = self.env['ir.actions.act_window']._for_xml_id('dms.action_dms_file')
             action['domain'] = str([
                 '|',
@@ -28,16 +31,9 @@ class Project(models.Model):
                 ('res_model', '=', 'project.task'),
                 ('res_id', 'in', self.task_ids.ids),
             ])
-            action['view_mode'] = 'kanban, form'
-            action['binding_view_types'] = 'kanban, form'
+            #action['view_mode'] = 'kanban, form'
+            #action['binding_view_types'] = 'kanban, form'
             return action
-
-    def action_view_docs(self):
-        action = self.with_context(active_id=self.id, active_ids=self.ids) \
-            .env.ref('dms.view_dms_file_kanban') \
-            .sudo().read()[0]
-        action['display_name'] = self.name
-        return action
 
 class Project(models.Model):
     _inherit = "project.task"
@@ -52,13 +48,13 @@ class Project(models.Model):
                 ('res_model', '=', 'project.task'), ('res_id', '=', task.id)
             ])
 
-    def dms_tree_view(self):
+    def dms_kanban_view(self):
             action = self.env['ir.actions.act_window']._for_xml_id('dms.action_dms_file')
             action['domain'] = str([
                 '&',
                 ('res_model', '=', 'project.task'),
                 ('res_id', '=', self.id)
             ])
-            action['view_mode'] = 'kanban, form'
-            action['binding_view_types'] = 'kanban, form'
+            #action['view_mode'] = 'kanban, form'
+            #action['binding_view_types'] = 'kanban, form'
             return action
