@@ -8,7 +8,6 @@ except ImportError:
 from email.mime import base
 from odoo import api
 import os
-from rich import print
 import os.path
 from os import path
 import base64
@@ -52,7 +51,7 @@ class StubSFTPHandle(SFTPHandle):
 
     def _upload_file_to_odoo(self, data=None):
         try:
-            folder_path, file_name = os.path.split(self.doc_path)  # ('/home/iammiracle/Media', 'goat.jpeg')
+            folder_path, file_name = os.path.split(self.doc_path)  # ('/tmp/Media', 'goat.jpeg')
 
             dir_name = folder_path.split('/')[-1]
 
@@ -74,7 +73,7 @@ class StubSFTPHandle(SFTPHandle):
                     })
                 self.env.cr.commit()
         except Exception as e:
-            print("Exception: ", e)
+            _logger.info("Exception: %s", e)
             return SFTPServer.convert_errno(e)    
     
 
@@ -161,7 +160,7 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
         try:
             f = os.fdopen(fd, fstr)
         except OSError as e:
-            print("OSError Exception: ", e)
+            _logger.info("Error: %s", e)
             return SFTPServer.convert_errno(e.errno)
         
         fobj = StubSFTPHandle(self.env, x_path, flags)
@@ -174,11 +173,12 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
 
     def unlink_on_odoo(self, file_path):
         try:
-            folder_path, file = os.path.split(file_path)  # ('/home/iammiracle/Partners/Bloem GmbH', 'goat.jpeg')
+            folder_path, file = os.path.split(file_path)  # ('/tmp/Partners/Bloem GmbH', 'goat.jpeg')
             folder_name = folder_path.split('/')[-1]
             
             directory_obj_id = self.env['dms.directory'].with_user(self.env.user).search([('name', '=', folder_name)], limit=1)
             if directory_obj_id and file:
+                self.env.cr.fetchall()
                 file_obj = self.env['dms.file'].with_user(self.env.user).search([('name', '=', file), ('directory_id', '=', directory_obj_id.id)], limit=1)
                 if file_obj:
                     file_obj.unlink()

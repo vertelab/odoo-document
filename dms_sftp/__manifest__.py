@@ -1,24 +1,16 @@
 # -*- coding: utf-8 -*-
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 {
-    "name": "SFTP",
+    "name": "DMS with SFTP",
     "version": "14.0.1.0.0",
-    "author": "Vertel AB,Therp BV,Odoo Community Association (OCA)",
+    "author": "Vertel AB",
     "license": "AGPL-3",
-    "category": "Knowledge Management",
+    "category": "Document Management via SFTP",
     "summary": "Access your documents via SFTP",
-    "depends": [
-        'base',
-        'mail'
-    ],
-    "demo": [
-        "demo/res_users.xml",
-    ],
+    "depends": ['base', 'mail', 'dms'],
     "data": [
-        "demo/res_users.xml",
-        "views/res_users.xml",
         "data/ir_config_parameter.xml",
-        # "data/ir_cron.xml",
+        # "views/dms_view.xml",
     ],
     "external_dependencies": {
         'python': ['paramiko'],

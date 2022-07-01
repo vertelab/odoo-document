@@ -8,9 +8,8 @@ try:
     from paramiko.py3compat import decodebytes
 except ImportError:
     pass
-from .document_sftp_transport import DocumentSFTPTransport
 from odoo.exceptions import AccessDenied
-from odoo import SUPERUSER_ID, api, models
+from odoo import api
 from odoo.modules.registry import Registry
 import logging
 _logger = logging.getLogger(__name__)
@@ -40,21 +39,20 @@ class DocumentSFTPServer(ServerInterface):
         return AUTH_FAILED
 
 
-
-    def check_auth_publickey(self, username, key):
-        user = self.env['res.users'].search([('login', '=', username)])
-        if not user:
-            return AUTH_FAILED
-        for line in (user.authorized_keys or '').split('\n'):
-            if not line or line.startswith('#'):
-                continue
-            key_type, key_data = line.split(' ', 2)[:2]
-            if key_type != 'ssh-rsa':
-                _logger.warning('Ignoring key of unknown type for line %s', line)
-                continue
-            if RSAKey(data=decodebytes(key_data)) == key:
-                return AUTH_SUCCESSFUL
-        return AUTH_FAILED
+    # def check_auth_publickey(self, username, key):
+    #     user = self.env['res.users'].search([('login', '=', username)])
+    #     if not user:
+    #         return AUTH_FAILED
+    #     for line in (user.authorized_keys or '').split('\n'):
+    #         if not line or line.startswith('#'):
+    #             continue
+    #         key_type, key_data = line.split(' ', 2)[:2]
+    #         if key_type != 'ssh-rsa':
+    #             _logger.warning('Ignoring key of unknown type for line %s', line)
+    #             continue
+    #         if RSAKey(data=decodebytes(key_data)) == key:
+    #             return AUTH_SUCCESSFUL
+    #     return AUTH_FAILED
 
     def get_allowed_auths(self, username):
         return 'password,publickey'
