@@ -31,8 +31,6 @@ class Project(models.Model):
                 ('res_model', '=', 'project.task'),
                 ('res_id', 'in', self.task_ids.ids),
             ])
-            #action['view_mode'] = 'kanban, form'
-            #action['binding_view_types'] = 'kanban, form'
             return action
 
 class Project(models.Model):
@@ -55,6 +53,4 @@ class Project(models.Model):
                 ('res_model', '=', 'project.task'),
                 ('res_id', '=', self.id)
             ])
-            #action['view_mode'] = 'kanban, form'
-            #action['binding_view_types'] = 'kanban, form'
             return action
