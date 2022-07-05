@@ -102,7 +102,7 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
             out = []
             flist = os.listdir(path)
             for fname in flist:
-                if not (fname.startswith(".") or fname.startswith(("sudo", "snap", "pyr", "systemd", "python", "appI"))):
+                if not (fname.startswith(".") or fname.startswith(("sudo", "snap", "pyr", "systemd", "python", "appI", "tmp"))):
                     attr = SFTPAttributes.from_stat(os.stat(os.path.join(path, fname)))
                     attr.filename = fname
                     out.append(attr)
