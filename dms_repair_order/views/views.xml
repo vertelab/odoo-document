@@ -1,0 +1,16 @@
+<odoo>
+  <data>
+    <record id="dms_repair_order" model="ir.ui.view">
+      <field name="name">repair.order.form.dms</field>
+      <field name="model">repair.order</field>
+      <field name="inherit_id" ref="repair.view_repair_order_form"/>
+      <field name="arch" type="xml">
+        <xpath expr="//div[@class='oe_button_box']" position="inside">
+          <button class="oe_stat_button" name="dms_tree_view" type="object" icon="fa-file-text-o">
+            <field string="Documents" name="doc_count" widget="statinfo"/>
+          </button>
+        </xpath>
+      </field>
+    </record>
+  </data>
+</odoo>

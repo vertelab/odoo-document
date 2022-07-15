@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "dms_fleet_vehicle",
+    'name': "dms_repair_order",
 
     'summary': """
         Short (1 phrase/line) summary of the module's purpose, used as
@@ -20,16 +20,13 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': [ 
-        'dms',
-        'fleet',    
-    ],
+    'depends': ['repair', 'dms'],
 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
         'views/views.xml',
-        'data/fleet_data.xml',
+        'data/repair_order_data.xml',
     ],
     # only loaded in demonstration mode
     'auto_install': True,
