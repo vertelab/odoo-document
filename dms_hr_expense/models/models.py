@@ -21,7 +21,6 @@ class Event(models.Model):
             action['domain'] = str([
                 '&',
                 ('res_model', '=', 'hr.expense'),
-                ('res_id', 'in', self.ids),
-                
+                ('res_id', 'in', self.ids),        
             ])
             return action
