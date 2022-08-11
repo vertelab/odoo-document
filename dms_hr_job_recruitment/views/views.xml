@@ -1,0 +1,30 @@
+<odoo>
+  <data>
+    <record id="hr_job_dms" model="ir.ui.view">
+      <field name="name">hr.job.form</field>
+      <field name="model">hr.job</field>
+      <field name="inherit_id" ref="hr_recruitment.hr_job_survey"/>
+      <field name="arch" type="xml">
+        <xpath expr="//button[@name='action_get_attachment_tree_view']" position="replace">
+          <button class="oe_stat_button" name="dms_kanban_view" type="object" icon="fa-file-text-o">
+            <field string="Documents" name="doc_count" widget="statinfo"/>
+          </button>
+        </xpath>
+      </field>
+    </record>
+
+    <record id="hr_applicant_dms" model="ir.ui.view">
+      <field name="name">hr.applicant.form</field>
+      <field name="model">hr.applicant</field>
+      <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_form"/>
+      <field name="arch" type="xml">
+        <xpath expr="//div[@class='oe_button_box']" position="inside">
+          <button class="oe_stat_button" name="dms_kanban_view" type="object" icon="fa-file-text-o">
+            <field string="Documents" name="doc_count" widget="statinfo"/>
+          </button>
+        </xpath>
+      </field>
+    </record>
+
+  </data>
+</odoo>
