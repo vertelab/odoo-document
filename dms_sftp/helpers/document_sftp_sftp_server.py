@@ -55,12 +55,16 @@ class StubSFTPHandle(SFTPHandle):
 
             dir_name = folder_path.split('/')[-1]
 
-            directory_obj_id = self.env['dms.directory'].with_user(self.env.user).search([('name', '=', dir_name)], limit=1)  
-
+            directory_obj_id = self.env['dms.directory'].with_user(self.env.user).search([('name', '=', dir_name)], limit=1)
+            
             if directory_obj_id:
                 file_obj = self.env['dms.file'].with_user(self.env.user).search([('name', '=', file_name), ('directory_id', '=', directory_obj_id.id)], limit=1)
                 if file_obj:
-                    file_obj.write({'content': base64.b64encode(data)})
+                    file_obj.with_user(self.env.user).write({
+                        'content': base64.b64encode(data),
+                        'content_file': base64.b64encode(data),
+                        'content_binary': base64.b64encode(data)
+                    })
                 else:
                     self.env['dms.file'].with_user(self.env.user).create({
                         'name': file_name,
@@ -179,7 +183,7 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
             directory_obj_id = self.env['dms.directory'].with_user(self.env.user).search([('name', '=', folder_name)], limit=1)
             if directory_obj_id and file:
                 self.env.cr.fetchall()
-                file_obj = self.env['dms.file'].with_user(self.env.user).search([('name', '=', file), ('directory_id', '=', directory_obj_id.id)], limit=1)
+                file_obj = self.env['dms.file'].with_user(self.env.user).search([('name', '=', file), ('directory_id.name', '=', directory_obj_id.name)], limit=1)
                 if file_obj:
                     file_obj.unlink()
             elif directory_obj_id and file == '':
