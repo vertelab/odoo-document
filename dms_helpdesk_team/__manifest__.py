@@ -28,7 +28,7 @@
     'description': 'Long description of module''s purpose.',
     #'sequence': '1',
     'author': 'Vertel AB',
-    'website': 'https://vertel.se/apps/odoo-document/dms_fleet_vehicle',
+    'website': 'https://vertel.se/apps/odoo-document/dms_helpdesk_team',
     'images': ['static/description/banner.png'], # 560x280 px.
     'license': 'AGPL-3',
     'contributor': '',
