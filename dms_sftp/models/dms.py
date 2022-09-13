@@ -3,12 +3,11 @@ from odoo import models, fields, api, _
 import os
 import base64
 
-
 ROOT_DIR = os.path.expanduser('/tmp')
+
 
 class DMSFile(models.Model):
     _inherit = 'dms.file'
-
 
     def _sync_with_sftp(self, path_names, content):
         """
@@ -20,13 +19,11 @@ class DMSFile(models.Model):
             stream = base64.b64decode(content)
             f.write(stream)
 
-
     def write(self, vals):
         rec = super(DMSFile, self).write(vals)
         if vals.get('content'):
             self._sync_with_sftp(path_names=self.path_names, content=self.content)
         return rec
-        
 
     @api.model
     def create(self, vals):
@@ -35,9 +32,9 @@ class DMSFile(models.Model):
             self._sync_with_sftp(path_names=res.path_names, content=res.content)
         return res
 
-    def unlink(self):
+    def unlink(self, ok=True):
         for rec in self:
             path = f"{ROOT_DIR}/{rec.path_names}"
-            if path and os.path.exists(path):
+            if path and os.path.exists(path) and ok:
                 os.remove(f"{path}")
         return super(DMSFile, self).unlink()

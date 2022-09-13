@@ -2,7 +2,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 import logging
 import socket
-from io import StringIO,BytesIO
+from io import StringIO, BytesIO
 import threading
 import paramiko
 
@@ -10,7 +10,7 @@ from odoo.service.server import server
 
 from odoo import SUPERUSER_ID, api, models
 from odoo.modules.registry import Registry
-    
+
 from ..helpers.document_sftp_transport import DocumentSFTPTransport
 from ..helpers.document_sftp_server import DocumentSFTPServer
 from ..helpers.document_sftp_sftp_server import DocumentSFTPSftpServerInterface, DocumentSFTPSftpServer
@@ -56,7 +56,7 @@ class DocumentSFTP(models.AbstractModel):
 
             key = self.env['ir.config_parameter'].get_param('document_sftp.hostkey')
             host_key = paramiko.Ed25519Key.from_private_key(StringIO(key))
-            
+
             transport = DocumentSFTPTransport(self.env.cr, conn)
             transport.add_server_key(host_key)
             transport.set_subsystem_handler('sftp', DocumentSFTPSftpServer, DocumentSFTPSftpServerInterface, self.env)
@@ -68,7 +68,6 @@ class DocumentSFTP(models.AbstractModel):
                     _channels.append(channel)
             except (paramiko.SSHException, EOFError):
                 continue
-
 
     def _register_hook(self):
         cr = self._cr

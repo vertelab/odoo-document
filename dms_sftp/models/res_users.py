@@ -7,7 +7,6 @@ from odoo import fields, models
 class ResUsers(models.Model):
     _inherit = 'res.users'
 
-
     def _verify_sftp_user(self, password):
         assert password
         self.env.cr.execute(
