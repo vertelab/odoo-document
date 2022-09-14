@@ -20,8 +20,11 @@ class DMSFile(models.Model):
             f.write(stream)
 
     def write(self, vals):
+        full_path = f"{ROOT_DIR}/{self.path_names}"
+        if vals and os.path.exists(full_path):
+            os.remove(path=full_path)
         rec = super(DMSFile, self).write(vals)
-        if vals.get('content'):
+        if vals.get('content') or vals.get('name'):
             self._sync_with_sftp(path_names=self.path_names, content=self.content)
         return rec
 

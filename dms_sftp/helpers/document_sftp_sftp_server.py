@@ -63,7 +63,7 @@ class StubSFTPHandle(SFTPHandle):
                     file_obj.with_user(self.env.user).write({
                         'content': base64.b64encode(data),
                         'content_file': base64.b64encode(data),
-                        'content_binary': base64.b64encode(data)
+                        'content_binary': base64.b64encode(data),
                     })
                 else:
                     self.env['dms.file'].with_user(self.env.user).create({
@@ -199,7 +199,9 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
         """responsible for creating directory on the remote sever. no relationship with odoo yet"""
         file_path = self._realpath(self.ROOT + file_path)
         try:
-            os.mkdir(file_path)
+            dir_id = self.mk_update_dir_odoo(file_path)
+            if dir_id:
+                os.mkdir(file_path)
             if attr is not None:
                 SFTPServer.set_file_attr(file_path, attr)
         except OSError as e:
@@ -365,6 +367,39 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
         except OSError as e:
             _logger.info("Exception: %s", e)
             return SFTPServer.convert_errno(e.errno)
+
+    def mk_update_dir_odoo(self, dir_path=None):
+        if not dir_path == self.ROOT:
+            parent_dir_path = ''.join(dir_path.split(self.ROOT))  # ('/Media/Music')
+            split_dir = list(filter(None, parent_dir_path.split('/')))
+            new_dir = split_dir[-1]
+            directory_obj_id = self.env['dms.directory'].with_user(self.env.user).search([('name', '=', new_dir)],
+                                                                                         limit=1)
+            if not directory_obj_id:
+                dir_vals = {'name': new_dir}
+
+                if len(split_dir) == 1:
+                    dir_vals.update({
+                        'is_root_directory': True,
+                        'storage_id': self.env.ref('dms.storage_demo').id,
+                        'group_ids': [(4, self.env.ref('dms.access_group_01_demo').id)],
+                        'complete_group_ids': [(4, self.env.ref('dms.access_group_01_demo').id)]
+                    })
+                elif len(split_dir) > 1:
+                    parent_directory_obj_id = self.env['dms.directory'].with_user(self.env.user).search([
+                        ('name', '=', split_dir[-2])], limit=1)
+                    dir_vals.update({
+                        'is_root_directory': False,
+                        'storage_id': parent_directory_obj_id.storage_id.id,
+                        'parent_id': parent_directory_obj_id.id,
+                        'group_ids': parent_directory_obj_id.group_ids.ids,
+                        'complete_group_ids': parent_directory_obj_id.group_ids.ids
+                    })
+                print("dir_vals", dir_vals)
+                directory_obj_id = self.env['dms.directory'].with_user(self.env.user).create(dir_vals)
+                self.env.cr.commit()
+
+            return directory_obj_id
 
 
 class DocumentSFTPSftpServer(SFTPServer):
