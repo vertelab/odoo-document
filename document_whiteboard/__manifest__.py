@@ -20,7 +20,7 @@
 ##############################################################################
 
 {
-    'name': 'Whiteboard',
+    'name': 'Document: Document Whiteboard',
     'version': '14.0.0.0.0',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'To get a UUID filename for a new document (an url to the document is formed by the server / uuid)',
@@ -28,7 +28,7 @@
     'description': 'To get a UUID filename for a new document (an url to the document is formed by the server / uuid)',
     #'sequence': '1'
     'author': 'Vertel AB',
-    'website': 'https://vertel.se/apps/odoo-document',
+    'website': 'https://vertel.se/apps/odoo-document/document_whiteboard',
     'images': ['/static/description/banner.png'], # 560x280 px.
     'license': 'AGPL-3',
     'contributor': '',
@@ -40,5 +40,5 @@
         'data/ir_config_parameter.xml',
     ],
     'installable': True,
-
 }
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
