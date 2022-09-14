@@ -11,6 +11,7 @@
     "data": [
         "data/ir_config_parameter.xml",
         # "views/dms_view.xml",
+        "views/documents_config_view.xml",
     ],
     "external_dependencies": {
         'python': ['paramiko'],
