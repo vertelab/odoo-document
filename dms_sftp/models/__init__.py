@@ -3,4 +3,5 @@
 from . import document_sftp
 from . import res_users
 from . import dms
+from . import dms_security_mixin
 

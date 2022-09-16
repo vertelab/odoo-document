@@ -15,7 +15,7 @@ import logging
 import traceback
 import tempfile
 
-from paramiko.common import o644
+from paramiko.common import o644, o777
 
 _logger = logging.getLogger(__name__)
 
@@ -87,6 +87,10 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
 
     def __init__(self, server, env):
         self.env = api.Environment(env.cr, server.env.user.id, env.context)
+        # self.ROOT = self._realpath(self.ROOT + f"/{self.env.cr.dbname}")
+        # if not path.exists(self.ROOT):
+        #     os.mkdir(self.ROOT, mode=o777)
+        # os.chmod(self.ROOT, mode=o777)
 
     def _realpath(self, file_path):
         return self.canonicalize(file_path)
@@ -105,7 +109,8 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
             flist = os.listdir(file_path)
             for fname in flist:
                 if not (fname.startswith(".") or fname.startswith(
-                        ("sudo", "snap", "pyr", "systemd", "python", "appI", "tmp"))):
+                        ("sudo", "snap", "pyr", "systemd", "python", "appI", "tmp", "snap", "hsperfdata", ".",
+                         "liblz4", "tracker", "ssh", "config", "Temp-"))):
                     attr = SFTPAttributes.from_stat(os.stat(os.path.join(file_path, fname)))
                     attr.filename = fname
                     out.append(attr)
@@ -145,14 +150,18 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
 
         return fobj
 
-    def unlink_on_odoo(self, file_path):
+    def unlink_on_odoo(self, is_dir=False, file_path=None):
         """
             this is used to handle deleting of files or directory on odoo.
             it is used in the remove func
         """
         try:
             folder_path, file = os.path.split(file_path)  # ('/tmp/Partners/Bloem GmbH', 'goat.jpeg')
-            folder_name = folder_path.split('/')[-1]
+            if is_dir:
+                folder_name = file.split('/')[-1]
+                file = ''
+            else:
+                folder_name = folder_path.split('/')[-1]
 
             directory_obj_id = self.env['dms.directory'].with_user(self.env.user).search([('name', '=', folder_name)],
                                                                                          limit=1)
@@ -162,9 +171,9 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
                     [('name', '=', file), ('directory_id.name', '=', directory_obj_id.name)], limit=1)
                 if file_obj:
                     file_obj.unlink(ok=False)
-                self.env.cr.commit()
             elif directory_obj_id and file == '':
-                directory_obj_id.unlink()
+                directory_obj_id.unlink(ok=False)
+            self.env.cr.commit()
         except Exception as e:
             return False
 
@@ -174,7 +183,7 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
         else:
             file_path = self._realpath(self.ROOT + file_path)
         try:
-            self.unlink_on_odoo(file_path)
+            self.unlink_on_odoo(file_path=file_path)
             self.env.cr.commit()
             os.remove(file_path)
         except OSError as e:
@@ -187,10 +196,13 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
         new_path = self._realpath(self.ROOT + new_path)
         try:
             os.rename(old_path, new_path)
-            if new_path:
-                self._upload_file_to_odoo(data=open(new_path, 'rb').read(), doc_path=new_path)
+            stfp_handle = StubSFTPHandle(env=self.env, doc_path=new_path)
+            if new_path and os.path.isfile(new_path):
+                stfp_handle._upload_file_to_odoo(data=open(new_path, 'rb').read())
+            elif new_path and os.path.isdir(new_path):
+                self.mk_update_dir_odoo(dir_path=old_path, new_path=new_path)
             if old_path:
-                self.unlink_on_odoo(old_path)
+                self.unlink_on_odoo(file_path=old_path)
         except OSError as e:
             return SFTPServer.convert_errno(e.errno)
         return SFTP_OK
@@ -212,6 +224,7 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
         """responsible for deleting directory on the remote sever. no relationship with odoo yet"""
         file_path = self._realpath(self.ROOT + file_path)
         try:
+            self.unlink_on_odoo(is_dir=True, file_path=file_path)
             os.rmdir(file_path)
         except OSError as e:
             return SFTPServer.convert_errno(e.errno)
@@ -246,19 +259,19 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
         return SFTP_OK
 
     def readlink(self, file_path):
-        file_path = self._realpath(self.ROOT)
+        file_path = self._realpath(self.ROOT + file_path)
         try:
             symlink = os.readlink(file_path)
         except OSError as e:
             return SFTPServer.convert_errno(e.errno)
         # if it's absolute, remove the root
-        if os.path.isabs(symlink):
-            if symlink[:len(self.ROOT)] == self.ROOT:
-                symlink = symlink[len(self.ROOT):]
-                if (len(symlink) == 0) or (symlink[0] != '/'):
-                    symlink = '/' + symlink
-            else:
-                symlink = '<error>'
+        # if os.path.isabs(symlink):
+        #     if symlink[:len(self.ROOT)] == self.ROOT:
+        #         symlink = symlink[len(self.ROOT):]
+        #         if (len(symlink) == 0) or (symlink[0] != '/'):
+        #             symlink = '/' + symlink
+        #     else:
+        #         symlink = '<error>'
         return symlink
 
     def session_ended(self):
@@ -336,39 +349,7 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
             })
         return dir_list
 
-    def _upload_file_to_odoo(self, data=None, doc_path=None):
-        try:
-            folder_path, file_name = os.path.split(doc_path)  # ('/tmp/Media', 'goat.jpeg')
-            dir_name = folder_path.split('/')[-1]
-
-            directory_obj_id = self.env['dms.directory'].with_user(self.env.user).search([('name', '=', dir_name)],
-                                                                                         limit=1)
-
-            if directory_obj_id and not file_name.startswith('.giosave'):
-                file_obj = self.env['dms.file'].with_user(self.env.user).search(
-                    [('name', '=', file_name), ('directory_id', '=', directory_obj_id.id)], limit=1)
-                if file_obj:
-                    file_obj.with_user(self.env.user).write({
-                        'content': base64.b64encode(data),
-                        'content_file': base64.b64encode(data),
-                        'content_binary': base64.b64encode(data)
-                    })
-                else:
-                    self.env['dms.file'].with_user(self.env.user).create({
-                        'name': file_name,
-                        'directory_id': directory_obj_id.id,
-                        'res_model': directory_obj_id.model_id.id,
-                        'res_id': directory_obj_id.res_id,
-                        'content': base64.b64encode(data),
-                        'content_file': base64.b64encode(data),
-                        'content_binary': base64.b64encode(data),
-                    })
-                self.env.cr.commit()
-        except OSError as e:
-            _logger.info("Exception: %s", e)
-            return SFTPServer.convert_errno(e.errno)
-
-    def mk_update_dir_odoo(self, dir_path=None):
+    def mk_update_dir_odoo(self, dir_path=None, new_path=None):
         if not dir_path == self.ROOT:
             parent_dir_path = ''.join(dir_path.split(self.ROOT))  # ('/Media/Music')
             split_dir = list(filter(None, parent_dir_path.split('/')))
@@ -376,14 +357,14 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
             directory_obj_id = self.env['dms.directory'].with_user(self.env.user).search([('name', '=', new_dir)],
                                                                                          limit=1)
             if not directory_obj_id:
+                storage_id = self.env.ref('dms.storage_demo')
                 dir_vals = {'name': new_dir}
 
                 if len(split_dir) == 1:
                     dir_vals.update({
                         'is_root_directory': True,
-                        'storage_id': self.env.ref('dms.storage_demo').id,
-                        'group_ids': [(4, self.env.ref('dms.access_group_01_demo').id)],
-                        'complete_group_ids': [(4, self.env.ref('dms.access_group_01_demo').id)]
+                        'storage_id': storage_id.id,
+                        'group_ids': [(6, False, [self.env.ref('dms.access_group_01_demo').id])],
                     })
                 elif len(split_dir) > 1:
                     parent_directory_obj_id = self.env['dms.directory'].with_user(self.env.user).search([
@@ -393,12 +374,18 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
                         'storage_id': parent_directory_obj_id.storage_id.id,
                         'parent_id': parent_directory_obj_id.id,
                         'group_ids': parent_directory_obj_id.group_ids.ids,
-                        'complete_group_ids': parent_directory_obj_id.group_ids.ids
                     })
-                print("dir_vals", dir_vals)
                 directory_obj_id = self.env['dms.directory'].with_user(self.env.user).create(dir_vals)
                 self.env.cr.commit()
+            else:
+                new_dir_path = ''.join(new_path.split(self.ROOT))  # ('/Media/Music')
+                split_dir = list(filter(None, new_dir_path.split('/')))
+                new_dir = split_dir[-1]
 
+                directory_obj_id.write({
+                    'name': new_dir
+                })
+                self.env.cr.commit()
             return directory_obj_id
 
 
