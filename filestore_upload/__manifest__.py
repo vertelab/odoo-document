@@ -25,7 +25,9 @@
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Upload large files with SFTP.',
     'category': 'Technical',
-    'description': 'Upload large files with SFTP.',
+    'description': """
+    Upload large files with SFTP.
+    """,
     #'sequence': '1',
     'author': 'Vertel AB',
     'website': 'https://vertel.se/apps/odoo-document/filestore_upload',
