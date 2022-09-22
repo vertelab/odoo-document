@@ -84,7 +84,6 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
             file_path = self._realpath(self.ROOT + file_path)
         try:
             stfp_handle = StubSFTPHandle(env=self.env, doc_path=file_path)
-            # if file_path and os.path.isfile(file_path):
             stfp_handle._odoo_file_sync(action="Unlink")
             self.env.cr.commit()
             os.remove(file_path)
@@ -104,9 +103,6 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
                 stfp_handle._odoo_file_sync(data=open(new_path, 'rb').read(), action="CreateWrite")
             elif new_path and os.path.isdir(new_path):
                 self._rename_odoo_dir(old_dir=old_path, new_dir=new_path)
-                # self._sync_odoo_dir(dir_path=new_path)
-            # if old_path:
-            #     self._unlink_dir(dir_path=old_path)
         except OSError as e:
             return SFTPServer.convert_errno(e.errno)
         return SFTP_OK
