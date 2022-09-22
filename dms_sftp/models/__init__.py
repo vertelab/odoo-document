@@ -3,5 +3,6 @@
 from . import document_sftp
 from . import res_users
 from . import dms
+from . import directory
+from . import dms_security_mixin
 from . import res_config_settings
-
