@@ -243,14 +243,12 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
                                                                                    limit=1)
 
             if not parent_dir_details and not new_dir_id:
-                # self.env.cr.fetchall()
                 directory_obj_id = self.env['dms.directory'].create({
                     "name": new_dir_name,
                     "is_root_directory": True,
                     "inherit_group_ids": True,
                     "storage_id": storage_id.id,
-                    "storage_id_inherit_access_from_parent_record":
-                        storage_id.storage_id.inherit_access_from_parent_record,
+                    "storage_id_inherit_access_from_parent_record": storage_id.inherit_access_from_parent_record,
                     "group_ids": [(6, False, [self.env.ref('dms.access_group_01_demo').id])],
                 })
             elif parent_dir_details and not new_dir_id:
