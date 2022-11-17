@@ -1,0 +1,48 @@
+<odoo>
+    <template id="portal_my_dms" name="View File" inherit_id="dms.portal_my_dms">
+        <xpath expr="//t[@t-call='portal.portal_layout']/t[@t-if='dms_directories or dms_files']/tbody[1]/t[@t-if='dms_files']/t[@t-foreach='dms_files']/tr[1]/td[1]" position="replace">
+            <td>
+                <a t-attf-href="/my/dms/file/#{dms_file.id}" t-attf-class="tr_dms_file_link" t-att-title="dms_file.name">
+                    <img class="o_portal_contact_img" t-att-src="dms_file.icon_url"/>
+                    <span t-esc="dms_file.name" />
+                </a>
+            </td>
+        </xpath>
+    </template>
+
+    <template id="portal_my_dms_file" name="My DMS File">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True" />
+
+            <t t-call="portal.portal_record_layout">
+                <div itemprop="description" t-field="dms_file.web_content" class="oe_structure oe_empty mt16" id="web_content"/>
+
+            </t>
+
+            <div class="mt32">
+                <div class="btn-group" role="group">
+                    <a role="button" href="#" class="o_viewer_toolbar_btn btn o_download_btn" data-toggle="tooltip" title="Download"><i class="fa fa-fw fa-download" role="img" aria-label="Download"/></a>
+                </div>
+            </div>
+
+            <div class="mt32">
+                <h4><strong>Signature</strong></h4>
+                <t t-call="portal.signature_form">
+                    <t t-set="call_url" t-value="'/web/signature/%s/%s/accept' % (dms_file._name, dms_file.id)"/>
+                    <t t-set="default_name" t-value="'%s' %(request.env.user.name)"/>
+                </t>
+            </div>
+
+            <div class="mt32">
+                <h4><strong>Message and communication history</strong></h4>
+                <t t-call="portal.message_thread">
+                    <t t-set="object" t-value="dms_file"/>
+                    <t t-set="token" t-value="dms_file.access_token"/>
+                    <t t-set="pid" t-value="pid"/>
+                    <t t-set="hash" t-value="hash"/>
+                </t>
+            </div>
+        </t>
+    </template>
+
+</odoo>

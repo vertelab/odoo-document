@@ -1,0 +1,22 @@
+<odoo>
+    <data>
+        <record id="dms_file_signature_view" model="ir.ui.view">
+            <field name="name">dms.file.form</field>
+            <field name="model">dms.file</field>
+            <field name="inherit_id" ref="dms.view_dms_file_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[last()]" position="after">
+                    <page string="Signature">
+                        <group>
+                            <field name="require_signature"/>
+                            <field name="signed_date"/>
+                            <field name="signature" widget="image"/>
+                            <field name="web_content" widget="html"/>
+                        </group>
+                    </page>
+                </xpath>
+
+            </field>
+        </record>
+    </data>
+</odoo>
