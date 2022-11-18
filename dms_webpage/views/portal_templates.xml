@@ -1,4 +1,10 @@
 <odoo>
+    <template id="assets_common"  inherit_id="web.assets_common">
+        <xpath expr="//link[@href='/web/static/src/scss/name_and_signature.scss']" position="after">
+            <link rel="stylesheet" type="text/scss" href="/dms_webpage/static/src/scss/style.scss"/>
+        </xpath>
+    </template>
+
     <template id="portal_my_dms" name="View File" inherit_id="dms.portal_my_dms">
         <xpath expr="//t[@t-call='portal.portal_layout']/t[@t-if='dms_directories or dms_files']/tbody[1]/t[@t-if='dms_files']/t[@t-foreach='dms_files']/tr[1]/td[1]" position="replace">
             <td>
@@ -14,14 +20,36 @@
         <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs_searchbar" t-value="True" />
 
-            <t t-call="portal.portal_record_layout">
-                <div itemprop="description" t-field="dms_file.web_content" class="oe_structure oe_empty mt16" id="web_content"/>
-
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Projects</t>
             </t>
 
-            <div class="mt32">
-                <div class="btn-group" role="group">
-                    <a role="button" href="#" class="o_viewer_toolbar_btn btn o_download_btn" data-toggle="tooltip" title="Download"><i class="fa fa-fw fa-download" role="img" aria-label="Download"/></a>
+            <t t-call="portal.portal_record_layout">
+                <t t-set="card_body">
+                    <div itemprop="description" t-field="dms_file.web_content" class="oe_structure oe_empty mt16" id="web_content"/>
+                </t>
+            </t>
+            <div class="mt32 attachment_container">
+                <div class="file_container">
+                    <div class="file_details_container">
+                        <div href="#" aria-label="View image" tabindex="-1" aria-disabled="" t-att-data-mimetype="dms_file.mimetype" class="o_image file_image"/>
+
+                        <div class="file_details">
+                            <div class="file_name">
+                                <t t-esc="dms_file.name"/>
+                            </div>
+                            <div class="file_download_container">
+                                <div class="file_extension">
+                                    <t t-esc="dms_file.extension"/>
+                                </div>
+                                <div class="file_download_icon">
+                                    <a role="button" t-attf-href="/my/dms/file/#{dms_file.id}/download?{{ keep_query() }}" class="" data-toggle="tooltip" t-att-title="dms_file.name">
+                                        <i class="fa fa-fw fa-download" role="img" aria-label="Download"/>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
