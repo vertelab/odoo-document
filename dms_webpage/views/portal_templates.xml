@@ -56,7 +56,7 @@
             <div class="mt32">
                 <h4><strong>Signature</strong></h4>
                 <t t-call="portal.signature_form">
-                    <t t-set="call_url" t-value="'/web/signature/%s/%s/accept' % (dms_file._name, dms_file.id)"/>
+                    <t t-set="call_url" t-value="'/web/signature/%s/%s/accept?access_token=%s' % (dms_file._name, dms_file.id, dms_file.access_token)"/>
                     <t t-set="default_name" t-value="'%s' %(request.env.user.name)"/>
                 </t>
             </div>

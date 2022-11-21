@@ -20,22 +20,21 @@
 ##############################################################################
 
 {
-    'name': 'Document: DMS WebPage',
+    'name': 'Document: DMS Partner',
     'version': '14.0.1.0.0',
-    'summary': 'DMS WebPage.',
+    'summary': 'DMS Partner.',
     'category': 'Technical',
-    'description': 'DMS WebPage.',
+    'description': 'DMS Partner.',
     'author': 'Vertel AB',
-    'website': 'https://vertel.se/apps/odoo-document/dms_webpage',
+    'website': 'https://vertel.se/apps/odoo-document/dms_partner',
     'images': ['static/description/banner.png'], # 560x280 px.
     'license': 'AGPL-3',
     'contributor': '',
     'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-document',
-    "depends": ['base', 'portal', 'base_signature', 'dms'],
+    "depends": ['contacts', 'dms'],
     "data": [
-        'views/dms_view.xml',
-        'views/portal_templates.xml',
+        'views/res_partner_view.xml',
     ],
 }
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

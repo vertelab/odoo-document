@@ -1,0 +1,26 @@
+<odoo>
+    <data>
+        <record id="partner_dms_file_form_view" model="ir.ui.view">
+            <field name="name">partner.dms.file.form.view</field>
+            <field name="model">partner.dms.file</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <group>
+                            <field name="dms_file" options="{'no_create': True}" />
+                            <field name="require_customer_signature"/>
+                        </group>
+                        <group>
+                            <field name="email_template" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+
+                    <footer>
+                        <button name="action_email_partner" string="Send Email" type="object" class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>

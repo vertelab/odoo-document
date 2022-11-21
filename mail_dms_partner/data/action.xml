@@ -1,0 +1,16 @@
+<odoo>
+    <data>
+        <!-- Add action entry in the Action Menu for Partners -->
+        <record id="res_partner_dms_file_act_window" model="ir.actions.act_window">
+            <field name="name">Send Document to Partner</field>
+            <field name="res_model">partner.dms.file</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="context">{
+                'default_res_ids': active_ids
+            }</field>
+            <field name="binding_model_id" ref="base.model_res_partner"/>
+            <field name="binding_view_types">list,form</field>
+        </record>
+    </data>
+</odoo>

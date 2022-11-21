@@ -1,0 +1,14 @@
+<odoo>
+    <data>
+        <record id="dms_file_form_view" model="ir.ui.view">
+            <field name="name">dms.file.form.view</field>
+            <field name="model">dms.file</field>
+            <field name="inherit_id" ref="dms.view_dms_file_form"/>
+            <field name="arch" type="xml">
+                <field name="content" position="after">
+                    <field name="is_template"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>
