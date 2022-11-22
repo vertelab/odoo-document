@@ -35,9 +35,8 @@ class EmailDMSFile(models.TransientModel):
                 'res_id': partner.id,
                 'res_name': partner.name
             })
-            file_id = self.env['dms.file'].search([('attachment_id', '=', attachment_id.id)])
-            for file in file_id:
-                file.write({'require_signature': self.require_customer_signature})
-                file._portal_ensure_token()
-                if template and partner.email:
-                    template.sudo().send_mail(file.id, force_send=True)
+            if file_id := self.env['dms.file'].search([('attachment_id', '=', attachment_id.id)], limit=1):
+                file_id.write({'require_signature': self.require_customer_signature})
+            file_id._portal_ensure_token()
+            if template and partner.email:
+                template.sudo().send_mail(file_id.id, force_send=True)
