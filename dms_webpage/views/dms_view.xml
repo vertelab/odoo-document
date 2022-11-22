@@ -11,6 +11,10 @@
                             <field name="require_signature"/>
                             <field name="signed_date"/>
                             <field name="signature" widget="image"/>
+                        </group>
+                    </page>
+                    <page string="Web Content">
+                        <group>
                             <field name="web_content" widget="html"/>
                         </group>
                     </page>
