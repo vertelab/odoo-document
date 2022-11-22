@@ -22,13 +22,19 @@ class EmailDMSFile(models.TransientModel):
     dms_file = fields.Many2one('dms.file', string="DMS File", required=True, domain="[('is_template', '=', True)]")
     email_template = fields.Many2one('mail.template', string="Template", required=True,
                                      domain="[('model_id', '=', 'dms.file')]")
+    file_name = fields.Char(string="File Name", required=True)
+
+    @api.onchange('dms_file')
+    def set_file_name(self):
+        if self.dms_file:
+            self.file_name = self.dms_file.name
 
     def action_email_partner(self):
         active_ids = self.env.context.get('active_ids')
         template = self.env.ref('mail_dms_partner.mail_template_partner_signature', raise_if_not_found=False)
         for partner in self.env['res.partner'].browse(active_ids):
             attachment_id = self.env['ir.attachment'].create({
-                'name': self.dms_file.name,
+                'name': self.file_name,
                 'datas': self.dms_file.content,
                 'mimetype': self.dms_file.mimetype,
                 'res_model': 'res.partner',

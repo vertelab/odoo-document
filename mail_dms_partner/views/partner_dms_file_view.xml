@@ -11,6 +11,7 @@
                             <field name="require_customer_signature"/>
                         </group>
                         <group>
+                            <field name="file_name"/>
                             <field name="email_template" options="{'no_create': True}"/>
                         </group>
                     </group>
