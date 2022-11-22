@@ -42,7 +42,10 @@ class EmailDMSFile(models.TransientModel):
                 'res_name': partner.name
             })
             if file_id := self.env['dms.file'].search([('attachment_id', '=', attachment_id.id)], limit=1):
-                file_id.write({'require_signature': self.require_customer_signature})
+                file_id.write({
+                    'require_signature': self.require_customer_signature,
+                    'web_content': self.dms_file.web_content
+                })
             file_id._portal_ensure_token()
             if template and partner.email:
                 template.sudo().send_mail(file_id.id, force_send=True)
