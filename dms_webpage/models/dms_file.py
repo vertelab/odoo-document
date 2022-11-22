@@ -7,4 +7,8 @@ class DMSFile(models.Model):
 
     web_content = fields.Html(string="Web Content")
 
-
+    def reset_signature(self):
+        self.write({
+            'signature': False,
+            'signed_date': False,
+        })

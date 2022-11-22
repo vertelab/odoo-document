@@ -8,18 +8,29 @@
                 <xpath expr="//page[last()]" position="after">
                     <page string="Signature">
                         <group>
-                            <field name="require_signature"/>
-                            <field name="signed_date"/>
-                            <field name="signature" widget="image"/>
+                            <field name="require_signature" attrs="{'readonly': [('signature', '!=', False)]}"/>
+                            <field name="signed_date" readonly="1"/>
+                            <field name="signature" widget="image" readonly="1"/>
                         </group>
                     </page>
                     <page string="Web Content">
                         <group>
-                            <field name="web_content" widget="html"/>
+                            <field name="web_content" widget="html" attrs="{'readonly': [('signature', '!=', False)]}"/>
                         </group>
                     </page>
                 </xpath>
-
+                <field name="directory_id" position="attributes">
+                    <attribute name="attrs">{'readonly': [('signature', '!=', False)]}</attribute>
+                </field>
+                <field name="content" position="attributes">
+                    <attribute name="attrs">{'readonly': [('signature', '!=', False)]}</attribute>
+                </field>
+                <field name="name" position="attributes">
+                    <attribute name="attrs">{'readonly': [('signature', '!=', False)]}</attribute>
+                </field>
+                <button name="lock" position="after">
+                    <button name="reset_signature" string="Reset" type="object" class="oe_highlight oe_read_only" confirm="Are you sure you want to reset this file?"/>
+                </button>
             </field>
         </record>
     </data>
