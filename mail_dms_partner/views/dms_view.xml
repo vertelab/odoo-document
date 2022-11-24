@@ -7,6 +7,8 @@
             <field name="arch" type="xml">
                 <field name="content" position="after">
                     <field name="is_template"/>
+                    <field name="partner_id" invisible="1"/>
+                    <field name="file_template_id" invisible="1"/>
                 </field>
             </field>
         </record>

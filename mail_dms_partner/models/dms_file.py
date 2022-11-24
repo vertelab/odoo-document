@@ -10,6 +10,8 @@ class DMSFile(models.Model):
 
     is_template = fields.Boolean(string="Is Template")
     company_id = fields.Many2one('res.company', string="Company", default=lambda self: self.env.company.id)
+    file_template_id = fields.Many2one('dms.file', string="File Template")
+    partner_id = fields.Many2one('res.partner', string="Partner")
 
 
 class EmailDMSFile(models.TransientModel):
@@ -39,12 +41,14 @@ class EmailDMSFile(models.TransientModel):
                 'mimetype': self.dms_file.mimetype,
                 'res_model': 'res.partner',
                 'res_id': partner.id,
-                'res_name': partner.name
+                'res_name': partner.name,
             })
             if file_id := self.env['dms.file'].search([('attachment_id', '=', attachment_id.id)], limit=1):
                 file_id.write({
                     'require_signature': self.require_customer_signature,
-                    'web_content': self.dms_file.web_content
+                    'web_content': self.dms_file.web_content,
+                    'file_template_id': self.dms_file.id,
+                    'partner_id': partner.id
                 })
             file_id._portal_ensure_token()
             if template and partner.email:

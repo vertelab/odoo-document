@@ -27,7 +27,7 @@
     'description': 'Manage Partner Document',
     'author': 'Vertel AB',
     'website': 'https://vertel.se/apps/odoo-document/mail_dms_partner',
-    'images': ['static/description/banner.png'], # 560x280 px.
+    'images': ['static/description/banner.png'],  # 560x280 px.
     'license': 'AGPL-3',
     'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-document',
@@ -40,6 +40,7 @@
         'security/ir.model.access.csv',
         'views/dms_view.xml',
         'views/partner_dms_file_view.xml',
+        'views/res_partner_view.xml',
         'data/action.xml',
         'data/mail_template.xml',
     ],
