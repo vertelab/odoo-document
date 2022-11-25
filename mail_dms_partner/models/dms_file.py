@@ -1,4 +1,5 @@
 from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError
 
 
 class DMSFile(models.Model):
@@ -34,7 +35,14 @@ class EmailDMSFile(models.TransientModel):
     def action_email_partner(self):
         active_ids = self.env.context.get('active_ids')
         template = self.env.ref('mail_dms_partner.mail_template_partner_signature', raise_if_not_found=False)
-        for partner in self.env['res.partner'].browse(active_ids):
+
+        partner_ids = self.env['res.partner'].browse(active_ids).filtered(lambda rec: rec.type == 'contact')
+        partner_with_no_email = partner_ids.filtered(lambda rec: not rec.email)
+
+        if partner_with_no_email:
+            raise ValidationError("Kindly set email for: %s" % (', '.join(x.name for x in partner_with_no_email)))
+
+        for partner in partner_ids:
             attachment_id = self.env['ir.attachment'].create({
                 'name': self.file_name,
                 'datas': self.dms_file.content,
