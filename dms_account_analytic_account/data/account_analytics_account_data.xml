@@ -9,12 +9,16 @@
             <field name="inherit_access_from_parent_record">True</field>
             <field name="model_ids" eval="[(6, 0, [ref('account.model_account_analytic_account')])]"/>
         </record>
-
-        <record id="repair_order_dms_directory" model="dms.directory">
-            <field name="name">Account Analytics documents directory</field>
-            <field name="is_root_directory">True</field>
-            <field name="storage_id" ref="account_analytics_account_dms_storage"/>
-            <field name="model_id" ref="account.model_account_analytic_account"/>
-        </record>
+    <!--
+        This throws error everytime dms is installed:-
+        Commented By: Miracle
+        Error: odoo.exceptions.ValidationError: This directory needs to be associated to a record.
+    -->
+<!--        <record id="repair_order_dms_directory" model="dms.directory">-->
+<!--            <field name="name">Account Analytics documents directory</field>-->
+<!--            <field name="is_root_directory">True</field>-->
+<!--            <field name="storage_id" ref="account_analytics_account_dms_storage"/>-->
+<!--            <field name="model_id" ref="account.model_account_analytic_account"/>-->
+<!--        </record>-->
     </data>
 </odoo>
