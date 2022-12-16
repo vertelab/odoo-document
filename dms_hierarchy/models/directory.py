@@ -14,7 +14,7 @@ class Directory(models.Model):
                 raise ValidationError(
                     _("A directory has to have model in attachment storage.")
                 )
-            if not record.parent_id.is_root_directory and not record.res_id:
-                raise ValidationError(
-                    _("This directory needs to be associated to a record.")
-                )
+            # if not record.parent_id.is_root_directory and not record.res_id:
+            #     raise ValidationError(
+            #         _("This directory needs to be associated to a record.")
+            #     )
