@@ -9,6 +9,7 @@ class WebsitePage(models.Model):
 
 class WikiPages(models.Model):
     _name = 'wiki.page'
+    _description = 'Wiki Page'
     _rec_name = 'page_id'
 
     page_id = fields.Many2one('website.page', string="Child Page")

@@ -6,7 +6,7 @@
     </template>
 
     <template id="portal_my_dms" name="View File" inherit_id="dms.portal_my_dms">
-        <xpath expr="//t[@t-call='portal.portal_layout']/t[@t-if='dms_directories or dms_files']/tbody[1]/t[@t-if='dms_files']/t[@t-foreach='dms_files']/tr[1]/td[1]" position="replace">
+        <xpath expr="//t[@t-call='portal.portal_layout']/t[@t-if='dms_directories or dms_files']/tbody[1]/t[@t-if='dms_files']//t[@t-foreach='dms_files']/tr[1]/td[1]" position="replace">
             <td>
                 <a t-attf-href="/my/dms/file/#{dms_file.id}" t-attf-class="tr_dms_file_link" t-att-title="dms_file.name">
                     <img class="o_portal_contact_img" t-att-src="dms_file.icon_url"/>

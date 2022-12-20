@@ -31,15 +31,14 @@
     #'sequence': '1',
     'author': 'Vertel AB',
     'website': 'https://vertel.se/apps/odoo-document/filestore_upload',
-    'images': ['static/description/banner.png'], # 560x280 px.
+    'images': ['static/description/banner.png'],  # 560x280 px.
     'license': 'AGPL-3',
     'contributor': '',
     'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-document',
     'depends': [
-        'yt',
         'base',
-        ],
+    ],
     'data': [
         'views/filestore_view.xml',
         'views/assets.xml',
