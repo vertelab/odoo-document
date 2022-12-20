@@ -36,7 +36,6 @@
     'repository': 'https://github.com/vertelab/odoo-document',
     "depends": ['base', 'mail', 'dms'],
     "data": [
-        "security/ir.model.access.csv",
         "data/ir_config_parameter.xml",
         "views/documents_config_view.xml",
     ],

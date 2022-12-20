@@ -43,7 +43,8 @@
         "demo/res_users.xml",
     ],
     "data": [
-        "demo/res_users.xml",
+        "security/res_users.xml",
+        "demo/ir_model_access.csv",
         "views/res_users.xml",
         "data/ir_config_parameter.xml",
         # "data/ir_cron.xml",

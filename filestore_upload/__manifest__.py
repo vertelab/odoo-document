@@ -38,6 +38,7 @@
     'repository': 'https://github.com/vertelab/odoo-document',
     'depends': [
         'base',
+        'mail'
     ],
     'data': [
         'views/filestore_view.xml',
