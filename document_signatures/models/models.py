@@ -2,6 +2,7 @@
 
 from odoo import models, fields, api, _
 import logging
+
 _logger = logging.getLogger(__name__)
 import requests
 import werkzeug
@@ -12,7 +13,7 @@ from odoo.exceptions import UserError
 from datetime import datetime
 import uuid
 
-    
+
 class DmsAddApproverWizard(models.TransientModel):
     _name = "dms.approver.add.wizard"
     _description = "DMS Approval Wizard"
@@ -29,10 +30,11 @@ class DmsAddApproverWizard(models.TransientModel):
         return [('groups_id', 'in', group_ids), ('id', 'not in', offlimit_ids)]
 
     document = fields.Many2one(comodel_name='dms.file', string='Document', default=_get_document, readonly=True)
-    user_id = fields.Many2one(comodel_name='res.users', string='Approver to add', domain= _get_approvers_domain)
+    user_id = fields.Many2one(comodel_name='res.users', string='Approver to add', domain=_get_approvers_domain)
 
     def set_approver(self):
-        line = self.env["dms.approval.line"].create({'approver_id': self.user_id.id, 'document_id': self.document.id, 'approval_status': False})
+        line = self.env["dms.approval.line"].create(
+            {'approver_id': self.user_id.id, 'document_id': self.document.id, 'approval_status': False})
         self.document.write({'approval_ids': [(4, line.id, 0)]})
 
 
@@ -58,10 +60,11 @@ class DmsApproval(models.Model):
 
     name = fields.Char(default='Approval Configuration')
     approve_customer_document = fields.Boolean(string="Approval on Documents",
-                                              help='Enable this field for adding the approvals for the documents')
-    document_approver_ids = fields.Many2many('res.users', 'document_id', string='Document Approver', domain=lambda self: [
-        ('groups_id', 'in', self.env.ref('base.group_user').id)],
-                                            help='In this field you can add the approvers for the document')
+                                               help='Enable this field for adding the approvals for the documents')
+    document_approver_ids = fields.Many2many('res.users', 'document_id', string='Document Approver',
+                                             domain=lambda self: [
+                                                 ('groups_id', 'in', self.env.ref('base.group_user').id)],
+                                             help='In this field you can add the approvers for the document')
 
     def apply_configuration(self):
         """Function for applying the approval configuration"""
@@ -80,13 +83,13 @@ class DmsApprovalLine(models.Model):
     assertion = fields.Binary(string='Assertion', readonly=1)
     relay_state = fields.Binary(string='Relay State', readonly=1)
     signed_on = fields.Datetime(string='Signed on')
-    
-    
+
+
 class Project(models.Model):
     _inherit = "project.project"
 
     document_ids = fields.One2many(comodel_name='dms.file', inverse_name='project_id', string='Documents')
-    
+
 
 class DmsFile(models.Model):
     _inherit = "dms.file"
@@ -106,18 +109,17 @@ class DmsFile(models.Model):
     page_visibility = fields.Boolean(compute='_compute_page_visibility')
     project_id = fields.Many2one(comodel_name='project.project', string='Project')
     requires_customer_signature = fields.Boolean(string='Requires customer signature', default=False)
-    
+
     @api.depends('directory_id')
     def _compute_project_id(self):
         for document in self:
-            _logger.warning("#"*99)
+            _logger.warning("#" * 99)
             _logger.warning(document.directory_id.model_id.model)
             if document.project_id:
                 _logger.info("Project id already set")
             elif document.directory_id.model_id.model == "project.project":
                 _logger.warning(document.directory_id.record_ref)
                 document.project_id = document.record_ref
-
 
     @api.depends('approval_ids')
     def _compute_page_visibility(self):
@@ -132,16 +134,17 @@ class DmsFile(models.Model):
         updates the approval table values according to the
         approval of the users"""
         self.ensure_one()
-        _logger.warning("hej"*999)
+        _logger.warning("hej" * 999)
         _logger.warning(f"{self.record_ref=}")
         current_user = self.env.uid
         for approval_id in self.approval_ids:
             if current_user == approval_id.approver_id.id:
                 signport = self.env.ref("rest_signport.api_signport")
                 data = json.loads(request.httprequest.data)
-                access_token=data.get("params", {}).get("access_token")
+                access_token = data.get("params", {}).get("access_token")
                 res = signport.sudo().post_sign_document(
-                    ssn=self.env.user.partner_id.social_sec_nr and self.env.user.partner_id.social_sec_nr.replace("-", "") or False,
+                    ssn=self.env.user.partner_id.social_sec_nr and self.env.user.partner_id.social_sec_nr.replace("-",
+                                                                                                                  "") or False,
                     document_id=self.id,
                     directory_id=self.directory_id,
                     access_token=access_token,
@@ -166,7 +169,8 @@ class DmsFile(models.Model):
     def document_unlock(self):
         self.document_locked = False
         for signature in self.approval_ids:
-            signature.write({'approval_status': False, 'signed_document': None, 'signer_ca': None, 'assertion': None, 'relay_state': None, 'signed_on': False})
+            signature.write({'approval_status': False, 'signed_document': None, 'signer_ca': None, 'assertion': None,
+                             'relay_state': None, 'signed_on': False})
         self.signed_document = False
 
     @api.depends('approval_ids.approver_id')
@@ -214,7 +218,8 @@ class DmsFile(models.Model):
 class RestApiSignport(models.Model):
     _inherit = "rest.api"
 
-    def post_sign_document(self, ssn, document_id, directory_id, access_token, message=False, sign_type="customer", approval_id=False):
+    def post_sign_document(self, ssn, document_id, directory_id, access_token, message=False, sign_type="customer",
+                           approval_id=False):
         # export_wizard = self.env['xml.export'].with_context({'active_model': 'sale.order', 'active_ids': order_id}).create({})
         # action = export_wizard.download_xml_export()
         # self.env['ir.attachment'].browse(action['res_id']).update({'res_id': order_id, 'res_model': 'sale.order'})
@@ -243,14 +248,14 @@ class RestApiSignport(models.Model):
         guid = str(uuid.uuid1())
         _logger.warning(f" {guid}")
         add_signature_page_vals = {
-        "clientCorrelationId": guid,
-        "documents": [
-            {
-            "content": document_content,
-            "signaturePageTemplateId": "e33d2a21-1d23-4b4f-9baa-def11634ceb4",
-            "signaturePagePosition": "last",
-            }
-        ]
+            "clientCorrelationId": guid,
+            "documents": [
+                {
+                    "content": document_content,
+                    "signaturePageTemplateId": "e33d2a21-1d23-4b4f-9baa-def11634ceb4",
+                    "signaturePagePosition": "last",
+                }
+            ]
         }
 
         res = self.call_endpoint(
@@ -271,10 +276,13 @@ class RestApiSignport(models.Model):
             "username": f"{self.user}",
             "password": f"{self.password}",
             "spEntityId": f"{self.sp_entity_id}",  # "https://serviceprovider.com/", # lägg som inställning på rest api
-            "idpEntityId": f"{self.idp_entity_id}",  # "https://eid.test.legitimeringstjanst.se/sc/mobilt-bankid/",# lägg som inställning på rest api
+            "idpEntityId": f"{self.idp_entity_id}",
+            # "https://eid.test.legitimeringstjanst.se/sc/mobilt-bankid/",# lägg som inställning på rest api
             "signResponseUrl": response_url,
-            "signatureAlgorithm": f"{self.signature_algorithm}",  # "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",# lägg som inställning på rest api
-            "loa": f"{self.loa}",  # "http://id.swedenconnect.se/loa/1.0/uncertified-loa3",# lägg som inställning på rest api
+            "signatureAlgorithm": f"{self.signature_algorithm}",
+            # "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",# lägg som inställning på rest api
+            "loa": f"{self.loa}",
+            # "http://id.swedenconnect.se/loa/1.0/uncertified-loa3",# lägg som inställning på rest api
             "certificateType": "PKC",
             "signingMessage": {
                 "body": f"{message}",
@@ -307,10 +315,10 @@ class RestApiSignport(models.Model):
                     "label": _("Role"),
                     "value": role
                 },
-                {
-                    "label": _("Namn"),
-                    "value": self.env.user.name
-                }
+                    {
+                        "label": _("Namn"),
+                        "value": self.env.user.name
+                    }
                 ],
                 "signatureTitle": "Signed by",
             },
@@ -324,12 +332,12 @@ class RestApiSignport(models.Model):
         return res
 
     def document_signport_post(self, data_vals={}, document_id=False, endpoint=False, sign_type="customer"):
-        _logger.warning("document_signport_post"*99)
+        _logger.warning("document_signport_post" * 99)
         headers = {
             "accept": "application/json",
             "Content-Type": "application/json; charset=utf8",
         }
-        _logger.warning("signport post"*99)
+        _logger.warning("signport post" * 99)
         base_url = self.env["ir.config_parameter"].sudo().get_param("web.base.url")
 
         data_vals["username"] = f"{self.user}"
@@ -362,9 +370,10 @@ class RestApiSignport(models.Model):
         #     )
         # )
         if sign_type == "employee":
-            _logger.warning("if"*99)
+            _logger.warning("if" * 99)
             self.env['dms.file'].browse(document_id).signed_document = res["document"][0]["content"]
-            approval_line = self.env["dms.approval.line"].search([("document_id", "=", document_id), ("approver_id", "=", self.env.uid)], limit=1)
+            approval_line = self.env["dms.approval.line"].search(
+                [("document_id", "=", document_id), ("approver_id", "=", self.env.uid)], limit=1)
             approval_line.signed_on = fields.Datetime.now()
             approval_line.signed_document = res["document"][0]["content"]
             approval_line.signer_ca = res["signerCa"]
@@ -372,7 +381,7 @@ class RestApiSignport(models.Model):
             approval_line.relay_state = base64.b64encode(res["relayState"].encode())
             approval_line.approval_status = True
         elif sign_type == "customer":
-            _logger.warning("else"*99)
+            _logger.warning("else" * 99)
             document = self.env['dms.file'].browse(document_id)
             _logger.warning(f"{document=}, {self.env.user.id=}, {fields.datetime.now()=}")
             document.signed_by = self.env.user.id
