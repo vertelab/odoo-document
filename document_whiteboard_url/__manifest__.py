@@ -36,7 +36,7 @@
     'contributor': '',
     'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-document',
-    "depends": ["document_url", "document_whiteboard"],
+    'depends': ['document_url', 'document_whiteboard'],
     "data": [
         "wizard/document_url_view.xml",
     ],
