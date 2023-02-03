@@ -36,9 +36,9 @@
     'contributor': '',
     'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-document',
-    'depends': [
-        'dms',
-    ],
+    # Any module necessary for this one to work correctly
+
+    'depends': ['dms',],
     'data': [
     ],
     'auto_install': True,
