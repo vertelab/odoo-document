@@ -36,10 +36,9 @@
     'contributor': '',
     'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-document',
-    'depends': [
-        'base',
-        'mail'
-    ],
+    # Any module necessary for this one to work correctly
+
+    'depends': ['base','mail'],
     'data': [
         'views/filestore_view.xml',
         'views/assets.xml',
