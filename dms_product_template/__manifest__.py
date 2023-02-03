@@ -40,10 +40,7 @@
     # for the full list
 
     # any module necessary for this one to work correctly
-    'depends': [
-        'product', 
-        'dms',
-        ],
+    'depends': ['product','dms',],
 
     # always loaded
     'data': [
