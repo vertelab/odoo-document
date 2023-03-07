@@ -20,7 +20,7 @@
 ##############################################################################
 
 {
-    'name': 'Document: DMS Partner',
+    'name': 'Document: Mail DMS Partner',
     'version': '14.0.0.1.0',
     'summary': 'Manage Partner Documents',
     'category': 'Technical',
