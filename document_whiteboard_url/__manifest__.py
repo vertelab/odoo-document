@@ -22,7 +22,7 @@
 # Copyright 2020 Tecnativa - Manuel Calero
 
 {
-    'name': 'Document: Document Whiteboard URL Attachment',
+    'name': 'Document: Whiteboard URL Attachment',
     'version': '14.0.1.1.0',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Manage version management on documents.',
