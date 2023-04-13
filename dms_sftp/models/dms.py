@@ -10,17 +10,18 @@ class DMSFile(models.Model):
     _inherit = 'dms.file'
 
     def _storage_location(self):
-        sftp_storage_location = f"{ROOT_DIR}/{self.env.user.login}"
+        sftp_storage_location = f"{ROOT_DIR}/{self.env.cr.dbname}/{self.env.user.login}"
         return sftp_storage_location
 
     def _sync_with_sftp(self, path_names, content):
         """
         Synchronize the file with the SFTP server. document.file(10, )
         """
-        path = f"{self._storage_location()}/{path_names}"
-        with open(path, 'wb') as f:
-            stream = base64.b64decode(content)
-            f.write(stream)
+        if path_names and self.env.user.login != "__system__":
+            path = f"{self._storage_location()}/{path_names}"
+            with open(path, 'wb') as f:
+                stream = base64.b64decode(content)
+                f.write(stream)
 
     def write(self, vals):
         full_path = f"{self._storage_location()}/{self.path_names}"

@@ -38,13 +38,18 @@ class DocumentSFTP(models.AbstractModel):
         # https://github.com/rspivak/sftpserver/blob/master/src/sftpserver
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        host, port = self.env['ir.config_parameter'].get_param('dms_sftp.bind', 'localhost:0').split(':')
-        _logger.info('Binding to %s:%s', host, port)
-        server_socket.bind((host, int(port)))
+        host, port = self.env['ir.config_parameter'].get_param('sftp_bind', 'localhost:0').split(':')
+
+        try:
+            _logger.info('Binding to %s:%s', host, port)
+            server_socket.bind((host, int(port)))
+        except socket.error as e:
+            _logger.info('Binding to %s:%s', host, port)
+
         host_real, port_real = server_socket.getsockname()
         _logger.info('Listening to SFTP connections on %s:%s', host_real, port_real)
         if host_real != host or port_real != port:
-            self.env['ir.config_parameter'].set_param('dms_sftp.bind', '%s:%s' % (host_real, port_real))
+            self.env['ir.config_parameter'].set_param('sftp_bind', '%s:%s' % (host_real, port_real))
         server_socket.listen(5)
         server_socket.settimeout(2)
 
@@ -56,7 +61,7 @@ class DocumentSFTP(models.AbstractModel):
                     _channels.pop(0)
                 continue
 
-            key = self.env['ir.config_parameter'].get_param('dms_sftp.hostkey')
+            key = self.env['ir.config_parameter'].get_param('sftp_host_key')
             host_key = paramiko.Ed25519Key.from_private_key(StringIO(key))
 
             transport = DocumentSFTPTransport(self.env.cr, conn)

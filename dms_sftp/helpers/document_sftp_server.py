@@ -39,21 +39,6 @@ class DocumentSFTPServer(ServerInterface):
             pass
         return AUTH_FAILED
 
-    # def check_auth_publickey(self, username, key):
-    #     user = self.env['res.users'].search([('login', '=', username)])
-    #     if not user:
-    #         return AUTH_FAILED
-    #     for line in (user.authorized_keys or '').split('\n'):
-    #         if not line or line.startswith('#'):
-    #             continue
-    #         key_type, key_data = line.split(' ', 2)[:2]
-    #         if key_type != 'ssh-rsa':
-    #             _logger.warning('Ignoring key of unknown type for line %s', line)
-    #             continue
-    #         if RSAKey(data=decodebytes(key_data)) == key:
-    #             return AUTH_SUCCESSFUL
-    #     return AUTH_FAILED
-
     def get_allowed_auths(self, username):
         return 'password,publickey'
 

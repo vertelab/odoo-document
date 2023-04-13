@@ -92,7 +92,6 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
         return SFTP_OK
 
     def rename(self, old_path, new_path):
-        print("paste rename")
         """responsible for renaming file on the remote sever."""
         old_path = self._realpath(self.ROOT + old_path)
         new_path = self._realpath(self.ROOT + new_path)
@@ -136,9 +135,9 @@ class DocumentSFTPSftpServerInterface(SFTPServerInterface):
 
     def session_started(self):
         self.env = self.env(cr=self.env.registry.cursor())
-        self.ROOT = f"{self.ROOT}/{self.env.user.login}"
+        self.ROOT = f"{self.ROOT}/{self.env.cr.dbname}/{self.env.user.login}"
         if not path.exists(self.ROOT):
-            os.mkdir(self.ROOT, mode=o777)
+            os.makedirs(self.ROOT, mode=o777)
         os.chmod(self.ROOT, mode=o777)
         self._download_dms_directory(self.ROOT, data=self._fetch_dms_directories())
 
