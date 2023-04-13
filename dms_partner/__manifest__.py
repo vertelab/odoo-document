@@ -32,7 +32,7 @@
     'contributor': '',
     'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-document',
-    "depends": ['contacts', 'dms'],
+    'depends': ['contacts', 'dms'],
     "data": [
         'views/res_partner_view.xml',
     ],

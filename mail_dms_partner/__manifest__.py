@@ -20,7 +20,7 @@
 ##############################################################################
 
 {
-    'name': 'Document: DMS Partner',
+    'name': 'Document: Mail DMS Partner',
     'version': '14.0.0.1.0',
     'summary': 'Manage Partner Documents',
     'category': 'Technical',
@@ -31,11 +31,9 @@
     'license': 'AGPL-3',
     'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-document',
-    'depends': [
-        'dms',
-        'contacts',
-        'base_signature',
-    ],
+    # Any module necessary for this one to work correctly
+
+    'depends': ['dms','contacts','base_signature',],
     'data': [
         'security/ir.model.access.csv',
         'views/dms_view.xml',

@@ -40,10 +40,7 @@
     # for the full list
 
     # any module necessary for this one to work correctly
-    'depends': [
-        'dms',
-        'hr_recruitment',
-    ],
+    'depends': ['dms','hr_recruitment',],
 
     # always loaded
     'data': [

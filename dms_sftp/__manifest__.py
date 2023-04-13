@@ -25,7 +25,9 @@
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Access your documents via SFTP.',
     'category': 'Technical',
-    'description': 'Access your documents via SFTP.',
+    'description': """
+    Access your documents via SFTP.
+    """,
     #'sequence': '1',
     'author': 'Vertel AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_sftp',
@@ -34,7 +36,7 @@
     'contributor': '',
     'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-document',
-    "depends": ['base', 'mail', 'dms'],
+    'depends': ['base', 'mail', 'dms'],
     "data": [
         "data/ir_config_parameter.xml",
         "views/documents_config_view.xml",

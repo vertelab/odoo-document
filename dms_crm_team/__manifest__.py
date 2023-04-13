@@ -40,12 +40,8 @@
     # for the full list
 
     # any module necessary for this one to work correctly
-    'depends': [
-        'crm',
-        'sale',
-        #'sales_team', 
-        'dms', 
-        ],
+    'depends': ['crm', 'sale','dms'],
+                #'sales_team',],
 
     # always loaded
     'data': [

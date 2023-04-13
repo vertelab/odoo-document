@@ -42,10 +42,7 @@
     # for the full list
 
     # any module necessary for this one to work correctly
-    'depends': [
-        'helpdesk_mgmt',
-        'dms',
-    ],
+    'depends': ['helpdesk_mgmt','dms',],
 
     # always loaded
     'data': [

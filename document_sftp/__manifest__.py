@@ -20,7 +20,7 @@
 ##############################################################################
 
 {
-    'name': 'Document: Document with SFTP',
+    'name': 'Document: SFTP',
     'version': '14.0.1.0.0',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Access your documents via SFTP.',
@@ -34,11 +34,7 @@
     'contributor': '',
     'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-document',
-
-    "depends": [
-        'base',
-        'mail'
-    ],
+    'depends': ['base','mail',],
     "demo": [
         "demo/res_users.xml",
     ],
