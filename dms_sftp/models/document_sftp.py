@@ -77,16 +77,11 @@ class DocumentSFTP(models.AbstractModel):
                 continue
 
     def _register_hook(self):
+
         cr = self._cr
-        if cr.dbname not in _db2thread:
+        dbname = cr.dbname
+        if dbname not in _db2thread:
             stop = threading.Event()
-            _db2thread[cr.dbname] = (threading.Thread(target=self._run_server, args=(cr.dbname, stop)), stop,)
-            _db2thread[cr.dbname][0].start()
-            old_stop = server.stop
-
-            def new_stop():
-                stop.set()
-                old_stop()
-
-            server.stop = new_stop
+            _db2thread[dbname] = (threading.Thread(target=self._run_server, args=(dbname, stop)), stop,)
+            _db2thread[dbname][0].start()
         return super(DocumentSFTP, self)._register_hook()
