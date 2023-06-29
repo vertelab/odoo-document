@@ -1,47 +1,50 @@
 <odoo>
-  <data>
-    <record id="edit_project_dms_file" model="ir.ui.view">
-      <field name="name">project.project.form.dms</field>
-      <field name="model">project.project</field>
-      <field name="inherit_id" ref="project.edit_project"/>
-      <field name="arch" type="xml">
-        <xpath expr="//button[@name='attachment_tree_view']" position="replace">
-          <button class="oe_stat_button" name="dms_kanban_view" type="object" icon="fa-file-text-o">
-            <field string="Documents" name="doc_count" widget="statinfo"/>
-          </button>
-        </xpath>
-      </field>
-    </record>
+    <data>
+        <record id="edit_project_dms_file" model="ir.ui.view">
+            <field name="name">project.project.form.dms</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='attachment_tree_view']" position="replace">
+                    <button class="oe_stat_button" name="kanban_view_directory" type="object" icon="fa-folder">
+                        <field string="Directories" name="directory_count" widget="statinfo"/>
+                    </button>
+                    <button class="oe_stat_button" name="dms_kanban_view" type="object" icon="fa-file-text-o">
+                        <field string="Documents" name="doc_count" widget="statinfo"/>
+                    </button>
+                </xpath>
+            </field>
+        </record>
 
-    <record id="view_task_form2dms" model="ir.ui.view">
-      <field name="name">project.task.form.dms</field>
-      <field name="model">project.task</field>
-      <field eval="2" name="priority"/>
-      <field name="inherit_id" ref="project.view_task_form2"/>
-      <field name="arch" type="xml">
-        <xpath expr="//div[@name='button_box']" position="inside">
-          <button class="oe_stat_button" name="dms_kanban_view" type="object" icon="fa-file-text-o">
-            <field string="Documents" name="doc_count" widget="statinfo"/>
-          </button>
-        </xpath>
-      </field>
-    </record>
+        <record id="view_task_form2dms" model="ir.ui.view">
+            <field name="name">project.task.form.dms</field>
+            <field name="model">project.task</field>
+            <field eval="2" name="priority"/>
+            <field name="inherit_id" ref="project.view_task_form2"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@name='button_box']" position="inside">
+                    <button class="oe_stat_button" name="dms_kanban_view" type="object" icon="fa-file-text-o">
+                        <field string="Documents" name="doc_count" widget="statinfo"/>
+                    </button>
+                </xpath>
+            </field>
+        </record>
 
-    <record id="kanban_doc_count" model="ir.ui.view">
-      <field name="name">project.project.kanban.doc_count</field>
-      <field name="model">project.project</field>
-      <field name="inherit_id" ref="project.view_project_kanban"/>
-      <field name="arch" type="xml">
-        <xpath expr="//div[@class='o_project_kanban_boxes']" position="inside">         
-          <a class="o_project_kanban_box" name="dms_kanban_view" type="object">
-            <div>
-              <field name="doc_count"/>
-              <span class="o_label">Documents</span>
-            </div>
-          </a>
-        </xpath>
-      </field>
-    </record>
+        <record id="kanban_doc_count" model="ir.ui.view">
+            <field name="name">project.project.kanban.doc_count</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.view_project_kanban"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@class='o_project_kanban_boxes']" position="inside">
+                    <a class="o_project_kanban_box" name="dms_kanban_view" type="object">
+                        <div>
+                            <field name="doc_count"/>
+                            <span class="o_label">Documents</span>
+                        </div>
+                    </a>
+                </xpath>
+            </field>
+        </record>
 
-  </data>
+    </data>
 </odoo>

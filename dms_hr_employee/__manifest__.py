@@ -40,14 +40,12 @@
     # for the full list
 
     # any module necessary for this one to work correctly
-    'depends': ['dms','hr',],
+    'depends': ['dms', 'hr',],
 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
         'views/views.xml',
     ],
-    # only loaded in demonstration mode
-    'auto_install': True,
 }
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

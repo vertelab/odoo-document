@@ -48,7 +48,5 @@
         'views/views.xml',
         'data/hr_job_applicant_data.xml',
     ],
-    # only loaded in demonstration mode
-    'auto_install': True,
 }
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

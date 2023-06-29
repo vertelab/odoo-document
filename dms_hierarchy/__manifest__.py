@@ -38,9 +38,6 @@
     'repository': 'https://github.com/vertelab/odoo-document',
     # Any module necessary for this one to work correctly
 
-    'depends': ['dms',],
-    'data': [
-    ],
-    'auto_install': True,
+    'depends': ['dms'],
 }
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
