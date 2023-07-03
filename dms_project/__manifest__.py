@@ -46,6 +46,8 @@
     'data': [
         # 'security/ir.model.access.csv',
         'views/views.xml',
+        'views/dms_directory.xml',
+        'views/dms_file.xml',
     ],
 }
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -37,6 +37,9 @@
     'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-document',
     # Any module necessary for this one to work correctly
+    'data': [
+        'views/directory_view.xml'
+    ],
 
     'depends': ['dms'],
 }

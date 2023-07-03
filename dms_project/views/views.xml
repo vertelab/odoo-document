@@ -5,14 +5,22 @@
             <field name="model">project.project</field>
             <field name="inherit_id" ref="project.edit_project"/>
             <field name="arch" type="xml">
+                <xpath expr="//header//button[last()]" position="after">
+                    <button name="create_parent_dir" string="Create Project Dir" type="object" class="btn btn-primary" attrs="{'invisible': [('has_project_parent_dir', '=', True)]}"/>
+
+                </xpath>
                 <xpath expr="//button[@name='attachment_tree_view']" position="replace">
                     <button class="oe_stat_button" name="kanban_view_directory" type="object" icon="fa-folder">
                         <field string="Directories" name="directory_count" widget="statinfo"/>
                     </button>
-                    <button class="oe_stat_button" name="dms_kanban_view" type="object" icon="fa-file-text-o">
+                    <button class="oe_stat_button" name="dms_kanban_view" type="object" icon="fa-file-text-o" attrs="{'invisible': [('has_project_parent_dir', '=', False)]}">
                         <field string="Documents" name="doc_count" widget="statinfo"/>
                     </button>
                 </xpath>
+
+                <field name="user_id" position="after">
+                    <field name="has_project_parent_dir"/>
+                </field>
             </field>
         </record>
 
