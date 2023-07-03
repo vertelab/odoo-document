@@ -22,29 +22,21 @@
 {
     'name': 'Document: DMS Project',
     'version': '14.0.0.0.0',
-    # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
-    'summary': 'Short (1 phrase/line) summary of the module''s purpose, used as subtitle on modules listing or apps.openerp.com',
+    'summary': 'DMS Project',
     'category': 'Technical',
-    'description': 'Long description of module''s purpose.',
-    #'sequence': '1',
+    'description': 'Creates the Link between Project/Task and DMS',
     'author': 'Vertel AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_project',
-    'images': ['static/description/banner.png'], # 560x280 px.
+    'images': ['static/description/banner.png'],  # 560x280 px.
     'license': 'AGPL-3',
     'contributor': '',
     'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-document',
-
-    # Categories can be used to filter modules in modules listing
-    # Check https://github.com/odoo/odoo/blob/14.0/odoo/addons/base/data/ir_module_category_data.xml
-    # for the full list
-
     # any module necessary for this one to work correctly
     'depends': ['project', 'dms'],
 
     # always loaded
     'data': [
-        # 'security/ir.model.access.csv',
         'views/views.xml',
         'views/dms_directory.xml',
         'views/dms_file.xml',

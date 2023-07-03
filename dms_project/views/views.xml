@@ -10,7 +10,7 @@
 
                 </xpath>
                 <xpath expr="//button[@name='attachment_tree_view']" position="replace">
-                    <button class="oe_stat_button" name="kanban_view_directory" type="object" icon="fa-folder">
+                    <button class="oe_stat_button" name="kanban_view_directory" type="object" icon="fa-folder" attrs="{'invisible': [('has_project_parent_dir', '=', False)]}">
                         <field string="Directories" name="directory_count" widget="statinfo"/>
                     </button>
                     <button class="oe_stat_button" name="dms_kanban_view" type="object" icon="fa-file-text-o" attrs="{'invisible': [('has_project_parent_dir', '=', False)]}">
