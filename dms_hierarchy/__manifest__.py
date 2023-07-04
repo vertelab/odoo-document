@@ -31,14 +31,14 @@
     #'sequence': '1',
     'author': 'Vertel AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_hierarchy',
-    'images': ['static/description/banner.png'], # 560x280 px.
+    'images': ['static/description/banner.png'],  # 560x280 px.
     'license': 'AGPL-3',
     'contributor': '',
     'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-document',
     # Any module necessary for this one to work correctly
     'data': [
-        'views/directory_view.xml'
+        # 'views/directory_view.xml'
     ],
 
     'depends': ['dms'],
