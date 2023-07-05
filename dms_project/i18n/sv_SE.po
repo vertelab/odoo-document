@@ -1,0 +1,192 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* dms_project
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 14.0-20230705\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-07-05 11:37+0000\n"
+"PO-Revision-Date: 2023-07-05 11:37+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.kanban_doc_count
+msgid "<span class=\"o_label\">Documents</span>"
+msgstr "<span class=\"o_label\">Dokument</span>"
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_directory_form_from_project
+msgid "Accept Emails from"
+msgstr "Acceptera E-post från"
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_directory_form_from_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_file_form_from_project
+msgid "Access Information"
+msgstr "Kom åt information"
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_directory_form_from_project
+msgid "Alias Setting"
+msgstr "Alias-inställning"
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_file_form_from_project
+msgid "Archived"
+msgstr "Arkiverad"
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_directory_form_from_project
+msgid "Complete Groups"
+msgstr "Kompletta grupper"
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.edit_project_dms_file
+msgid "Create Project Dir"
+msgstr "Skapa projektmapp"
+
+#. module: dms_project
+#: code:addons/dms_project/models/models.py:0
+#: model_terms:ir.ui.view,arch_db:dms_project.edit_project_dms_file
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_directory_form_from_project
+#, python-format
+msgid "Directories"
+msgstr "Mappar"
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_directory_form_from_project
+msgid "Directory"
+msgstr "Mapp"
+
+#. module: dms_project
+#: model:ir.model.fields,field_description:dms_project.field_project_project__display_name
+#: model:ir.model.fields,field_description:dms_project.field_project_task__display_name
+msgid "Display Name"
+msgstr "Visningsnamn"
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.edit_project_dms_file
+#: model_terms:ir.ui.view,arch_db:dms_project.view_task_form2dms
+msgid "Documents"
+msgstr "Dokument"
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_directory_form_from_project
+msgid "Elements"
+msgstr ""
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_directory_form_from_project
+msgid "Email Alias"
+msgstr "E-post alias"
+
+#. module: dms_project
+#: code:addons/dms_project/models/models.py:0
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_directory_form_from_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_file_form_from_project
+#, python-format
+msgid "Files"
+msgstr "Filer"
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_directory_form_from_project
+msgid "Groups"
+msgstr "Grupper"
+
+#. module: dms_project
+#: model:ir.model.fields,field_description:dms_project.field_project_project__has_project_parent_dir
+msgid "Has Parent Dir"
+msgstr "Har ovanliggande mapp"
+
+#. module: dms_project
+#: model:ir.model.fields,field_description:dms_project.field_project_project__id
+#: model:ir.model.fields,field_description:dms_project.field_project_task__id
+msgid "ID"
+msgstr ""
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_directory_form_from_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_file_form_from_project
+msgid "Internal / Human Resource"
+msgstr "Interna / Personalresurser"
+
+#. module: dms_project
+#: model:ir.model.fields,field_description:dms_project.field_project_project____last_update
+#: model:ir.model.fields,field_description:dms_project.field_project_task____last_update
+msgid "Last Modified on"
+msgstr "Senast redigerad"
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_file_form_from_project
+msgid "Lock"
+msgstr "Lås"
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_directory_form_from_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_file_form_from_project
+msgid "Meta Information"
+msgstr ""
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_directory_form_from_project
+msgid "My Documents"
+msgstr "Mina dokument"
+
+#. module: dms_project
+#: model:ir.model.fields,field_description:dms_project.field_project_project__directory_count
+msgid "Number of Directories"
+msgstr "Antal mappar"
+
+#. module: dms_project
+#: model:ir.model.fields,field_description:dms_project.field_project_project__doc_count
+#: model:ir.model.fields,field_description:dms_project.field_project_task__doc_count
+msgid "Number of documents attached"
+msgstr "Antal bifogade dokument"
+
+#. module: dms_project
+#: model:ir.model,name:dms_project.model_project_project
+msgid "Project"
+msgstr "Projekt"
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_directory_form_from_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_file_form_from_project
+msgid "Share"
+msgstr "Dela"
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_directory_form_from_project
+msgid "Subdirectories"
+msgstr "Underliggande mappar"
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_directory_form_from_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_file_form_from_project
+msgid "Tags..."
+msgstr "Taggar..."
+
+#. module: dms_project
+#: model:ir.model,name:dms_project.model_project_task
+msgid "Task"
+msgstr "Aktivitet"
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_file_form_from_project
+msgid "Technical Information"
+msgstr "Teknisk information"
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_file_form_from_project
+msgid "Unlock"
+msgstr "Lås upp"
+
+#. module: dms_project
+#: model_terms:ir.ui.view,arch_db:dms_project.view_dms_directory_form_from_project
+msgid "mail.catchall.domain"
+msgstr ""
