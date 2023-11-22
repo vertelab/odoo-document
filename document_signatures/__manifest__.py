@@ -40,7 +40,7 @@
     # for the full list
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'rest_base', 'rest_signport', 'res_user_groups_skogsstyrelsen', 'partner_ssn', 'dms'],
+    'depends': ['base', 'rest_base', 'rest_signport', 'partner_ssn', 'dms'],
 
     # always loaded
     'data': [
