@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- <data noupdate="1"> -->
+    <data noupdate="0">
+        <record id="calendar_event_dms_storage" model="dms.storage">
+            <field name="name">Calendar events</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="save_type">attachment</field>
+            <field name="inherit_access_from_parent_record">True</field>
+            <field name="model_ids" eval="[(6, 0, [ref('calendar.model_calendar_event')])]"/>
+        </record>
+
+        <record id="calendar_event_dms_directory" model="dms.directory">
+            <field name="name">Calendar event directory</field>
+            <field name="is_root_directory">True</field>
+            <field name="storage_id" ref="calendar_event_dms_storage"/>
+            <field name="model_id" ref="calendar.model_calendar_event"/>
+        </record>
+    </data>
+</odoo>

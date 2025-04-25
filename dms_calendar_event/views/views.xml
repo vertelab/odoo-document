@@ -1,0 +1,16 @@
+<odoo>
+  <data>
+    <record id="calendar_event_doc_count" model="ir.ui.view">
+      <field name="name">calendar.event.doc_count</field>
+      <field name="model">calendar.event</field>
+      <field name="inherit_id" ref="calendar.view_calendar_event_form"/>
+      <field name="arch" type="xml">
+        <xpath expr="//button[@name='action_open_calendar_event']" position="replace">
+          <button class="oe_stat_button" name="dms_kanban_view" type="object" icon="fa-file-text-o">
+            <field string="Documents" name="doc_count" widget="statinfo"/>
+          </button>
+        </xpath>
+      </field>
+    </record>
+  </data>
+</odoo>
