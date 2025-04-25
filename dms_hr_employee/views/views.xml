@@ -1,0 +1,16 @@
+<odoo>
+  <data>
+    <record id="edit_hr_employee_dms_file" model="ir.ui.view">
+      <field name="name">hr.employee.dms</field>
+      <field name="model">hr.employee</field>
+      <field name="inherit_id" ref="hr.view_employee_form"/>
+      <field name="arch" type="xml">
+        <xpath expr="//div[@class='oe_button_box']" position="inside">
+          <button class="oe_stat_button" name="dms_tree_view" type="object" icon="fa-file-text-o">
+            <field string="Documents" name="doc_count" widget="statinfo"/>
+          </button>
+        </xpath>
+      </field>
+    </record>
+  </data>
+</odoo>
