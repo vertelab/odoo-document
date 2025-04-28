@@ -17,4 +17,3 @@ class File(models.Model):
         for record in self:
             if not file.check_name(record.name):
                 raise ValidationError(_("The file name is invalid."))
-            files = record.sudo().directory_id.file_ids.display_name
