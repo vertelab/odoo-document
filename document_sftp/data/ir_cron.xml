@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="document_sftp_cron" model="ir.cron" forcecreate="True">
+            <field name="name">Document SFTP Cron Job</field>
+            <field name="model_id" ref="document_sftp.model_document_sftp_root_by_model"/>
+            <field name="state">code</field>
+            <field name="code">model._upload_attachments_to_crm()</field>
+            <field name="interval_number">1</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+        </record>
+    </data>
+</odoo>
