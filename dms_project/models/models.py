@@ -138,7 +138,7 @@ class Project(models.Model):
         }
 
 
-class Project(models.Model):
+class ProjectTask(models.Model):
     _inherit = "project.task"
 
     doc_count = fields.Integer(compute='_compute_attached_docs_count', string="Number of documents attached")
