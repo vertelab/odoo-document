@@ -38,7 +38,7 @@ msgstr ""
 #. module: dms_partner
 #: model:ir.model.fields,field_description:dms_partner.field_res_partner____last_update
 msgid "Last Modified on"
-msgstr "Senast redigerad"
+msgstr "Senast redigerad den"
 
 #. module: dms_partner
 #: model:ir.model.fields,field_description:dms_partner.field_res_partner__doc_count
