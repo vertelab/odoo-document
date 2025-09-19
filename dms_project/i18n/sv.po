@@ -102,7 +102,7 @@ msgstr "Grupper"
 #. module: dms_project
 #: model:ir.model.fields,field_description:dms_project.field_project_project__has_project_parent_dir
 msgid "Has Parent Dir"
-msgstr "Har ovanliggande mapp"
+msgstr "Har överliggande mapp"
 
 #. module: dms_project
 #: model:ir.model.fields,field_description:dms_project.field_project_project__id
@@ -120,7 +120,7 @@ msgstr "Interna / Personalresurser"
 #: model:ir.model.fields,field_description:dms_project.field_project_project____last_update
 #: model:ir.model.fields,field_description:dms_project.field_project_task____last_update
 msgid "Last Modified on"
-msgstr "Senast redigerad"
+msgstr "Senast redigerad den"
 
 #. module: dms_project
 #: model_terms:ir.ui.view,arch_db:dms_project.view_dms_file_form_from_project
