@@ -1,5 +1,5 @@
 <odoo>
-    <template id="assets_common"  inherit_id="web.assets_common">
+    <template id="assets_common" inherit_id="web.assets_common">
         <xpath expr="//link[@href='/web/static/src/scss/name_and_signature.scss']" position="after">
             <link rel="stylesheet" type="text/scss" href="/dms_webpage/static/src/scss/style.scss"/>
         </xpath>
@@ -54,7 +54,9 @@
             </div>
 
             <div class="mt32">
-                <h4><strong>Signature</strong></h4>
+                <h4>
+                    <strong>Signature</strong>
+                </h4>
                 <t t-if="dms_file.signature">
                     <img t-att-src="image_data_uri(dms_file.signature)" alt="Signature"/>
                 </t>
@@ -67,12 +69,48 @@
             </div>
 
             <div class="mt32">
-                <h4><strong>Message and communication history</strong></h4>
+                <h4>
+                    <strong>Message and communication history</strong>
+                </h4>
                 <t t-call="portal.message_thread">
                     <t t-set="object" t-value="dms_file"/>
                     <t t-set="token" t-value="dms_file.access_token"/>
                     <t t-set="pid" t-value="pid"/>
                     <t t-set="hash" t-value="hash"/>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <template id="portal_my_dms_directory" name="My DMS Directory">
+        <t t-call="portal.portal_layout">
+            <div class="container mt-4">
+                <h3>Directory: <t t-esc="dms_directory.name"/>
+                </h3>
+
+                <div class="list-group mt-3">
+                    <t t-foreach="sub_directories" t-as="sub">
+                        <a t-attf-href="/my/dms/directory/#{sub.id}" class="list-group-item list-group-item-action">
+                            <i class="fa fa-folder text-warning mr-2"/>
+                            <span t-esc="sub.name"/>
+                        </a>
+                    </t>
+
+                    <t t-foreach="files" t-as="f">
+                        <a t-attf-href="/my/dms/file/#{f.id}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fa fa-file-text-o text-primary mr-2"/>
+                                <span t-esc="f.name"/>
+                            </div>
+                            <span class="badge badge-light border">
+                                <t t-esc="f.extension"/>
+                            </span>
+                        </a>
+                    </t>
+                </div>
+
+                <t t-if="not files and not sub_directories">
+                    <p class="text-muted mt-3">This directory is empty.</p>
                 </t>
             </div>
         </t>
