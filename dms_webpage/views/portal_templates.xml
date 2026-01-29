@@ -24,18 +24,20 @@
                 <t t-set="title">Projects</t>
             </t>
 
-            <t t-call="portal.portal_record_layout">
+            <t t-call="portal.portal_record_layout">            
                 <t t-set="card_body">
                     <div itemprop="description" t-field="dms_file.web_content" class="oe_structure oe_empty mt16" id="web_content"/>
                 </t>
             </t>
+
             <div class="mt32 attachment_container">
                 <div class="file_container">
-                    <div class="file_details_container">
+                    <div class="file_details_container">                        
                         <div href="#" aria-label="View image" tabindex="-1" aria-disabled="" t-att-data-mimetype="dms_file.mimetype" class="o_image file_image"/>
 
-                        <div class="file_details">
+                        <div class="file_details mt-3">
                             <div class="file_name">
+                                <strong class="text-secondary">File Name: </strong> 
                                 <t t-esc="dms_file.name"/>
                             </div>
                             <div class="file_download_container">

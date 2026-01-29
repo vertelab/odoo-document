@@ -21,7 +21,7 @@
 
 {
     'name': 'Document: DMS WebPage',
-    'version': '14.0.1.0.0',
+    'version': '1.1',
     'summary': 'DMS WebPage.',
     'category': 'Technical',
     'description': 'DMS WebPage.',
