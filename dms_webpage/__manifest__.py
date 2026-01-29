@@ -21,7 +21,7 @@
 
 {
     'name': 'Document: DMS WebPage',
-    'version': '14.0.1.0.0',
+    'version': '1.1',
     'summary': 'DMS WebPage.',
     'category': 'Technical',
     'description': 'DMS WebPage.',
@@ -32,7 +32,7 @@
     'contributor': '',
     'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-document',
-    'depends': ['website', 'portal', 'base_signature', 'dms'],
+    'depends': ['website', 'portal', 'dms'],
     "data": [
         'views/dms_view.xml',
         'views/portal_templates.xml',

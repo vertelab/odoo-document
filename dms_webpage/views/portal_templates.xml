@@ -1,9 +1,4 @@
 <odoo>
-    <template id="assets_common" inherit_id="web.assets_common">
-        <xpath expr="//link[@href='/web/static/src/scss/name_and_signature.scss']" position="after">
-            <link rel="stylesheet" type="text/scss" href="/dms_webpage/static/src/scss/style.scss"/>
-        </xpath>
-    </template>
 
     <template id="portal_my_dms" name="View File" inherit_id="dms.portal_my_dms">
         <xpath expr="//t[@t-call='portal.portal_layout']/t[@t-if='dms_directories or dms_files']/tbody[1]/t[@t-if='dms_files']//t[@t-foreach='dms_files']/tr[1]/td[1]" position="replace">
@@ -24,49 +19,61 @@
                 <t t-set="title">Projects</t>
             </t>
 
-            <t t-call="portal.portal_record_layout">
-                <t t-set="card_body">
-                    <div itemprop="description" t-field="dms_file.web_content" class="oe_structure oe_empty mt16" id="web_content"/>
-                </t>
+            <t t-set="card_body">
+                <div itemprop="description" t-field="dms_file.web_content" class="oe_structure oe_empty mt16" id="web_content"/>
             </t>
+
             <div class="mt32 attachment_container">
                 <div class="file_container">
-                    <div class="file_details_container">
-                        <div href="#" aria-label="View image" tabindex="-1" aria-disabled="" t-att-data-mimetype="dms_file.mimetype" class="o_image file_image"/>
+                    <div class="file_details_container">                        
+                         <div class="card shadow-sm border-0">
+                            <div class="card-header d-flex justify-content-between align-items-center bg-white py-3">
+                                <div class="d-flex align-items-center">
+                                    <div t-attf-class="o_image_small me-2" t-att-data-mimetype="dms_file.mimetype"/>
+                                    <h5 class="mb-0 text-900"><t t-esc="dms_file.name"/></h5>
+                                </div>
+                                <span class="badge rounded-pill text-bg-light border"><t t-esc="dms_file.mimetype"/></span>
+                            </div>
 
-                        <div class="file_details">
+                            <div class="card-body p-0 d-flex align-items-center justify-content-center bg-view" style="min-height: 500px;">
+                                <t t-if="dms_file.mimetype and dms_file.mimetype.startswith('image/')">
+                                    <img t-attf-src="/web/image/dms.file/#{dms_file.id}/content" class="img-fluid rounded" style="max-height: 700px; object-fit: contain;" loading="lazy" alt="File Preview"/>
+                                </t>
+
+                                <t t-elif="dms_file.mimetype == 'application/pdf'">
+                                    <iframe t-attf-src="/web/static/lib/pdfjs/web/viewer.html?file=/web/content/dms.file/#{dms_file.id}/content" width="100%" height="700px" style="border: none;"/>
+                                </t>
+
+                                <t t-elif="dms_file.mimetype and dms_file.mimetype.startswith('text/')">
+                                    <iframe t-attf-src="/web/content/dms.file/#{dms_file.id}/content"
+                                            width="100%" height="500px" class="bg-white border-0 p-3"/>
+                                </t>
+
+                                <div t-else="" class="text-center py-5">
+                                    <div t-attf-class="o_image_64_max mb-3" t-att-data-mimetype="dms_file.mimetype"/>
+                                    <p class="text-muted">
+                                        <t t-esc="dms_file.name"/><br/>
+                                        <span class="small">Preview not available. Please download to view.</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="file_details mt-3">
                             <div class="file_name">
+                                <strong class="text-secondary">File Name: </strong> 
                                 <t t-esc="dms_file.name"/>
                             </div>
-                            <div class="file_download_container">
-                                <div class="file_extension">
-                                    <t t-esc="dms_file.extension"/>
-                                </div>
-                                <div class="file_download_icon">
-                                    <a role="button" t-attf-href="/my/dms/file/#{dms_file.id}/download?{{ keep_query() }}" class="" data-toggle="tooltip" t-att-title="dms_file.name">
-                                        <i class="fa fa-fw fa-download" role="img" aria-label="Download"/>
-                                    </a>
-                                </div>
+                            <div class="card-footer bg-transparent border-0">
+                                <a role="button" t-attf-href="/my/dms/file/#{dms_file.id}/download" class="btn btn-primary px-4">
+                                    <i class="fa fa-download me-1"/> Download
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="mt32">
-                <h4>
-                    <strong>Signature</strong>
-                </h4>
-                <t t-if="dms_file.signature">
-                    <img t-att-src="image_data_uri(dms_file.signature)" alt="Signature"/>
-                </t>
-                <t t-else="">
-                    <t t-call="portal.signature_form">
-                        <t t-set="call_url" t-value="'/web/signature/%s/%s/accept?access_token=%s' % (dms_file._name, dms_file.id, dms_file.access_token)"/>
-                        <t t-set="default_name" t-value="'%s' %(request.env.user.name)"/>
-                    </t>
-                </t>
-            </div>
 
             <div class="mt32">
                 <h4>
