@@ -35,7 +35,7 @@
     ##if VERSION <= "16.0"
     'depends': ['website', 'portal', 'base_signature', 'dms'],
     ##elif VERSION >= "17.0"
-    'depends': ['website', 'portal', 'dms'],
+    'depends': ['website', 'portal', 'dms', 'dms_storage', 'fs_storage', 'storage_backend'],
     ##endif
     "data": [
         'views/dms_view.xml',

@@ -1,0 +1,13 @@
+[Unit]
+Description=Start Sync Directory
+After=network.target
+
+[Service]
+User=root
+ExecStart=/usr/local/bin/sync_directory -d $(sudo su postgres -c "psql -At -c \"select datname from pg_database where datistemplate = false and datname != 'postgres' and datname != '';\" postgres | paste -sd , -")
+
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
