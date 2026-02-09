@@ -37,6 +37,9 @@
     ##elif VERSION >= "17.0"
     'depends': ['website', 'portal', 'dms', 'dms_storage', 'fs_storage', 'storage_backend'],
     ##endif
+    "external_dependencies": {
+       "python": ["inotify"],
+    },
     "data": [
         'views/dms_view.xml',
         'views/portal_templates.xml',

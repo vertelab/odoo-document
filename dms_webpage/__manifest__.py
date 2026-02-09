@@ -33,6 +33,9 @@
     'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-document',
     'depends': ['website', 'portal', 'base_signature', 'dms'],
+    "external_dependencies": {
+       "python": ["inotify"],
+    },
     "data": [
         'views/dms_view.xml',
         'views/portal_templates.xml',
