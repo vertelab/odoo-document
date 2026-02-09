@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 User=root
-ExecStart=/bin/bash -c '/usr/local/bin/sync_directory -d $(su - postgres -c "psql -At -c \"select datname from pg_database where datistemplate = false and datname != 'postgres' and datname != '';\" | paste -sd , -")'
+ExecStart=/usr/local/bin/sync_directory_setup
 
 
 Restart=always

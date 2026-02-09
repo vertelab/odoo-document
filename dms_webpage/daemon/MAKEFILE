@@ -1,7 +1,9 @@
 # Define the Python file and the systemd service file
 PY_FILE = sync_directory.py
+SETUP_FILE = sync_directory_setup.sh
 SYSTEMD_SERVICE_FILE = sync_directory.service
 START_SCRIPT = sync_directory
+START_SETUP_SCRIPT = sync_directory_setup
 
 
 
@@ -18,7 +20,9 @@ all: install
 install: $(PY_FILE)
 	# Install the Python file
 	cp $(PY_FILE) $(INSTALL_DIR)/$(START_SCRIPT)
+	cp $(SETUP_FILE) $(INSTALL_DIR)/$(START_SETUP_SCRIPT)
 	chmod +x $(INSTALL_DIR)/$(START_SCRIPT)
+	chmod +x $(INSTALL_DIR)/$(START_SETUP_SCRIPT)
 
 	# Install the systemd service file
 	cp $(SYSTEMD_SERVICE_FILE) $(SYSTEMD_DIR)
@@ -41,8 +45,9 @@ uninstall:
 
 
 	# Remove the Python file and the start script
-	-rm $(INSTALL_DIR)/$(PY_FILE)
+	rm $(INSTALL_DIR)/$(PY_FILE)
 	rm $(INSTALL_DIR)/$(START_SCRIPT)
+	rm $(INSTALL_DIR)/$(START_SETUP_SCRIPT)
 
 	# Reload the systemd daemon
 	systemctl daemon-reload
