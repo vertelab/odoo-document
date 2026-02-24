@@ -33,7 +33,7 @@ msgstr "Visningsnamn"
 #. module: dms_partner
 #: model:ir.model.fields,field_description:dms_partner.field_res_partner__id
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #. module: dms_partner
 #: model:ir.model.fields,field_description:dms_partner.field_res_partner____last_update
@@ -44,4 +44,4 @@ msgstr "Senast redigerad den"
 #: model:ir.model.fields,field_description:dms_partner.field_res_partner__doc_count
 #: model:ir.model.fields,field_description:dms_partner.field_res_users__doc_count
 msgid "Partner's Attachment"
-msgstr "Kontakts tillägg"
+msgstr "Partners bifogat"
