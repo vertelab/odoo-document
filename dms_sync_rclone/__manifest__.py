@@ -41,7 +41,7 @@
      #   "bin": ["openssl",], 
      #   "python": ["acme_tiny", "IPy",],
      #},
-    'data': [],
+    'data': ["views/dms_directory_views.xml"],
     'demo': [],
     'application': False,
     'installable': True,    
