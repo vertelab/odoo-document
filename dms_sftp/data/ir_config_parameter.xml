@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="param_hostkey" model="ir.config_parameter">
+    <field name="key">dms_sftp.hostkey</field>
+    <field name="value">PLACEHOLDER</field>
+  </record>
+</odoo>
