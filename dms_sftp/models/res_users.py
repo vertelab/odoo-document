@@ -1,4 +1,5 @@
 from odoo import fields, models
+from odoo.exceptions import AccessDenied
 
 
 class ResUsers(models.Model):
@@ -16,11 +17,8 @@ class ResUsers(models.Model):
         return super()._register_hook()
 
     def _verify_sftp_user(self, password):
-        assert password
-        self.env.cr.execute(
-            "SELECT COALESCE(password, '') FROM res_users WHERE id=%s",
-            [self.env.user.id],
-        )
-        [hashed] = self.env.cr.fetchone()
-        valid, replacement = self._crypt_context().verify_and_update(password, hashed)
-        return valid
+        try:
+            self._check_credentials({'type': 'password', 'password': password}, self.env)
+            return True
+        except AccessDenied:
+            return False

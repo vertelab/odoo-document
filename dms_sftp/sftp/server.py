@@ -1,3 +1,4 @@
+import base64
 import logging
 
 from odoo import api, SUPERUSER_ID
@@ -9,7 +10,6 @@ try:
     from paramiko.common import AUTH_SUCCESSFUL, AUTH_FAILED, \
         OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED, OPEN_SUCCEEDED
     from paramiko import RSAKey, ServerInterface
-    from paramiko.py3compat import decodebytes
 except ImportError:
     pass
 
@@ -17,10 +17,26 @@ _logger = logging.getLogger(__name__)
 
 
 class DmsSftpServer(ServerInterface):
-    def __init__(self, env):
-        self.env = env
-        self.dbname = env.cr.dbname
+    def __init__(self, dbname):
+        self.dbname = dbname
+        self._env = None
         super().__init__()
+
+    def _get_env(self):
+        if self._env is None:
+            db_registry = Registry.new(self.dbname)
+            cr = db_registry.cursor()
+            self._env = api.Environment(cr, SUPERUSER_ID, {})
+        return self._env
+
+    env = property(_get_env)
+
+    def __del__(self):
+        if self._env is not None:
+            try:
+                self._env.cr.close()
+            except Exception:
+                pass
 
     def check_auth_password(self, username, password):
         user_login = username
@@ -38,14 +54,14 @@ class DmsSftpServer(ServerInterface):
                 for candidate_db in all_dbs:
                     try:
                         db_registry = Registry.new(candidate_db)
-                        with api.Environment.manage(), db_registry.cursor() as cr:
+                        with db_registry.cursor() as cr:
                             env = api.Environment(cr, SUPERUSER_ID, {})
                             user = env["res.users"].search([("login", "=", user_login)])
                             if not user:
                                 continue
                             valid = user.with_user(user.id)._verify_sftp_user(password)
                             if valid:
-                                with api.Environment.manage(), db_registry.cursor() as cr:
+                                with db_registry.cursor() as cr:
                                     self.env = api.Environment(cr, user.id, {})
                                 _logger.info(
                                     "SFTP auth: user=%s db=%s (fallback)",
@@ -63,7 +79,7 @@ class DmsSftpServer(ServerInterface):
             valid = user.with_user(user.id)._verify_sftp_user(password)
             if valid:
                 db_registry = Registry.new(db_name)
-                with api.Environment.manage(), db_registry.cursor() as cr:
+                with db_registry.cursor() as cr:
                     self.env = api.Environment(cr, user.id, {})
                 _logger.info("SFTP auth: user=%s db=%s", user_login, db_name)
                 return AUTH_SUCCESSFUL
@@ -81,7 +97,7 @@ class DmsSftpServer(ServerInterface):
             key_type, key_data = line.split(" ", 2)[:2]
             if key_type != "ssh-rsa":
                 continue
-            if RSAKey(data=decodebytes(key_data)) == key:
+            if RSAKey(data=base64.b64decode(key_data)) == key:
                 return AUTH_SUCCESSFUL
         return AUTH_FAILED
 

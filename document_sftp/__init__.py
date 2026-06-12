@@ -17,9 +17,8 @@ except ImportError:  # pragma: no cover
 _logger = logging.getLogger(__name__)
 
 
-def install_hook(cr, registry):
+def install_hook(env):
     _logger.warning('Socket %s' % socket.getfqdn())
-    env = api.Environment(cr, SUPERUSER_ID, {})
     
     if socket.getfqdn().endswith('odoo-community.org'):  # pragma: no cover
         # we need a different default listeing address on runbot
@@ -31,12 +30,12 @@ def install_hook(cr, registry):
     for node in parameters.xpath("//record[@id='param_hostkey']//field[@name='value']"):
         default_value = node.text
     if not hostkey or hostkey == default_value:
-        _logger.info('Generating host key for database %s', cr.dbname)
+        _logger.info('Generating host key for database %s', env.cr.dbname)
         key = io.StringIO()
         ECDSAKey.generate().write_private_key(key)
         env['ir.config_parameter'].set_param('document_sftp.hostkey', key.getvalue())
         key.close()
 
 
-def uninstall_hook(cr, registry):
+def uninstall_hook(env):
     pass

@@ -4,6 +4,7 @@ import os
 import stat as stat_module
 
 from odoo import api
+from odoo.modules.registry import Registry
 
 try:
     from paramiko import SFTPServerInterface, SFTPServer, SFTPAttributes
@@ -18,9 +19,18 @@ _logger = logging.getLogger(__name__)
 
 
 class DmsSftpSftpServerInterface(SFTPServerInterface):
-    def __init__(self, server, env):
-        self.env = api.Environment(env.cr, server.env.user.id, env.context)
-        super().__init__(server, env)
+    def __init__(self, server, dbname):
+        self.dbname = dbname
+        self._env = None
+        super().__init__(server)
+
+    @property
+    def env(self):
+        if self._env is None:
+            db_registry = Registry.new(self.dbname)
+            cr = db_registry.cursor()
+            self._env = api.Environment(cr, 1, {})
+        return self._env
 
     def _resolve(self, path):
         path = path.strip("/")
@@ -217,11 +227,14 @@ class DmsSftpSftpServerInterface(SFTPServerInterface):
         return SFTP_OK
 
     def session_ended(self):
-        self.env.cr.close()
+        if self._env is not None:
+            try:
+                self._env.cr.close()
+            except Exception:
+                pass
         super().session_ended()
 
 
 class DmsSftpSftpServer(SFTPServer):
     def start_subsystem(self, name, transport, channel):
-        with api.Environment.manage():
-            return super().start_subsystem(name, transport, channel)
+        return super().start_subsystem(name, transport, channel)

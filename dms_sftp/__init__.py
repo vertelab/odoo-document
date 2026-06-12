@@ -12,8 +12,7 @@ except ImportError:
 _logger = logging.getLogger(__name__)
 
 
-def install_hook(cr, registry):
-    env = api.Environment(cr, SUPERUSER_ID, {})
+def install_hook(env):
     hostkey = env["ir.config_parameter"].get_param("dms_sftp.hostkey")
     parameters = etree.parse(
         tools.file_open("dms_sftp/data/ir_config_parameter.xml")
@@ -22,14 +21,14 @@ def install_hook(cr, registry):
     for node in parameters.xpath("//record[@id='param_hostkey']//field[@name='value']"):
         default_value = node.text
     if not hostkey or hostkey == default_value:
-        _logger.info("Generating SFTP host key for database %s", cr.dbname)
+        _logger.info("Generating SFTP host key for database %s", env.cr.dbname)
         key = io.StringIO()
         ECDSAKey.generate().write_private_key(key)
         env["ir.config_parameter"].set_param("dms_sftp.hostkey", key.getvalue())
         key.close()
 
 
-def uninstall_hook(cr, registry):
+def uninstall_hook(env):
     pass
 
 

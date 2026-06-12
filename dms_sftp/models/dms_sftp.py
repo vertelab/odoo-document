@@ -27,7 +27,7 @@ class DmsSftp(models.AbstractModel):
 
     def _run_server(self, dbname, stop):
         db_registry = Registry.new(dbname)
-        with api.Environment.manage(), db_registry.cursor() as cr:
+        with db_registry.cursor() as cr:
             env = api.Environment(cr, 1, {})
             env[self._name].__run_server(stop)
 
@@ -52,14 +52,14 @@ class DmsSftp(models.AbstractModel):
                 continue
 
             key = self.env["ir.config_parameter"].get_param("dms_sftp.hostkey")
-            host_key = paramiko.Ed25519Key.from_private_key(StringIO(key))
+            host_key = paramiko.ECDSAKey.from_private_key(StringIO(key))
 
-            transport = DmsSftpTransport(self.env.cr, conn)
+            transport = DmsSftpTransport(self.env.cr.dbname, conn)
             transport.add_server_key(host_key)
             transport.set_subsystem_handler(
-                "sftp", DmsSftpSftpServer, DmsSftpSftpServerInterface, self.env
+                "sftp", DmsSftpSftpServer, DmsSftpSftpServerInterface, self.env.cr.dbname
             )
-            server = DmsSftpServer(self.env)
+            server = DmsSftpServer(self.env.cr.dbname)
             try:
                 transport.start_server(server=server)
                 channel = transport.accept()
