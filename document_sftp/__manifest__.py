@@ -43,7 +43,7 @@
         "security/ir.model.access.csv",
         "views/res_users.xml",
         "data/ir_config_parameter.xml",
-        # "data/ir_cron.xml",
+        "data/ir_cron.xml",
     ],
     "post_init_hook": "install_hook",
     "uninstall_hook": "uninstall_hook",

@@ -4,10 +4,10 @@ import logging
 import socket
 from io import StringIO,BytesIO
 import threading
-from odoo.service.server import server
 
 from odoo import SUPERUSER_ID, api, models
 from odoo.modules.registry import Registry
+
 try:
     import paramiko
     from ..document_sftp_transport import DocumentSFTPTransport
@@ -26,7 +26,7 @@ class DocumentSFTP(models.AbstractModel):
 
     def _run_server(self, dbname, stop):
         db_registry = Registry.new(dbname)
-        with api.Environment.manage(), db_registry.cursor() as cr:
+        with db_registry.cursor() as cr:
             env = api.Environment(cr, SUPERUSER_ID, {})
             env[self._name].__run_server(stop)
 
@@ -88,11 +88,15 @@ class DocumentSFTP(models.AbstractModel):
         return self.env['document.sftp.root.by_model']
 
     def _register_hook(self):
+        # Register server-stop hook so the SFTP thread is stopped cleanly.
+        # The thread itself is started lazily by _ensure_running (see below)
+        # so we never start background threads during module installation /
+        # registry loading (race condition — "cursor already closed").
+        from odoo.service.server import server
         cr = self._cr
         if cr.dbname not in _db2thread:
             stop = threading.Event()
-            _db2thread[cr.dbname] = (threading.Thread(target=self._run_server, args=(cr.dbname, stop)), stop,)
-            _db2thread[cr.dbname][0].start()
+            _db2thread[cr.dbname] = (None, stop)
             old_stop = server.stop
 
             def new_stop():
@@ -101,3 +105,24 @@ class DocumentSFTP(models.AbstractModel):
 
             server.stop = new_stop
         return super(DocumentSFTP, self)._register_hook()
+
+    @api.model
+    def _ensure_running(self):
+        """Start the SFTP server thread if not already running (idempotent).
+
+        Called from cron (document_sftp.data.ir_cron) after the server is
+        fully up — safe against the registry-load race that caused
+        "cursor already closed" during module installation.
+        """
+        dbname = self.env.cr.dbname
+        existing = _db2thread.get(dbname)
+        if existing and existing[0] and existing[0].is_alive():
+            return
+        stop = existing[1] if existing else threading.Event()
+        if dbname not in _db2thread:
+            _db2thread[dbname] = (None, stop)
+        thread = threading.Thread(
+            target=self._run_server, args=(dbname, stop), daemon=True)
+        _db2thread[dbname] = (thread, stop)
+        thread.start()
+        _logger.info('SFTP server thread started for db %s', dbname)

@@ -12,5 +12,16 @@
             <field name="numbercall">-1</field>
             <field name="doall" eval="False"/>
         </record>
+        <record id="document_sftp_ensure_running_cron" model="ir.cron" forcecreate="True">
+            <field name="name">Document SFTP: Ensure server running</field>
+            <field name="model_id" ref="document_sftp.model_document_sftp"/>
+            <field name="state">code</field>
+            <field name="code">model._ensure_running()</field>
+            <field name="interval_number">5</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+        </record>
     </data>
 </odoo>

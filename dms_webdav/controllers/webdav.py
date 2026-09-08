@@ -443,11 +443,11 @@ class DmsWebdavController(http.Controller):
             '<d:locktype><d:write/></d:locktype>'
             f'<d:lockscope><d:{lock_type}/></d:lockscope>'
             '<d:depth>infinity</d:depth>'
-            '<d:locktoken><d:href>opaquelocktoken:{}</d:href></d:locktoken>'.format(request.env.user.id)
+            '<d:locktoken><d:href>opaquelocktoken:{}</d:href></d:locktoken>'
             '</d:activelock>'
             '</d:lockdiscovery>'
             '</d:prop>'
-        )
+        ).format(request.env.user.id)
 
     def _unlock(self, path):
         resolver = request.env["dms.webdav.path"]
