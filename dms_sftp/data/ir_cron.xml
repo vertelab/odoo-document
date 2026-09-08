@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <record id="document_sftp_ensure_running_cron" model="ir.cron">
-            <field name="name">Document SFTP: Ensure server running</field>
-            <field name="model_id" ref="document_sftp.model_document_sftp"/>
+        <record id="dms_sftp_ensure_running_cron" model="ir.cron">
+            <field name="name">DMS SFTP: Ensure server running</field>
+            <field name="model_id" ref="dms_sftp.model_dms_sftp"/>
             <field name="state">code</field>
             <field name="code">model._ensure_running()</field>
             <field name="interval_number">5</field>

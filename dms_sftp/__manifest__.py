@@ -9,6 +9,7 @@
     "data": [
         "security/ir.model.access.csv",
         "views/res_config_settings.xml",
+        "data/ir_cron.xml",
     ],
     "external_dependencies": {
         "python": ["paramiko"],
