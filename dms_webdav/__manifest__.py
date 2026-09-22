@@ -4,6 +4,7 @@
     "version": "18.0.1.0.0",
     "category": "Document Management",
     "author": "Vertel AB",
+    "website": "https://vertel.se/apps/odoo-document/dms_webdav",
     "license": "AGPL-3",
     "depends": ["dms", "web", "http_routing"],
     "data": [
