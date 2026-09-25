@@ -21,8 +21,19 @@
 
 {
     'name': 'Document: DMS Partner',
-    'version': '1.1',
+    'version': '18.0.1.1.0',
     'summary': 'DMS Partner.',
+    'description': '''
+DMS Partner
+===========
+
+    DMS Partner.
+
+    Features:
+
+        - UI Integration: Extends 1 view(s) in the Odoo interface.
+        - Extends Odoo: Builds on existing Odoo models.
+    ''',
     'category': 'Technical',
     'description': 'DMS Partner.',
     'author': 'Vertel AB',

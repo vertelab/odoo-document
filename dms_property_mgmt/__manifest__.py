@@ -21,8 +21,19 @@
 
 {
     'name': 'Document: DMS Property',
-    'version': '1.0',
-    'summary': 'DMS Property',
+    'version': '18.0.1.0.0',
+    'summary': 'DMS Property.',
+    'description': '''
+DMS Property
+============
+
+    DMS Property.
+
+    Features:
+
+        - UI Integration: Extends 1 view(s) in the Odoo interface.
+        - Extends Odoo: Builds on property.property.
+    ''',
     'category': 'Technical',
     'description': 'Creates the Link between Property and DMS',
     'author': 'Vertel AB',

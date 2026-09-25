@@ -21,9 +21,20 @@
 
 {
     'name': 'Document: Document Version',
-    'version': '1.1',
+    'version': '18.0.1.1.0',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Manage version management on documents.',
+    'description': '''
+Document Version
+================
+
+    Manage version management on documents.
+
+    Features:
+
+        - UI Integration: Extends 1 view(s) in the Odoo interface.
+        - Extends Odoo: Builds on dms.file.
+    ''',
     'category': 'Technical',
     'description': 'Manage version management on documents.',
     #'sequence': '1',

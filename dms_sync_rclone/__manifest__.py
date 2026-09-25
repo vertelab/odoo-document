@@ -23,14 +23,20 @@
 #
 {
     'name': 'DMS: Sync Rclone',
-    'version': '1.0',
-    'summary': """
-        Short (1 phrase/line) summary of the module's purpose, used as
-        subtitle on modules listing or apps.odoo.com""",
+    'version': '18.0.1.0.0',
+    'summary': "Syncs documents with an rclone remote.",
     'category': '', # Technical Settings|Localization|Payroll Localization|Account Charts|User types|Invoicing|Sales|Human Resources|Operations|Marketing|Manufacturing|Website|Theme|Administration|Appraisals|Sign|Helpdesk|Administration|Extra Rights|Other Extra Rights|
-    'description': """
-        Long description of module's purpose
-    """,
+    'description': '''
+Sync Rclone
+===========
+
+    Syncs documents with an rclone remote.
+
+    Features:
+
+        - UI Integration: Extends 1 view(s) in the Odoo interface.
+        - Extends Odoo: Builds on dms.directory.
+    ''',
     #'sequence': 1,
     'author': 'Vertel AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_sync_rclone',

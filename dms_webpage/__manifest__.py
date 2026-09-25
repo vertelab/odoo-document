@@ -21,8 +21,20 @@
 
 {
     'name': 'Document: DMS WebPage',
-    'version': '1.1',
+    'version': '18.0.1.1.0',
     'summary': 'DMS WebPage.',
+    'description': '''
+DMS WebPage
+===========
+
+    DMS WebPage.
+
+    Features:
+
+        - Web integration: Exposes HTTP endpoints for external systems.
+        - UI Integration: Extends 4 view(s) in the Odoo interface.
+        - Extends Odoo: Builds on dms.directory, dms.file.
+    ''',
     'category': 'Technical',
     'description': 'DMS WebPage.',
     'author': 'Vertel AB',

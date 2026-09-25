@@ -21,9 +21,21 @@
 
 {
     'name': 'Document: SFTP',
-    'version': '1.1',
+    'version': '18.0.1.1.0',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Access your documents via SFTP.',
+    'description': '''
+SFTP
+====
+
+    Access your documents via SFTP.
+
+    Features:
+
+        - Automation: Scheduled jobs: Document SFTP: Ensure server running.
+        - UI Integration: Extends 1 view(s) in the Odoo interface.
+        - Extends Odoo: Builds on document.sftp, document.sftp.root, document.sftp.root.by_model.
+    ''',
     'category': 'Technical',
     'description': 'Access your documents via SFTP.',
     #'sequence': '1',

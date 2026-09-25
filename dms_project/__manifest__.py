@@ -21,8 +21,19 @@
 
 {
     'name': 'Document: DMS Project',
-    'version': '1.0',
-    'summary': 'DMS Project',
+    'version': '18.0.1.0.0',
+    'summary': 'DMS Project.',
+    'description': '''
+DMS Project
+===========
+
+    DMS Project.
+
+    Features:
+
+        - UI Integration: Extends 3 view(s) in the Odoo interface.
+        - Extends Odoo: Builds on project.project, project.task.
+    ''',
     'category': 'Technical',
     'description': 'Creates the Link between Project/Task and DMS',
     'author': 'Vertel AB',

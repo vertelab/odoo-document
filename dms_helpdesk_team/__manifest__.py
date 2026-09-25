@@ -21,13 +21,21 @@
 
 {
     'name': 'Document: DMS Helpdesk Team',
-    'version': '1.0',
+    'version': '18.0.1.0.0',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
-    'summary': 'Short summary of the module''s purpose.',
+    'summary': 'Short summary of the modules purpose.''s purpose.',
     'category': 'Technical',
-    'description': """
+    'description': '''
+DMS Helpdesk Team
+=================
+
     Short (1 phrase/line) summary of the module's purpose, used as subtitle on modules listing or apps.odoo.com
-    """,
+
+    Features:
+
+        - UI Integration: Extends 2 view(s) in the Odoo interface.
+        - Extends Odoo: Builds on helpdesk.ticket.team.
+    ''',
     #'sequence': '1',
     'author': 'Vertel AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_helpdesk_team',

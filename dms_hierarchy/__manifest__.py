@@ -21,13 +21,21 @@
 
 {
     'name': 'Document: DMS Hierarchy',
-    'version': '1.0',
+    'version': '18.0.1.0.0',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
-    'summary': 'DMS Hierarchy',
+    'summary': 'DMS Hierarchy.',
     'category': 'Technical',
-    'description': """
-    DMS Hierarchy
-    """,
+    'description': '''
+DMS Hierarchy
+=============
+
+    DMS Hierarchy.
+
+    Features:
+
+        - UI Integration: Extends 1 view(s) in the Odoo interface.
+        - Extends Odoo: Builds on dms.directory.
+    ''',
     #'sequence': '1',
     'author': 'Vertel AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_hierarchy',
