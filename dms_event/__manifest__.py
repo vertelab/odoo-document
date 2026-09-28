@@ -60,4 +60,3 @@ DMS Event
     ],
     # only loaded in demonstration mode
 }
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

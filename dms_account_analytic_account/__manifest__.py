@@ -60,4 +60,3 @@ DMS Account Analytic Account
         'data/account_analytics_account_data.xml',
     ],
 }
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

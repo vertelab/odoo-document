@@ -60,4 +60,3 @@ DMS HR Job Recruitment
         'data/hr_job_applicant_data.xml',
     ],
 }
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
