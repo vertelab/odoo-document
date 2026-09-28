@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo><data noupdate="1">
+
+    <!-- Testdata: lektioner i kursen "Dokumenthantering i Vertel".
+         Laddas ENDAST mot *_test-databaser (repo_apply: –without-demo=all
+         för produktion). Ersätts av riktigt innehåll i Fas 5. -->
+    <record id="slide_document_0" model="slide.slide">
+        <field name="name">Översikt: dokumenthanteringen</field>
+        <field name="channel_id" ref="slide_channel_document"/>
+        <field name="slide_category">article</field>
+        <field name="is_published" eval="True"/>
+        <field name="description">&lt;p&gt;Mappar, taggar, behörigheter och sökning.&lt;/p&gt;</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="slide_document_1" model="slide.slide">
+        <field name="name">Ladda upp och strukturera</field>
+        <field name="channel_id" ref="slide_channel_document"/>
+        <field name="slide_category">article</field>
+        <field name="is_published" eval="True"/>
+        <field name="description">&lt;p&gt;Mappträd, taggar, genvägar och delning.&lt;/p&gt;</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="slide_document_2" model="slide.slide">
+        <field name="name">Montera WebDAV</field>
+        <field name="channel_id" ref="slide_channel_document"/>
+        <field name="slide_category">article</field>
+        <field name="is_published" eval="True"/>
+        <field name="description">&lt;p&gt;Koppla DMS som nätverksdisk i Windows/macOS/Linux.&lt;/p&gt;</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="slide_document_3" model="slide.slide">
+        <field name="name">Versioner och Office-redigering</field>
+        <field name="channel_id" ref="slide_channel_document"/>
+        <field name="slide_category">article</field>
+        <field name="is_published" eval="True"/>
+        <field name="description">&lt;p&gt;Versionshistorik, samtidig redigering, låsning.&lt;/p&gt;</field>
+        <field name="sequence">40</field>
+    </record>
+
+</data></odoo>

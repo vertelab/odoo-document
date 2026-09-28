@@ -21,21 +21,9 @@
 
 {
     'name': 'Document: SFTP',
-    'version': '18.0.1.1.0',
+    'version': '1.2',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Access your documents via SFTP.',
-    'description': '''
-SFTP
-====
-
-    Access your documents via SFTP.
-
-    Features:
-
-        - Automation: Scheduled jobs: Document SFTP: Ensure server running.
-        - UI Integration: Extends 1 view(s) in the Odoo interface.
-        - Extends Odoo: Builds on document.sftp, document.sftp.root, document.sftp.root.by_model.
-    ''',
     'category': 'Technical',
     'description': 'Access your documents via SFTP.',
     #'sequence': '1',
@@ -51,7 +39,13 @@ SFTP
         "demo/res_users.xml",
     ],
     "data": [
-        "demo/res_users.xml",
+        # NOTE: demo/res_users.xml must NOT be listed here. It updates
+        # base.user_demo, which only exists when demo data is enabled
+        # (without_demo=False). Loading it unconditionally aborts the whole
+        # registry with:
+        #   ParseError: while parsing document_sftp/demo/res_users.xml:4
+        #   Exception: Cannot update missing record 'base.user_demo'
+        # It is correctly declared under "demo" above.
         "security/ir.model.access.csv",
         "views/res_users.xml",
         "data/ir_config_parameter.xml",
