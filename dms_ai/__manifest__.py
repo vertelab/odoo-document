@@ -32,6 +32,7 @@
     ],
     'data': [
         'data/okf_artifact_types_dms.xml',
+        'data/okf_debug_actions.xml',
     ],
     'demo': [],
     'application': False,
