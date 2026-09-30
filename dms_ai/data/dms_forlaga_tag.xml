@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Förlage-taggen (office-document-agent).
+
+             En förlaga är ett DMS-dokument som AI-agenten utgår från för
+             stil och generiska sidor — inte ett formulär med platshållare.
+             Markeringen är en tagg, inte ett fält: den är sökbar, kan
+             sättas/ tas bort utan moduländring, och `dms.file.is_forlaga`
+             härleds ur den.
+
+             `noupdate="1"`: en kund som döper om eller färgsätter taggen
+             ska inte få den återställd vid moduluppdatering. Koden matchar
+             på namnet, så en omdöpning kräver att även FORLAGA_TAG ändras. -->
+        <record id="dms_tag_forlaga" model="dms.tag">
+            <field name="name">förlaga</field>
+            <field name="color">4</field>
+        </record>
+    </data>
+</odoo>
