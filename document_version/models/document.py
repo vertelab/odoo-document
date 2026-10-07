@@ -82,7 +82,10 @@ class Document(models.Model):
         for record in self:
             # if not file.check_name(record.name):
             #     raise ValidationError(_("The file name is invalid."))
-            files = record.sudo().directory_id.file_ids.name_get()
+            # Odoo 18 removed Model.name_get(); use the display_name field
+            # instead. dms.file._rec_name is 'name', so display_name equals
+            # name unless a subclass overrides _compute_display_name.
+            files = [(f.id, f.display_name) for f in record.sudo().directory_id.file_ids]
             list_files = list(filter(lambda file: file[1] == record.name and file[0] != record.id, files))
 
             for _rec in list_files:
