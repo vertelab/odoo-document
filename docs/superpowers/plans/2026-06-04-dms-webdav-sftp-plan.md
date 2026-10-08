@@ -35,7 +35,7 @@ from . import models
     "summary": "Access OCA DMS documents via WebDAV",
     "version": "18.0.1.0.0",
     "category": "Document Management",
-    "author": "Vertel AB",
+    "author": "Vertel Sverige AB",
     "license": "AGPL-3",
     "depends": ["dms", "web", "http_routing"],
     "data": [
@@ -80,7 +80,7 @@ from . import models
     "summary": "Access OCA DMS documents via SFTP",
     "version": "18.0.1.0.0",
     "category": "Document Management",
-    "author": "Vertel AB",
+    "author": "Vertel Sverige AB",
     "license": "AGPL-3",
     "depends": ["dms", "mail"],
     "data": [

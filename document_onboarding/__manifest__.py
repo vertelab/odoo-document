@@ -6,7 +6,7 @@
     'description': """
 Lär dig strukturera dokument, montera WebDAV som nätverksdisk och hantera versioner.
 """,
-    'author': 'Vertel AB',
+    'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se',
     'license': 'LGPL-3',
     'category': 'Website/eLearning',

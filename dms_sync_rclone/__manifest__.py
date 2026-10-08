@@ -38,7 +38,7 @@ Sync Rclone
         - Extends Odoo: Builds on dms.directory.
     ''',
     #'sequence': 1,
-    'author': 'Vertel AB',
+    'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_sync_rclone',
     'images': ['static/description/banner.png'], # 560x280
     'license': 'AGPL-3',

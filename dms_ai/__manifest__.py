@@ -4,7 +4,7 @@
     'version': '18.0.1.1.0',
     'summary': 'OKF-indexering av dms.file och dms.directory + förlage-markering',
     'category': 'Hidden',
-    'author': 'Vertel AB',
+    'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se',
     'license': 'AGPL-3',
     'description': """
