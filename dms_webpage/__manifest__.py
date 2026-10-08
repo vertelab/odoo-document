@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    Odoo SA, Open Source Management Solution, third party addon
-#    Copyright (C) 2022- Vertel AB (<https://vertel.se>).
+#    Copyright (C) 2022- Vertel Sverige AB (<https://vertel.se>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -21,28 +21,16 @@
 
 {
     'name': 'Document: DMS WebPage',
-    'version': '18.0.1.1.0',
+    'version': '1.1',
     'summary': 'DMS WebPage.',
-    'description': '''
-DMS WebPage
-===========
-
-    DMS WebPage.
-
-    Features:
-
-        - Web integration: Exposes HTTP endpoints for external systems.
-        - UI Integration: Extends 4 view(s) in the Odoo interface.
-        - Extends Odoo: Builds on dms.directory, dms.file.
-    ''',
     'category': 'Technical',
     'description': 'DMS WebPage.',
-    'author': 'Vertel AB',
+    'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_webpage',
     'images': ['static/description/banner.png'], # 560x280 px.
     'license': 'AGPL-3',
     'contributor': '',
-    'maintainer': 'Vertel AB',
+    'maintainer': 'Vertel Sverige AB',
     'repository': 'https://github.com/vertelab/odoo-document',
     'depends': ['website', 'portal', 'dms', 'dms_storage', 'fs_storage', 'storage_backend'],
     "external_dependencies": {
@@ -53,3 +41,4 @@ DMS WebPage
         'views/portal_templates.xml',
     ],
 }
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
