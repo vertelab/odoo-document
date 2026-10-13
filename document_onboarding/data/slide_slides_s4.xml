@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SEKTION 4: Versioner och Office-redigering
+         ═══════════════════════════════════════════════════════════════════ -->
+
+    <record id="slide_category_doc_s4" model="slide.slide">
+        <field name="name">4. Versioner och Office-redigering</field>
+        <field name="is_category" eval="True"/>
+        <field name="channel_id" ref="document_onboarding.slide_channel_document"/>
+        <field name="sequence">300</field>
+    </record>
+
+    <record id="slide_doc_s4_01" model="slide.slide">
+        <field name="name">Versioner — vem ändrade vad?</field>
+        <field name="sequence">310</field>
+        <field name="slide_category">article</field>
+        <field name="channel_id" ref="document_onboarding.slide_channel_document"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="True"/>
+        <field name="completion_time">0.30</field>
+        <field name="html_content" type="html">
+<section class="s_text_block pt64 pb40">
+    <div class="container s_allow_columns">
+        <h2>Slut på ”_slutlig_v3”</h2>
+        <p>Varje gång du sparar en fil i dokumenthanteringen skapas en ny version. Den gamla finns kvar. Du behöver aldrig mer gissa vilken kopia som är den riktiga — systemet vet.</p>
+    </div>
+</section>
+
+<section class="s_features pt32 pb64">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4">
+                <i class="s_features_icon fa fa-history mb-3 rounded bg-o-color-3"/>
+                <div class="overflow-hidden">
+                    <h3 class="h5-fs">Historik</h3>
+                    <p>Du ser alla versioner med datum och vem som ändrade.</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <i class="s_features_icon fa fa-undo mb-3 rounded bg-o-color-3"/>
+                <div class="overflow-hidden">
+                    <h3 class="h5-fs">Återställning</h3>
+                    <p>Sparade någon över något viktigt? Hämta tillbaka den tidigare versionen.</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <i class="s_features_icon fa fa-columns mb-3 rounded bg-o-color-3"/>
+                <div class="overflow-hidden">
+                    <h3 class="h5-fs">Jämförelse</h3>
+                    <p>Ställ två versioner mot varandra och se vad som ändrats.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="s_text_block pt32 pb64">
+    <div class="container s_allow_columns">
+        <h2>En arbetsregel</h2>
+        <p>När du ska ändra ett dokument som någon annan skrivit — <strong>skapa en ny version</strong> istället för att skriva över. Då finns originalet kvar om ändringen visar sig fel.</p>
+        <p class="small text-muted">I praktiken gör systemet detta automatiskt. Det du behöver tänka på är att inte spara över med samma filnamn om du vill behålla originalet separat.</p>
+    </div>
+</section>
+        </field>
+        <field name="description">Hur versionering fungerar: historik, återställning och jämförelse. Varför du aldrig mer behöver ”_slutlig_v3” i filnamnet.</field>
+    </record>
+
+    <record id="slide_doc_s4_02" model="slide.slide">
+        <field name="name">Redigera Office-dokument direkt</field>
+        <field name="sequence">320</field>
+        <field name="slide_category">article</field>
+        <field name="channel_id" ref="document_onboarding.slide_channel_document"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="True"/>
+        <field name="completion_time">0.25</field>
+        <field name="html_content" type="html">
+<section class="s_text_block pt64 pb40">
+    <div class="container s_allow_columns">
+        <h2>Öppna där filen ligger</h2>
+        <p>Med nätverksdisken monterad öppnar du Word-, Excel- och PowerPoint-filer direkt från disken. Du redigerar i ditt vanliga program och sparar — filen hamnar i dokumenthanteringen utan att du laddar upp något.</p>
+        <p>Det här är det arbetssätt som fungerar bäst i praktiken. Du behöver inte lära dig ett nytt program, och du behöver inte komma ihåg att ladda upp.</p>
+    </div>
+</section>
+
+<section class="s_text_image pt32 pb64">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 pt16 pb16">
+                <h3 class="h4-fs">Så gör du</h3>
+                <ol class="small">
+                    <li>Öppna den monterade enheten</li>
+                    <li>Navigera till rätt mapp</li>
+                    <li>Dubbelklicka på filen</li>
+                    <li>Redigera i Word/Excel som vanligt</li>
+                    <li>Spara — klart</li>
+                </ol>
+            </div>
+            <div class="col-lg-6 pt16 pb16">
+                <h3 class="h4-fs">Vad som händer i bakgrunden</h3>
+                <ul class="small">
+                    <li>En ny version skapas vid sparande</li>
+                    <li>Ändringen loggas med ditt namn</li>
+                    <li>Behörigheterna gäller fortfarande</li>
+                    <li>Kollegor ser den nya versionen direkt</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="s_call_to_action o_cc o_cc5 pt48 pb48">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-9">
+                <h3>Stäng filen när du är klar</h3>
+                <p class="lead">Om du lämnar filen öppen kan andra inte redigera den. Stäng när du sparar — särskilt om flera arbetar med samma dokument.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="s_text_block pt40 pb64">
+    <div class="container s_allow_columns">
+        <h2>Om något går fel</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr><th>Symptom</th><th>Trolig orsak</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Filen går inte att spara</td><td>Enheten är inte ansluten, eller du saknar skrivbehörighet</td></tr>
+                <tr><td>”Filen är upptagen av någon annan”</td><td>En kollega har den öppen — hör av dig eller vänta</td></tr>
+                <tr><td>Ändringen syns inte för kollegor</td><td>Sparandet gick inte igenom — kontrollera att filen sparades</td></tr>
+                <tr><td>Fel version öppnas</td><td>En gammal lokal kopia öppnas istället för den på disken</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+        </field>
+        <field name="description">Så redigerar du Office-dokument direkt från den monterade disken — utan att ladda ner och upp. Plus felsökning av de vanligaste problemen.</field>
+    </record>
+
+    <record id="slide_doc_s4_03" model="slide.slide">
+        <field name="name">🧪 Testa dina kunskaper — Versioner</field>
+        <field name="sequence">330</field>
+        <field name="slide_category">quiz</field>
+        <field name="channel_id" ref="document_onboarding.slide_channel_document"/>
+        <field name="is_published" eval="True"/>
+        <field name="completion_time">0.25</field>
+        <field name="quiz_first_attempt_reward">100</field>
+        <field name="quiz_second_attempt_reward">75</field>
+        <field name="quiz_third_attempt_reward">50</field>
+        <field name="quiz_fourth_attempt_reward">25</field>
+        <field name="description">Testa dina kunskaper om versionering och Office-redigering direkt från disken.</field>
+    </record>
+
+    <record id="slide_doc_s4_03_q1" model="slide.question">
+        <field name="question">Vad händer när du sparar en fil i dokumenthanteringen?</field>
+        <field name="sequence">1</field>
+        <field name="slide_id" ref="slide_doc_s4_03"/>
+    </record>
+    <record id="slide_doc_s4_03_q1_a1" model="slide.answer">
+        <field name="text_value">En ny version skapas — den gamla finns kvar</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! Du kan alltid gå tillbaka till en tidigare version.</field>
+        <field name="question_id" ref="slide_doc_s4_03_q1"/>
+    </record>
+    <record id="slide_doc_s4_03_q1_a2" model="slide.answer">
+        <field name="text_value">Den gamla versionen raderas</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — den finns kvar i historiken.</field>
+        <field name="question_id" ref="slide_doc_s4_03_q1"/>
+    </record>
+    <record id="slide_doc_s4_03_q1_a3" model="slide.answer">
+        <field name="text_value">Du får en fråga om du vill skriva över</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — versioneringen sker automatiskt.</field>
+        <field name="question_id" ref="slide_doc_s4_03_q1"/>
+    </record>
+
+    <record id="slide_doc_s4_03_q2" model="slide.question">
+        <field name="question">Hur redigerar du ett Word-dokument i dokumenthanteringen?</field>
+        <field name="sequence">2</field>
+        <field name="slide_id" ref="slide_doc_s4_03"/>
+    </record>
+    <record id="slide_doc_s4_03_q2_a1" model="slide.answer">
+        <field name="text_value">Öppna det direkt från den monterade disken</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! Du redigerar i Word som vanligt — sparandet hamnar i systemet.</field>
+        <field name="question_id" ref="slide_doc_s4_03_q2"/>
+    </record>
+    <record id="slide_doc_s4_03_q2_a2" model="slide.answer">
+        <field name="text_value">Ladda ner, redigera och ladda upp igen</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — det är just det du slipper med monterad disk.</field>
+        <field name="question_id" ref="slide_doc_s4_03_q2"/>
+    </record>
+    <record id="slide_doc_s4_03_q2_a3" model="slide.answer">
+        <field name="text_value">Redigera i webbläsarens textredigerare</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — du använder ditt vanliga Office-program.</field>
+        <field name="question_id" ref="slide_doc_s4_03_q2"/>
+    </record>
+
+    <record id="slide_doc_s4_03_q3" model="slide.question">
+        <field name="question">Varför bör du stänga filen när du är klar?</field>
+        <field name="sequence">3</field>
+        <field name="slide_id" ref="slide_doc_s4_03"/>
+    </record>
+    <record id="slide_doc_s4_03_q3_a1" model="slide.answer">
+        <field name="text_value">Annars kan kollegor inte redigera den</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! En öppen fil är låst för andra.</field>
+        <field name="question_id" ref="slide_doc_s4_03_q3"/>
+    </record>
+    <record id="slide_doc_s4_03_q3_a2" model="slide.answer">
+        <field name="text_value">Annars sparas den inte</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — sparandet sker när du sparar, inte när du stänger.</field>
+        <field name="question_id" ref="slide_doc_s4_03_q3"/>
+    </record>
+    <record id="slide_doc_s4_03_q3_a3" model="slide.answer">
+        <field name="text_value">Annars skapas för många versioner</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — versioner skapas vid sparande, inte vid stängning.</field>
+        <field name="question_id" ref="slide_doc_s4_03_q3"/>
+    </record>
+
+    </data>
+</odoo>

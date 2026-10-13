@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SEKTION 2: Ladda upp och strukturera
+         ═══════════════════════════════════════════════════════════════════ -->
+
+    <record id="slide_category_doc_s2" model="slide.slide">
+        <field name="name">2. Ladda upp och strukturera</field>
+        <field name="is_category" eval="True"/>
+        <field name="channel_id" ref="document_onboarding.slide_channel_document"/>
+        <field name="sequence">100</field>
+    </record>
+
+    <record id="slide_doc_s2_01" model="slide.slide">
+        <field name="name">En struktur som håller</field>
+        <field name="sequence">110</field>
+        <field name="slide_category">article</field>
+        <field name="channel_id" ref="document_onboarding.slide_channel_document"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="True"/>
+        <field name="completion_time">0.30</field>
+        <field name="html_content" type="html">
+<section class="s_cover o_cc o_cc3 pt160 pb160">
+    <div class="container">
+        <h1 class="display-3-fs" style="text-align: center;">En struktur som håller</h1>
+        <p class="lead" style="text-align: center;">Mappstrukturen avgör om dokumenten hittas om ett år.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt64 pb40">
+    <div class="container s_allow_columns">
+        <h2>Utgå från hur ni arbetar</h2>
+        <p>Den vanligaste missen är att bygga strukturen efter hur filerna <em>råkar</em> vara organiserade idag. Bygg istället efter hur ni <strong>arbetar</strong>: per kund, per projekt eller per avdelning.</p>
+        <p>Fråga dig: när jag letar efter ett dokument — vad vet jag om det innan jag börjar söka? Oftast vet du <em>vilken kund</em> eller <em>vilket projekt</em> det gäller. Då ska det vara den första nivån.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt32 pb64">
+    <div class="container s_allow_columns">
+        <h2>Ett exempel</h2>
+        <pre class="bg-100 p-3 rounded"><code>Kunder/
+├── Acme AB/
+│   ├── Avtal/
+│   ├── Fakturor/
+│   └── Korrespondens/
+└── Beta Konsult/
+    ├── Avtal/
+    ├── Fakturor/
+    └── Korrespondens/
+
+Projekt/
+├── Intern utveckling/
+└── Kundprojekt/
+
+Internt/
+├── Rutiner/
+├── Mallar/
+└── Personal/</code></pre>
+        <p class="small text-muted">Få nivåer, tydliga namn. Djupa hierarkier blir svåra att navigera och ingen minns var man la något.</p>
+    </div>
+</section>
+
+<section class="s_call_to_action o_cc o_cc5 pt48 pb48">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-9">
+                <h3>En struktur för hela företaget</h3>
+                <p class="lead">Om varje avdelning bygger sin egen struktur blir det snart lika rörigt som innan. Bestäm en gemensam princip — och håll den.</p>
+            </div>
+        </div>
+    </div>
+</section>
+        </field>
+        <field name="description">Hur du bygger en mappstruktur som håller: utgå från arbetssättet, få nivåer, tydliga namn. Med ett konkret exempel.</field>
+    </record>
+
+    <record id="slide_doc_s2_02" model="slide.slide">
+        <field name="name">Namngivning och metadata</field>
+        <field name="sequence">120</field>
+        <field name="slide_category">article</field>
+        <field name="channel_id" ref="document_onboarding.slide_channel_document"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="True"/>
+        <field name="completion_time">0.25</field>
+        <field name="html_content" type="html">
+<section class="s_text_block pt64 pb40">
+    <div class="container s_allow_columns">
+        <h2>Filnamnet är en söknyckel</h2>
+        <p>Ett bra filnamn gör att filen går att hitta även utanför sin mapp. Ett dåligt filnamn gör den omöjlig — även om den ligger rätt.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt32 pb64">
+    <div class="container s_allow_columns">
+        <table class="table table-bordered">
+            <thead>
+                <tr><th>Undvik</th><th>Använd istället</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>Avtal_slutlig_v3_ny_2.docx</code></td>
+                    <td><code>2026-03-15 Avtal Acme AB.docx</code></td>
+                </tr>
+                <tr>
+                    <td><code>Dokument1.pdf</code></td>
+                    <td><code>2026-02-01 Offert Beta Konsult.pdf</code></td>
+                </tr>
+                <tr>
+                    <td><code>skannad_20260315.pdf</code></td>
+                    <td><code>2026-03-15 Leverantörsfaktura 4471.pdf</code></td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="small text-muted">Datumet först gör att filerna sorteras kronologiskt. ÅÅÅÅ-MM-DD sorterar rätt även alfabetiskt.</p>
+    </div>
+</section>
+
+<section class="s_text_image pt32 pb64">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 pt16 pb16">
+                <h3 class="h4-fs">Versionsnummer i filnamn</h3>
+                <p>Skriv aldrig <em>”slutlig”</em>, <em>”ny”</em> eller <em>”v3”</em> i filnamnet. Systemet håller reda på versionerna — filnamnet ska beskriva <strong>vad</strong> dokumentet är, inte vilken upplaga det är.</p>
+            </div>
+            <div class="col-lg-6 pt16 pb16">
+                <h3 class="h4-fs">Metadata</h3>
+                <p>Utöver filnamnet kan dokument taggas med kund, projekt och kategori. Det gör att de kan hittas på flera sätt samtidigt — både via mappen och via sökning.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="s_text_block pt32 pb64">
+    <div class="container s_allow_columns">
+        <h2>Koppla dokumentet till arbetet</h2>
+        <p>Ett dokument som hör till en kund ska kopplas till kundens post. Ett dokument som hör till ett projekt ska kopplas till projektet. Då syns det där arbetet sker — istället för att bara ligga i en mapp någon glömmer bort.</p>
+    </div>
+</section>
+        </field>
+        <field name="description">Namngivning av filer och metadata: varför datum först, varför versionsnummer inte hör i filnamnet, och hur dokument kopplas till kunder och projekt.</field>
+    </record>
+
+    <record id="slide_doc_s2_03" model="slide.slide">
+        <field name="name">🧪 Testa dina kunskaper — Struktur</field>
+        <field name="sequence">130</field>
+        <field name="slide_category">quiz</field>
+        <field name="channel_id" ref="document_onboarding.slide_channel_document"/>
+        <field name="is_published" eval="True"/>
+        <field name="completion_time">0.25</field>
+        <field name="quiz_first_attempt_reward">100</field>
+        <field name="quiz_second_attempt_reward">75</field>
+        <field name="quiz_third_attempt_reward">50</field>
+        <field name="quiz_fourth_attempt_reward">25</field>
+        <field name="description">Testa dina kunskaper om mappstruktur och namngivning av dokument.</field>
+    </record>
+
+    <record id="slide_doc_s2_03_q1" model="slide.question">
+        <field name="question">Vad ska den första nivån i strukturen utgå från?</field>
+        <field name="sequence">1</field>
+        <field name="slide_id" ref="slide_doc_s2_03"/>
+    </record>
+    <record id="slide_doc_s2_03_q1_a1" model="slide.answer">
+        <field name="text_value">Hur ni arbetar — kund, projekt eller avdelning</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! Utgå från det du vet när du börjar leta.</field>
+        <field name="question_id" ref="slide_doc_s2_03_q1"/>
+    </record>
+    <record id="slide_doc_s2_03_q1_a2" model="slide.answer">
+        <field name="text_value">Hur filerna råkar ligga idag</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — då ärver ni den gamla oordningen.</field>
+        <field name="question_id" ref="slide_doc_s2_03_q1"/>
+    </record>
+    <record id="slide_doc_s2_03_q1_a3" model="slide.answer">
+        <field name="text_value">Filtyp — PDF, Word, Excel</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — filtypen vet du sällan när du börjar leta.</field>
+        <field name="question_id" ref="slide_doc_s2_03_q1"/>
+    </record>
+
+    <record id="slide_doc_s2_03_q2" model="slide.question">
+        <field name="question">Varför ska du inte skriva ”slutlig” eller ”v3” i filnamnet?</field>
+        <field name="sequence">2</field>
+        <field name="slide_id" ref="slide_doc_s2_03"/>
+    </record>
+    <record id="slide_doc_s2_03_q2_a1" model="slide.answer">
+        <field name="text_value">Systemet håller reda på versionerna — filnamnet ska beskriva vad dokumentet är</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! Filnamnet beskriver innehållet, versioneringen sköts av systemet.</field>
+        <field name="question_id" ref="slide_doc_s2_03_q2"/>
+    </record>
+    <record id="slide_doc_s2_03_q2_a2" model="slide.answer">
+        <field name="text_value">Det tar för mycket plats</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — platsen är inte problemet.</field>
+        <field name="question_id" ref="slide_doc_s2_03_q2"/>
+    </record>
+    <record id="slide_doc_s2_03_q2_a3" model="slide.answer">
+        <field name="text_value">Det är förbjudet i systemet</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — det är en vana, inte en teknisk spärr.</field>
+        <field name="question_id" ref="slide_doc_s2_03_q2"/>
+    </record>
+
+    <record id="slide_doc_s2_03_q3" model="slide.question">
+        <field name="question">Varför är ÅÅÅÅ-MM-DD bättre än DD-MM-ÅÅÅÅ i filnamn?</field>
+        <field name="sequence">3</field>
+        <field name="slide_id" ref="slide_doc_s2_03"/>
+    </record>
+    <record id="slide_doc_s2_03_q3_a1" model="slide.answer">
+        <field name="text_value">Filerna sorteras kronologiskt även alfabetiskt</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! Med datumet först hamnar filerna i tidsordning i listan.</field>
+        <field name="question_id" ref="slide_doc_s2_03_q3"/>
+    </record>
+    <record id="slide_doc_s2_03_q3_a2" model="slide.answer">
+        <field name="text_value">Det är kortare</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — det är lika långt.</field>
+        <field name="question_id" ref="slide_doc_s2_03_q3"/>
+    </record>
+    <record id="slide_doc_s2_03_q3_a3" model="slide.answer">
+        <field name="text_value">Systemet kräver det</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — det är en konvention, inte ett krav.</field>
+        <field name="question_id" ref="slide_doc_s2_03_q3"/>
+    </record>
+
+    </data>
+</odoo>

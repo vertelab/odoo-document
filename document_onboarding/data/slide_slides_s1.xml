@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SEKTION 1: Varför dokumenthantering
+         ═══════════════════════════════════════════════════════════════════ -->
+
+    <record id="slide_category_doc_s1" model="slide.slide">
+        <field name="name">1. Varför dokumenthantering</field>
+        <field name="is_category" eval="True"/>
+        <field name="channel_id" ref="document_onboarding.slide_channel_document"/>
+        <field name="sequence">0</field>
+    </record>
+
+    <record id="slide_doc_s1_01" model="slide.slide">
+        <field name="name">Problemet med utspridda filer</field>
+        <field name="sequence">10</field>
+        <field name="slide_category">article</field>
+        <field name="channel_id" ref="document_onboarding.slide_channel_document"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="True"/>
+        <field name="completion_time">0.25</field>
+        <field name="html_content" type="html">
+<section class="s_cover parallax o_cc o_cc5 pt200 pb200" data-scroll-background-ratio="1">
+    <div class="container">
+        <h1 class="display-3-fs" style="text-align: center;">Problemet med utspridda filer</h1>
+        <p class="lead" style="text-align: center;">Filen finns — men var? Och är det rätt version?</p>
+    </div>
+</section>
+
+<section class="s_text_block pt64 pb40">
+    <div class="container s_allow_columns">
+        <h2>Fyra vanliga symptom</h2>
+        <p>De flesta verksamheter känner igen sig i något av följande. Det är inte slarv — det är vad som händer när filer inte har ett gemensamt hem.</p>
+    </div>
+</section>
+
+<section class="s_features pt32 pb64">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6">
+                <i class="s_features_icon fa fa-question-circle-o mb-3 rounded bg-o-color-3"/>
+                <div class="overflow-hidden">
+                    <h3 class="h5-fs">”Var ligger den?”</h3>
+                    <p>Filen finns på någons dator, i en mejlbilaga eller på en disk som ingen minns namnet på.</p>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <i class="s_features_icon fa fa-files-o mb-3 rounded bg-o-color-3"/>
+                <div class="overflow-hidden">
+                    <h3 class="h5-fs">”Vilken version gäller?”</h3>
+                    <p>Avtal_slutlig_v3_ny_2.docx. Ingen vet vilken som är den riktiga.</p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6">
+                <i class="s_features_icon fa fa-user-times mb-3 rounded bg-o-color-3"/>
+                <div class="overflow-hidden">
+                    <h3 class="h5-fs">”Bara hon vet”</h3>
+                    <p>Dokumenten finns bara hos personen som skapade dem — och försvinner när hon slutar.</p>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <i class="s_features_icon fa fa-lock mb-3 rounded bg-o-color-3"/>
+                <div class="overflow-hidden">
+                    <h3 class="h5-fs">”Vem får se det här?”</h3>
+                    <p>Ingen kontroll på vem som kommer åt känsliga dokument.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="s_call_to_action o_cc o_cc5 pt48 pb48">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-9">
+                <h3>Ett gemensamt hem</h3>
+                <p class="lead">Dokumenthanteringen ger alla dokument en plats. Åtkomst styrs per mapp, versioner sparas automatiskt, och allt är sökbart — oavsett vem som skapade filen.</p>
+            </div>
+        </div>
+    </div>
+</section>
+        </field>
+        <field name="description">Varför utspridda filer är ett problem: svårt att hitta, oklara versioner, personberoende och ingen åtkomstkontroll.</field>
+    </record>
+
+    <record id="slide_doc_s1_02" model="slide.slide">
+        <field name="name">Vad dokumenthanteringen ger dig</field>
+        <field name="sequence">20</field>
+        <field name="slide_category">article</field>
+        <field name="channel_id" ref="document_onboarding.slide_channel_document"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="True"/>
+        <field name="completion_time">0.25</field>
+        <field name="html_content" type="html">
+<section class="s_text_block pt64 pb40">
+    <div class="container s_allow_columns">
+        <h2>Fyra saker som blir bättre</h2>
+    </div>
+</section>
+
+<section class="s_text_block pt32 pb64">
+    <div class="container s_allow_columns">
+        <table class="table table-bordered">
+            <thead>
+                <tr><th>Före</th><th>Efter</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Filer på olika diskar och i mejl</td>
+                    <td><strong>En gemensam struktur</strong> som alla ser</td>
+                </tr>
+                <tr>
+                    <td>Oklart vilken version som gäller</td>
+                    <td><strong>Versionshistorik</strong> — du ser vem som ändrade vad och när</td>
+                </tr>
+                <tr>
+                    <td>Alla kommer åt allt</td>
+                    <td><strong>Åtkomst per mapp</strong> — känsliga dokument skyddas</td>
+                </tr>
+                <tr>
+                    <td>Dokument kopplade till ingen</td>
+                    <td><strong>Koppling till kunder, projekt och ärenden</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="s_text_block pt32 pb64">
+    <div class="container s_allow_columns">
+        <h2>Du behöver inte byta arbetssätt</h2>
+        <p>Dokumenthanteringen kan monteras som en <strong>nätverksdisk</strong> på din dator. Då arbetar du med filerna i Utforskaren eller Finder precis som vanligt — men de ligger i systemet, med versionering och åtkomstkontroll.</p>
+        <p class="small text-muted">Det är den viktigaste funktionen för att få folk att faktiskt använda systemet. Ingen vill ladda upp filer manuellt i en webbläsare varje gång.</p>
+    </div>
+</section>
+        </field>
+        <field name="description">Vad dokumenthanteringen ger: gemensam struktur, versionshistorik, åtkomst per mapp och koppling till kunder och projekt.</field>
+    </record>
+
+    <record id="slide_doc_s1_03" model="slide.slide">
+        <field name="name">Översikt — dokumentets väg</field>
+        <field name="sequence">30</field>
+        <field name="slide_category">infographic</field>
+        <field name="channel_id" ref="document_onboarding.slide_channel_document"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="True"/>
+        <field name="completion_time">0.10</field>
+        <field name="description">Flödesschema: hur ett dokument färdas från din dator via nätverksdisken in i dokumenthanteringen, och hur det kopplas till kund och projekt.</field>
+    </record>
+
+    <record id="slide_doc_s1_04" model="slide.slide">
+        <field name="name">🧪 Testa dina kunskaper — Grunderna</field>
+        <field name="sequence">40</field>
+        <field name="slide_category">quiz</field>
+        <field name="channel_id" ref="document_onboarding.slide_channel_document"/>
+        <field name="is_published" eval="True"/>
+        <field name="completion_time">0.25</field>
+        <field name="quiz_first_attempt_reward">100</field>
+        <field name="quiz_second_attempt_reward">75</field>
+        <field name="quiz_third_attempt_reward">50</field>
+        <field name="quiz_fourth_attempt_reward">25</field>
+        <field name="description">Testa dina kunskaper om varför dokumenthantering behövs och vad den ger.</field>
+    </record>
+
+    <record id="slide_doc_s1_04_q1" model="slide.question">
+        <field name="question">Vilket är det vanligaste problemet med utspridda filer?</field>
+        <field name="sequence">1</field>
+        <field name="slide_id" ref="slide_doc_s1_04"/>
+    </record>
+    <record id="slide_doc_s1_04_q1_a1" model="slide.answer">
+        <field name="text_value">Att ingen vet vilken version som gäller</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! Flera kopior med olika namn gör det omöjligt att veta vad som är aktuellt.</field>
+        <field name="question_id" ref="slide_doc_s1_04_q1"/>
+    </record>
+    <record id="slide_doc_s1_04_q1_a2" model="slide.answer">
+        <field name="text_value">Att filerna tar för mycket plats</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — platsen är sällan det egentliga problemet.</field>
+        <field name="question_id" ref="slide_doc_s1_04_q1"/>
+    </record>
+    <record id="slide_doc_s1_04_q1_a3" model="slide.answer">
+        <field name="text_value">Att de är för gamla</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — åldern är inte problemet, oordningen är det.</field>
+        <field name="question_id" ref="slide_doc_s1_04_q1"/>
+    </record>
+
+    <record id="slide_doc_s1_04_q2" model="slide.question">
+        <field name="question">Varför är nätverksdisken viktig för att systemet ska användas?</field>
+        <field name="sequence">2</field>
+        <field name="slide_id" ref="slide_doc_s1_04"/>
+    </record>
+    <record id="slide_doc_s1_04_q2_a1" model="slide.answer">
+        <field name="text_value">Man arbetar med filerna som vanligt — utan att ladda upp manuellt</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! Ingen vill ladda upp filer för hand i en webbläsare varje gång.</field>
+        <field name="question_id" ref="slide_doc_s1_04_q2"/>
+    </record>
+    <record id="slide_doc_s1_04_q2_a2" model="slide.answer">
+        <field name="text_value">Den går snabbare än webbläsaren</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — hastigheten är inte huvudpoängen.</field>
+        <field name="question_id" ref="slide_doc_s1_04_q2"/>
+    </record>
+    <record id="slide_doc_s1_04_q2_a3" model="slide.answer">
+        <field name="text_value">Den krävs för att systemet ska fungera</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — systemet fungerar utan. Men fler använder det med.</field>
+        <field name="question_id" ref="slide_doc_s1_04_q2"/>
+    </record>
+
+    <record id="slide_doc_s1_04_q3" model="slide.question">
+        <field name="question">Vad ger åtkomst per mapp?</field>
+        <field name="sequence">3</field>
+        <field name="slide_id" ref="slide_doc_s1_04"/>
+    </record>
+    <record id="slide_doc_s1_04_q3_a1" model="slide.answer">
+        <field name="text_value">Att känsliga dokument bara nås av dem som ska</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! Istället för att alla kommer åt allt.</field>
+        <field name="question_id" ref="slide_doc_s1_04_q3"/>
+    </record>
+    <record id="slide_doc_s1_04_q3_a2" model="slide.answer">
+        <field name="text_value">Att alla kommer åt allt gemensamt</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — det är precis motsatsen till vad åtkomststyrning ger.</field>
+        <field name="question_id" ref="slide_doc_s1_04_q3"/>
+    </record>
+    <record id="slide_doc_s1_04_q3_a3" model="slide.answer">
+        <field name="text_value">Att de laddas ner snabbare</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — det handlar om behörighet, inte prestanda.</field>
+        <field name="question_id" ref="slide_doc_s1_04_q3"/>
+    </record>
+
+    </data>
+</odoo>

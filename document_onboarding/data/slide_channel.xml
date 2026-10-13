@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         Dokumenthantering i Vertel — onboardingskurs
+         4 sektioner, 12 slides (7 article, 1 infographic, 4 quiz)
+         ═══════════════════════════════════════════════════════════════════ -->
+
+    <record id="slide_channel_document" model="slide.channel">
+        <field name="name">Dokumenthantering i Vertel</field>
+        <field name="user_id" ref="base.user_admin"/>
+        <field name="enroll">public</field>
+        <field name="channel_type">training</field>
+        <field name="allow_comment" eval="True"/>
+        <field name="promote_strategy">latest</field>
+        <field name="is_published" eval="True"/>
+        <field name="description">
+Dokument som ligger utspridda på nätverksdiskar, i mejl och på lokala hårddiskar
+är svåra att hitta, lätta att tappa bort och omöjliga att spåra. Den här kursen
+visar hur ni får ordning på dem.
+
+Vi går igenom hur du strukturerar dokument, hur du monterar dokumenthanteringen
+som en nätverksdisk på din dator, hur versionering fungerar och hur du redigerar
+Office-dokument direkt utan att ladda ner och upp.
+
+        </field>
+    </record>
+
+    </data>
+</odoo>
