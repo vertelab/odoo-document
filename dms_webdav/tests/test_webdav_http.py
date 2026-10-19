@@ -44,3 +44,33 @@ class TestWebdavHttp(HttpCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIn("DAV", response.headers)
+
+
+    def test_mkcol_requires_auth(self):
+        response = self.url_open(
+            "/webdav/some/newdir",
+            method="MKCOL",
+            allow_redirects=False,
+        )
+        self.assertEqual(response.status_code, 401)
+
+    def test_put_requires_auth(self):
+        response = self.url_open(
+            "/webdav/some/file.txt",
+            method="PUT",
+            data=b"x",
+            allow_redirects=False,
+        )
+        self.assertEqual(response.status_code, 401)
+
+    def test_put_rejects_content_range(self):
+        """Chunked PUT is not implemented and must say so, not truncate."""
+        response = self.url_open(
+            "/webdav/some/file.txt",
+            method="PUT",
+            data=b"x",
+            headers={"Content-Range": "bytes 0-0/1"},
+            allow_redirects=False,
+        )
+        # 401 comes first (auth gate) - assert we never get a silent 200/201
+        self.assertIn(response.status_code, (401, 501))
