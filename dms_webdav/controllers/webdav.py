@@ -58,14 +58,21 @@ class DmsWebdavController(http.Controller):
         type="http",
         auth="public",
         csrf=False,
+        save_session=False,
         strict_slashes=False,
+        defaults={"resource_path": ""},
+        methods=["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "PROPFIND",
+                 "MKCOL", "MOVE", "COPY", "LOCK", "UNLOCK"],
     )
     @http.route(
         "/webdav/<path:resource_path>",
         type="http",
         auth="public",
         csrf=False,
+        save_session=False,
         strict_slashes=False,
+        methods=["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "PROPFIND",
+                 "MKCOL", "MOVE", "COPY", "LOCK", "UNLOCK"],
     )
     def webdav_dispatch(self, resource_path=""):
         method = request.httprequest.method
@@ -111,9 +118,14 @@ class DmsWebdavController(http.Controller):
             ],
         )
 
-    def _href(self, path):
+    def _href(self, path, is_collection=False):
         base_url = request.httprequest.url_root.rstrip("/")
-        return f"{base_url}/webdav{path}"
+        href = f"{base_url}/webdav{path}"
+        # RFC 4918: collections ska ha avslutande slash. Utan den bygger
+        # Windows Explorer/davfs2 fel underliggande URL:er.
+        if is_collection and not href.endswith("/"):
+            href += "/"
+        return href
 
     def _prop_xml(self, record, record_type, path):
         if record_type == "collection":
@@ -143,7 +155,7 @@ class DmsWebdavController(http.Controller):
         return '\n'.join(parts)
 
     def _propfind_response(self, path, record_type, record):
-        href = self._href(path)
+        href = self._href(path, is_collection=record_type in ("collection", "storage", "directory"))
         prop_xml = self._prop_xml(record, record_type, path)
         return (
             '<d:response>'
@@ -154,6 +166,17 @@ class DmsWebdavController(http.Controller):
             '</d:propstat>'
             '</d:response>'
         )
+
+    def _resolve(self, resolver, path):
+        """Resolve a WebDAV path, tolerating a missing leading slash.
+
+        Werkzeug strips the leading slash from ``<path:...>`` matches, so
+        ``/webdav/WebdavTest`` arrives as ``WebdavTest``. ``resolve()``
+        expects ``/WebdavTest``.
+        """
+        if not path.startswith("/"):
+            path = "/" + path
+        return resolver.resolve(path)
 
     def _propfind_children(self, parent_path, record, resolver, depth):
         results = []
@@ -167,7 +190,7 @@ class DmsWebdavController(http.Controller):
             return results
 
         for child_rec, child_type in children:
-            child_path = f"{parent_path}/{child_rec.name}"
+            child_path = f"{parent_path.rstrip('/')}/{child_rec.name}"
             results.append(self._propfind_response(child_path, child_type, child_rec))
             if depth == "infinity" and child_type == "directory":
                 results.extend(self._propfind_children(child_path, child_rec, resolver, depth))
@@ -177,7 +200,7 @@ class DmsWebdavController(http.Controller):
         depth = request.httprequest.headers.get("Depth", "0")
         resolver = request.env["dms.webdav.path"]
 
-        record, record_type = resolver.resolve(path)
+        record, record_type = self._resolve(resolver, path)
 
         responses = []
         if record is None and path == "/":
@@ -203,7 +226,7 @@ class DmsWebdavController(http.Controller):
 
     def _get(self, path, head=False):
         resolver = request.env["dms.webdav.path"]
-        record, record_type = resolver.resolve(path)
+        record, record_type = self._resolve(resolver, path)
 
         if record is None:
             return request.make_response("Not Found", status=404)
@@ -232,10 +255,14 @@ class DmsWebdavController(http.Controller):
         )
 
     def _put(self, path):
+        if request.httprequest.headers.get("Content-Range"):
+            return request.make_response(
+                "Not Implemented: Content-Range (chunked PUT) is not supported", status=501
+            )
         resolver = request.env["dms.webdav.path"]
-        record, record_type = resolver.resolve(path)
+        record, record_type = self._resolve(resolver, path)
 
-        data = request.httprequest.data
+        data = request.httprequest.get_data()
         if record is not None and record_type == "file":
             record.check_access("write")
             record.write({"content": base64.b64encode(data)})
@@ -247,7 +274,7 @@ class DmsWebdavController(http.Controller):
         path = path.strip("/")
         *dir_parts, file_name = path.split("/")
         dir_path = "/" + "/".join(dir_parts) if dir_parts else "/"
-        parent_record, parent_type = resolver.resolve(dir_path)
+        parent_record, parent_type = self._resolve(resolver, dir_path)
 
         if parent_record is None or parent_type not in ("storage", "directory"):
             return request.make_response("Bad Request: parent not found", status=409)
@@ -270,7 +297,7 @@ class DmsWebdavController(http.Controller):
 
     def _delete(self, path):
         resolver = request.env["dms.webdav.path"]
-        record, record_type = resolver.resolve(path)
+        record, record_type = self._resolve(resolver, path)
 
         if record is None:
             return request.make_response("Not Found", status=404)
@@ -286,7 +313,7 @@ class DmsWebdavController(http.Controller):
 
     def _mkcol(self, path):
         resolver = request.env["dms.webdav.path"]
-        record, record_type = resolver.resolve(path)
+        record, record_type = self._resolve(resolver, path)
 
         if record is not None:
             return request.make_response("Conflict: resource already exists", status=409)
@@ -294,7 +321,7 @@ class DmsWebdavController(http.Controller):
         path = path.strip("/")
         *dir_parts, dir_name = path.split("/")
         dir_path = "/" + "/".join(dir_parts) if dir_parts else "/"
-        parent_record, parent_type = resolver.resolve(dir_path)
+        parent_record, parent_type = self._resolve(resolver, dir_path)
 
         if parent_record is None:
             return request.make_response("Conflict: parent not found", status=409)
@@ -319,7 +346,7 @@ class DmsWebdavController(http.Controller):
 
     def _move(self, path):
         resolver = request.env["dms.webdav.path"]
-        record, record_type = resolver.resolve(path)
+        record, record_type = self._resolve(resolver, path)
 
         if record is None:
             return request.make_response("Not Found", status=404)
@@ -331,7 +358,7 @@ class DmsWebdavController(http.Controller):
         dest_path = urlparse(destination).path
         dest_path = "/" + "/".join(dest_path.strip("/").split("/")[1:])
 
-        dest_record, dest_type = resolver.resolve(dest_path)
+        dest_record, dest_type = self._resolve(resolver, dest_path)
 
         record.check_access("write")
         if dest_record is not None:
@@ -340,7 +367,7 @@ class DmsWebdavController(http.Controller):
         dest_path_clean = dest_path.strip("/")
         *dest_dir_parts, dest_name = dest_path_clean.split("/")
         dest_dir_path = "/" + "/".join(dest_dir_parts) if dest_dir_parts else "/"
-        parent_record, parent_type = resolver.resolve(dest_dir_path)
+        parent_record, parent_type = self._resolve(resolver, dest_dir_path)
 
         if parent_record is None or parent_type not in ("storage", "directory"):
             return request.make_response("Conflict: destination parent not found", status=409)
@@ -354,7 +381,7 @@ class DmsWebdavController(http.Controller):
 
     def _copy(self, path):
         resolver = request.env["dms.webdav.path"]
-        record, record_type = resolver.resolve(path)
+        record, record_type = self._resolve(resolver, path)
 
         if record is None:
             return request.make_response("Not Found", status=404)
@@ -366,14 +393,14 @@ class DmsWebdavController(http.Controller):
         dest_path = urlparse(destination).path
         dest_path = "/" + "/".join(dest_path.strip("/").split("/")[1:])
 
-        dest_record, dest_type = resolver.resolve(dest_path)
+        dest_record, dest_type = self._resolve(resolver, dest_path)
         if dest_record is not None:
             return request.make_response("Conflict: destination already exists", status=409)
 
         dest_path_clean = dest_path.strip("/")
         *dest_dir_parts, dest_name = dest_path_clean.split("/")
         dest_dir_path = "/" + "/".join(dest_dir_parts) if dest_dir_parts else "/"
-        parent_record, parent_type = resolver.resolve(dest_dir_path)
+        parent_record, parent_type = self._resolve(resolver, dest_dir_path)
 
         if parent_record is None or parent_type not in ("storage", "directory"):
             return request.make_response("Conflict: destination parent not found", status=409)
@@ -415,7 +442,7 @@ class DmsWebdavController(http.Controller):
 
     def _lock(self, path):
         resolver = request.env["dms.webdav.path"]
-        record, record_type = resolver.resolve(path)
+        record, record_type = self._resolve(resolver, path)
 
         if record is None:
             return request.make_response("Not Found", status=404)
@@ -451,7 +478,7 @@ class DmsWebdavController(http.Controller):
 
     def _unlock(self, path):
         resolver = request.env["dms.webdav.path"]
-        record, record_type = resolver.resolve(path)
+        record, record_type = self._resolve(resolver, path)
 
         if record is None:
             return request.make_response("Not Found", status=404)
