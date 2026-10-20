@@ -212,7 +212,14 @@ class DmsWebdavController(http.Controller):
         """
         if not path.startswith("/"):
             path = "/" + path
-        return resolver.resolve(path)
+        # sudo: resolve() searches dms.directory, which is filtered by the
+        # ir.rule on the computed `permission_read`. Without sudo a path the
+        # user cannot *see* resolves to None and the request 404s even
+        # though the resource exists. Measured for uid 2:
+        #     resolve("/DavTest/Docs")         -> (None, None)
+        #     sudo().resolve("/DavTest/Docs")  -> ("Docs", "directory")
+        # Access is enforced afterwards via _filtered_access() in _propfind().
+        return resolver.sudo().resolve(path)
 
     def _propfind_children(self, parent_path, record, resolver, depth):
         results = []
@@ -229,7 +236,7 @@ class DmsWebdavController(http.Controller):
         #        search()         -> []
         #        sudo().search()  -> [3]
         #    So the resolver must run with sudo(); access is then enforced
-        #    per record below via check_access().
+        #    per record below via _filtered_access().
         resolver = resolver.sudo()
         if record._name == "dms.storage":
             children = resolver.list_storage(record)
@@ -239,9 +246,7 @@ class DmsWebdavController(http.Controller):
             return results
 
         for child_rec, child_type in children:
-            try:
-                child_rec.check_access("read")
-            except Exception:
+            if not child_rec.with_user(request.env.user)._filtered_access("read"):
                 continue
             child_path = f"{parent_path.rstrip('/')}/{child_rec.name}"
             results.append(self._propfind_response(child_path, child_type, child_rec))
@@ -265,9 +270,7 @@ class DmsWebdavController(http.Controller):
                     if depth == "infinity":
                         responses.extend(self._propfind_children(storage_path, storage, resolver, depth))
         elif record is not None:
-            try:
-                record.check_access("read")
-            except Exception:
+            if not record.with_user(request.env.user)._filtered_access("read"):
                 return request.make_response("Not Found", status=404)
             responses.append(self._propfind_response(path, record_type, record))
             if depth in ("1", "infinity"):
@@ -291,8 +294,10 @@ class DmsWebdavController(http.Controller):
         if record_type in ("storage", "directory"):
             return request.make_response("Method not allowed on collection", status=405)
 
-        record.check_access("read")
-        content = record.content
+        if not record.with_user(request.env.user)._filtered_access("read"):
+            return request.make_response(
+                "Forbidden: no read access to this resource", status=403)
+        content = record.sudo().content
         if not content:
             return request.make_response("", status=204)
 
@@ -321,8 +326,10 @@ class DmsWebdavController(http.Controller):
 
         data = request.httprequest.get_data()
         if record is not None and record_type == "file":
-            record.check_access("write")
-            record.write({"content": base64.b64encode(data)})
+            if not record.with_user(request.env.user)._filtered_access("write"):
+                return request.make_response(
+                    "Forbidden: no write access to this resource", status=403)
+            record.sudo().write({"content": base64.b64encode(data)})
             return request.make_response(
                 "",
                 headers=[("ETag", '"{}"'.format(record.checksum or ""))],
@@ -339,9 +346,11 @@ class DmsWebdavController(http.Controller):
         if parent_type == "storage":
             return request.make_response("Bad Request: cannot create file directly under storage", status=409)
 
-        parent_record.check_access("create")
+        if not parent_record.with_user(request.env.user)._filtered_access("create"):
+            return request.make_response(
+                "Forbidden: no create access in this directory", status=403)
 
-        new_file = request.env["dms.file"].create({
+        new_file = request.env["dms.file"].sudo().create({
             "name": file_name,
             "directory_id": parent_record.id,
             "content": base64.b64encode(data),
@@ -359,13 +368,15 @@ class DmsWebdavController(http.Controller):
         if record is None:
             return request.make_response("Not Found", status=404)
 
-        record.check_access("unlink")
+        if not record.with_user(request.env.user)._filtered_access("unlink"):
+            return request.make_response(
+                "Forbidden: no delete access to this resource", status=403)
 
         if record_type == "directory":
             if record.child_directory_ids or record.file_ids:
                 return request.make_response("Conflict: directory not empty", status=409)
 
-        record.unlink()
+        record.sudo().unlink()
         return request.make_response("", status=204)
 
     def _mkcol(self, path):
@@ -386,15 +397,21 @@ class DmsWebdavController(http.Controller):
             return request.make_response("Bad Request", status=405)
 
         if parent_type == "storage":
-            parent_record.check_access("create")
-            request.env["dms.directory"].create({
+            if not parent_record.with_user(request.env.user)._filtered_access("create"):
+                return request.make_response("Forbidden", status=403)
+            # sudo: the ir.rule on dms.directory checks the *computed*
+            # permission_create, which is False for a record that does not
+            # exist yet — so a plain create() is always denied. The access
+            # check is done above via _filtered_access("create").
+            request.env["dms.directory"].sudo().create({
                 "name": dir_name,
                 "storage_id": parent_record.id,
                 "is_root_directory": True,
             })
         else:
-            parent_record.check_access("create")
-            request.env["dms.directory"].create({
+            if not parent_record.with_user(request.env.user)._filtered_access("create"):
+                return request.make_response("Forbidden", status=403)
+            request.env["dms.directory"].sudo().create({
                 "name": dir_name,
                 "parent_id": parent_record.id,
             })
@@ -417,7 +434,8 @@ class DmsWebdavController(http.Controller):
 
         dest_record, dest_type = self._resolve(resolver, dest_path)
 
-        record.check_access("write")
+        if not record.with_user(request.env.user)._filtered_access("write"):
+            return request.make_response("Forbidden", status=403)
         if dest_record is not None:
             return request.make_response("Conflict: destination already exists", status=409)
 
@@ -430,9 +448,12 @@ class DmsWebdavController(http.Controller):
             return request.make_response("Conflict: destination parent not found", status=409)
 
         if record_type in ("file", "directory"):
-            record.write({"name": dest_name})
+            # sudo: the ir.rule on dms.file checks the computed
+            # permission_write, which is not evaluated for the target user
+            # inside this transaction. Access was checked above.
+            record.sudo().write({"name": dest_name})
             if record_type == "file" and parent_type == "directory":
-                record.write({"directory_id": parent_record.id})
+                record.sudo().write({"directory_id": parent_record.id})
 
         return request.make_response("", status=204)
 
@@ -462,18 +483,21 @@ class DmsWebdavController(http.Controller):
         if parent_record is None or parent_type not in ("storage", "directory"):
             return request.make_response("Conflict: destination parent not found", status=409)
 
-        record.check_access("read")
+        if not record.with_user(request.env.user)._filtered_access("read"):
+            return request.make_response("Forbidden", status=403)
 
         if record_type == "file":
-            parent_record.check_access("create")
-            request.env["dms.file"].create({
+            if not parent_record.with_user(request.env.user)._filtered_access("create"):
+                return request.make_response("Forbidden", status=403)
+            request.env["dms.file"].sudo().create({
                 "name": dest_name,
                 "directory_id": parent_record.id,
-                "content": record.content,
+                "content": record.sudo().content,
             })
         elif record_type == "directory":
-            parent_record.check_access("create")
-            new_dir = request.env["dms.directory"].create({
+            if not parent_record.with_user(request.env.user)._filtered_access("create"):
+                return request.make_response("Forbidden", status=403)
+            new_dir = request.env["dms.directory"].sudo().create({
                 "name": dest_name,
                 "parent_id": parent_record.id if parent_type == "directory" else False,
                 "storage_id": parent_record.id if parent_type == "storage" else parent_record.storage_id.id,
@@ -484,14 +508,19 @@ class DmsWebdavController(http.Controller):
         return request.make_response("", status=204)
 
     def _copy_directory_contents(self, source_dir, target_dir):
-        for child in source_dir.child_directory_ids:
-            new_child = request.env["dms.directory"].create({
+        # search() + sudo: One2many fields are filtered by the ir.rule on
+        # permission_read and come back empty, and create() is denied before
+        # permission_create can be computed for a new record.
+        Directory = request.env["dms.directory"].sudo()
+        DmsFile = request.env["dms.file"].sudo()
+        for child in Directory.search([("parent_id", "=", source_dir.id)]):
+            new_child = Directory.create({
                 "name": child.name,
                 "parent_id": target_dir.id,
             })
             self._copy_directory_contents(child, new_child)
-        for file_rec in source_dir.file_ids:
-            request.env["dms.file"].create({
+        for file_rec in DmsFile.search([("directory_id", "=", source_dir.id)]):
+            DmsFile.create({
                 "name": file_rec.name,
                 "directory_id": target_dir.id,
                 "content": file_rec.content,
@@ -510,7 +539,8 @@ class DmsWebdavController(http.Controller):
                 headers=[("Content-Type", "application/xml; charset=utf-8")],
             )
 
-        record.check_access("write")
+        if not record.with_user(request.env.user)._filtered_access("write"):
+            return request.make_response("Forbidden", status=403)
         record.lock()
 
         return request.make_response(
@@ -541,7 +571,8 @@ class DmsWebdavController(http.Controller):
             return request.make_response("Not Found", status=404)
 
         if record_type == "file":
-            record.check_access("write")
+            if not record.with_user(request.env.user)._filtered_access("write"):
+                return request.make_response("Forbidden", status=403)
             record.unlock()
 
         return request.make_response("", status=204)

@@ -25,10 +25,11 @@ alltid `https://…`.
 | KDE Dolphin | ⚠️ ej testad | `webdavs://<odoo-host>/webdav/` |
 | Windows Explorer | ⚠️ ej testad | `https://<odoo-host>/webdav/` |
 | macOS Finder (Cmd+K) | ⚠️ ej testad | `https://<odoo-host>/webdav/` |
-| **davfs2** (`mount.davfs`) | ❌ **fungerar inte** | se avsnitt 6 |
+| **davfs2** (`mount.davfs`) | ❌ **fungerar inte** | se avsnitt 7 |
 
 **Använd rclone.** Det är den enda klient vi verifierat end-to-end mot en
-körande Odoo 18 (2026-10-20, `dms_webdav` 18.0.1.0.13).
+körande Odoo 18 (2026-10-20, `dms_webdav` 18.0.1.0.20): lista, skriva,
+läsa, kopiera, flytta och radera fungerar.
 
 **Avslutande snedstreck krävs.** `/webdav` (utan slash) ger 404 — routen är
 registrerad med `strict_slashes`, så `/webdav/` är den enda giltiga formen.
@@ -99,11 +100,28 @@ vissa proxys; sätt `request_buffering`/storleksgräns i Caddy i så fall.
 | 409 vid uppladdning | föräldramappen finns inte, eller filen ligger direkt under en storage |
 | 501 vid uppladdning | chunked PUT (`Content-Range`) |
 | Filen "låst" i Odoo | LOCK utan efterföljande UNLOCK — rensa *Locked* |
-| Tom katalog i davfs2 | känt fel i davfs2, se avsnitt 6 — använd rclone |
+| Tom katalog i davfs2 | känt fel i davfs2, se avsnitt 7 — använd rclone |
 
 Logga inkommande anrop: `grep '\[WebDAV\]' /var/log/odoo/odoo-server.log`.
 
-## 6. davfs2 — känd icke-fungerande klient
+## 6. Behörigheter — krävs för att se och skriva
+
+DMS har ett eget behörighetssystem ovanpå Odoo:s. En användare som är
+`admin` i Odoo ser **ingenting** i DMS om den inte har:
+
+1. **En DMS-grupp** — `dms.group_dms_user` eller `dms.group_dms_manager`.
+2. **En `dms.access.group`** kopplad till katalogen, med `perm_create`,
+   `perm_write`, `perm_unlink` satta efter behov.
+
+Saknas punkt 2 blir katalogen tom och alla skrivförsök ger `403`.
+
+Modulen kör listning och uppslag med `sudo()` och kontrollerar sedan
+behörigheten per post via `_filtered_access()` — DMS:s egen mekanism.
+`check_access()` duger **inte** här: `dms.directory` har en `ir.rule` på det
+beräknade fältet `permission_read`, och för `create` är fältet `False` ända
+tills posten finns, så en vanlig `create()` nekas alltid.
+
+## 7. davfs2 — känd icke-fungerande klient
 
 **`davfs2` 1.7.0 kan inte montera den här endpointen.** Mounten lyckas och
 autentiseringen går igenom, men `ls` på monteringen ger
