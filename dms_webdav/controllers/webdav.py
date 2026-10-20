@@ -10,6 +10,11 @@ _logger = logging.getLogger(__name__)
 
 AUTH_HEADER = 'Basic realm="Odoo DMS WebDAV", charset="UTF-8"'
 
+WEBDAV_METHODS = [
+    "GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS",
+    "PROPFIND", "MKCOL", "MOVE", "COPY", "LOCK", "UNLOCK",
+]
+
 
 def _basic_auth():
     auth = request.httprequest.headers.get("Authorization", "")
@@ -53,6 +58,12 @@ class DmsWebdavController(http.Controller):
         base_url = request.httprequest.url_root.rstrip("/")
         return request.redirect(f"{base_url}/webdav/", code=307)
 
+    # Odoo 18 keeps only ONE route per endpoint method: ``route()`` does
+    # ``routing['routes'] = [route]`` on a dict shared by every decorator
+    # applied to the method, so stacking two @http.route silently discards
+    # the first one. Verified on 18.0-20260701: the stacked version produced
+    # a routing map containing only "/webdav/", and every sub-path 404:ed
+    # before reaching the controller. Hence two methods, one route each.
     @http.route(
         "/webdav/",
         type="http",
@@ -60,10 +71,11 @@ class DmsWebdavController(http.Controller):
         csrf=False,
         save_session=False,
         strict_slashes=False,
-        defaults={"resource_path": ""},
-        methods=["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "PROPFIND",
-                 "MKCOL", "MOVE", "COPY", "LOCK", "UNLOCK"],
+        methods=WEBDAV_METHODS,
     )
+    def webdav_root(self):
+        return self._dispatch("")
+
     @http.route(
         "/webdav/<path:resource_path>",
         type="http",
@@ -71,10 +83,12 @@ class DmsWebdavController(http.Controller):
         csrf=False,
         save_session=False,
         strict_slashes=False,
-        methods=["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "PROPFIND",
-                 "MKCOL", "MOVE", "COPY", "LOCK", "UNLOCK"],
+        methods=WEBDAV_METHODS,
     )
-    def webdav_dispatch(self, resource_path=""):
+    def webdav_dispatch(self, resource_path):
+        return self._dispatch(resource_path)
+
+    def _dispatch(self, resource_path):
         method = request.httprequest.method
         _logger.info("[WebDAV] %s /webdav/%s", method, resource_path)
 
