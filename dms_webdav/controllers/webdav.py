@@ -211,14 +211,22 @@ class DmsWebdavController(http.Controller):
         results = []
         children = []
 
+        # sudo: dms.directory carries an ir.rule on permission_read, so a
+        # One2many such as storage.root_directory_ids comes back *silently
+        # empty* for users the rules filter out - no exception, just no rows.
+        # Access is enforced explicitly per record below via check_access().
         if record._name == "dms.storage":
-            children = resolver.list_storage(record)
+            children = resolver.sudo().list_storage(record)
         elif record._name == "dms.directory":
-            children = resolver.list_directory(record)
+            children = resolver.sudo().list_directory(record)
         else:
             return results
 
         for child_rec, child_type in children:
+            try:
+                child_rec.check_access("read")
+            except Exception:
+                continue
             child_path = f"{parent_path.rstrip('/')}/{child_rec.name}"
             results.append(self._propfind_response(child_path, child_type, child_rec))
             if depth == "infinity" and child_type == "directory":
@@ -235,12 +243,16 @@ class DmsWebdavController(http.Controller):
         if record is None and path == "/":
             responses.append(self._propfind_response("/", "collection", None))
             if depth in ("1", "infinity"):
-                for storage in resolver.list_storages():
+                for storage in resolver.sudo().list_storages():
                     storage_path = f"/{storage.name}"
                     responses.append(self._propfind_response(storage_path, "storage", storage))
                     if depth == "infinity":
                         responses.extend(self._propfind_children(storage_path, storage, resolver, depth))
         elif record is not None:
+            try:
+                record.check_access("read")
+            except Exception:
+                return request.make_response("Not Found", status=404)
             responses.append(self._propfind_response(path, record_type, record))
             if depth in ("1", "infinity"):
                 responses.extend(self._propfind_children(path, record, resolver, depth))
