@@ -148,10 +148,17 @@ class DmsWebdavController(http.Controller):
         )
 
     def _href(self, path, is_collection=False):
-        base_url = request.httprequest.url_root.rstrip("/")
-        href = f"{base_url}/webdav{path}"
-        # RFC 4918: collections ska ha avslutande slash. Utan den bygger
-        # Windows Explorer/davfs2 fel underliggande URL:er.
+        """Build the <d:href> for a resource.
+
+        RFC 4918 allows either an absolute URI or an absolute path. We emit
+        the *path* form ("/webdav/DavTest/"), which is what davfs2, rclone
+        and Windows Explorer all expect: with an absolute URI davfs2 parses
+        the entry but then discards it when matching it against the
+        requested collection, and FUSE_READDIR ends in EINVAL.
+        """
+        href = f"/webdav{path}"
+        # Collections must end with a slash, otherwise clients build the
+        # wrong child URLs.
         if is_collection and not href.endswith("/"):
             href += "/"
         return href
