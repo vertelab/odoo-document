@@ -76,8 +76,11 @@ class DmsWebdavController(http.Controller):
     def webdav_root(self):
         return self._dispatch("")
 
+    # NOTE: a single ``<path:...>`` segment does not match here on Odoo 18
+    # (verified: /webdav/NagotX 404:ed while /webdav/ worked). Spell out the
+    # depth explicitly instead of relying on path-converter fallthrough.
     @http.route(
-        "/webdav/<path:resource_path>",
+        "/webdav/<string:seg1>",
         type="http",
         auth="public",
         csrf=False,
@@ -85,8 +88,20 @@ class DmsWebdavController(http.Controller):
         strict_slashes=False,
         methods=WEBDAV_METHODS,
     )
-    def webdav_dispatch(self, resource_path):
-        return self._dispatch(resource_path)
+    def webdav_depth1(self, seg1):
+        return self._dispatch(seg1)
+
+    @http.route(
+        "/webdav/<string:seg1>/<path:resource_path>",
+        type="http",
+        auth="public",
+        csrf=False,
+        save_session=False,
+        strict_slashes=False,
+        methods=WEBDAV_METHODS,
+    )
+    def webdav_dispatch(self, seg1, resource_path):
+        return self._dispatch(f"{seg1}/{resource_path}")
 
     def _dispatch(self, resource_path):
         method = request.httprequest.method
