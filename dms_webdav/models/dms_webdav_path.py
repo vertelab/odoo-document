@@ -54,22 +54,40 @@ class DmsWebdavPath(models.AbstractModel):
 
     @api.model
     def list_directory(self, directory):
-        """List children of a directory — returns list of (record, type) tuples."""
+        """List children of a directory — returns list of (record, type) tuples.
+
+        Uses search() rather than the child_directory_ids/file_ids One2many
+        fields: dms.directory has an ir.rule on the computed
+        `permission_read`, and a One2many resolves (and caches) its ids
+        before sudo() can apply, so it silently returns nothing for users
+        the rules filter out. search() evaluates the rules correctly.
+        """
+        Directory = self.env["dms.directory"]
+        DmsFile = self.env["dms.file"]
         result = []
-        for child in directory.child_directory_ids:
-            if not child.is_hidden:
-                result.append((child, "directory"))
-        for file_rec in directory.file_ids:
+        dirs = Directory.search([
+            ("parent_id", "=", directory.id),
+            ("is_hidden", "=", False),
+        ])
+        for child in dirs:
+            result.append((child, "directory"))
+        files = DmsFile.search([("directory_id", "=", directory.id)])
+        for file_rec in files:
             result.append((file_rec, "file"))
         return result
 
     @api.model
     def list_storage(self, storage):
-        """List root directories of a storage."""
+        """List root directories of a storage (search, not One2many)."""
+        Directory = self.env["dms.directory"]
         result = []
-        for root_dir in storage.root_directory_ids:
-            if not root_dir.is_hidden:
-                result.append((root_dir, "directory"))
+        roots = Directory.search([
+            ("storage_id", "=", storage.id),
+            ("is_root_directory", "=", True),
+            ("is_hidden", "=", False),
+        ])
+        for root_dir in roots:
+            result.append((root_dir, "directory"))
         return result
 
     @api.model

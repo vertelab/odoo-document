@@ -211,14 +211,23 @@ class DmsWebdavController(http.Controller):
         results = []
         children = []
 
-        # sudo: dms.directory carries an ir.rule on permission_read, so a
-        # One2many such as storage.root_directory_ids comes back *silently
-        # empty* for users the rules filter out - no exception, just no rows.
-        # Access is enforced explicitly per record below via check_access().
+        # Two separate traps here, both verified on 18.0-20260701:
+        #
+        # 1. The One2many fields (root_directory_ids, child_directory_ids,
+        #    file_ids) resolve and cache their ids before sudo() applies, so
+        #    they come back silently empty for users the rules filter out.
+        #    Hence search() in the resolver.
+        # 2. Even search() is filtered by the ir.rule on the computed
+        #    `permission_read`. Measured for uid 2 (admin):
+        #        search()         -> []
+        #        sudo().search()  -> [3]
+        #    So the resolver must run with sudo(); access is then enforced
+        #    per record below via check_access().
+        resolver = resolver.sudo()
         if record._name == "dms.storage":
-            children = resolver.sudo().list_storage(record)
+            children = resolver.list_storage(record)
         elif record._name == "dms.directory":
-            children = resolver.sudo().list_directory(record)
+            children = resolver.list_directory(record)
         else:
             return results
 
