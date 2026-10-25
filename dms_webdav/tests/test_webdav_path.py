@@ -23,11 +23,20 @@ class TestWebdavPath(TransactionCase):
             "name": "SubDir",
             "parent_id": cls.root_dir.id,
         })
+        # ``is_hidden`` on dms.directory is related to ``storage_id.is_hidden``
+        # and therefore not writable on its own: setting it here was silently
+        # overwritten by the related value, and the test then asserted that a
+        # directory it believed hidden was absent from a list that correctly
+        # contained it. A hidden root belongs to a hidden storage.
+        cls.hidden_storage = cls.Storage.create({
+            "name": "HiddenStorage",
+            "save_type": "database",
+            "is_hidden": True,
+        })
         cls.hidden_root = cls.Directory.create({
             "name": "HiddenRoot",
             "is_root_directory": True,
-            "storage_id": cls.storage.id,
-            "is_hidden": True,
+            "storage_id": cls.hidden_storage.id,
         })
         cls.test_file = cls.File.create({
             "name": "test.txt",
@@ -91,17 +100,16 @@ class TestWebdavPath(TransactionCase):
         self.assertIn(self.storage, storages)
 
     def test_hidden_storage_excluded(self):
-        hidden = self.Storage.create({
-            "name": "HiddenStorage",
-            "save_type": "database",
-            "is_hidden": True,
-        })
         storages = self.PathResolver.list_storages()
-        self.assertNotIn(hidden, storages)
+        self.assertNotIn(self.hidden_storage, storages)
 
     def test_list_storage(self):
         children = self.PathResolver.list_storage(self.storage)
         self.assertIn((self.root_dir, "directory"), children)
+
+    def test_hidden_root_excluded_from_hidden_storage(self):
+        """A hidden storage's roots are not listed either."""
+        children = self.PathResolver.list_storage(self.hidden_storage)
         self.assertNotIn((self.hidden_root, "directory"), children)
 
     def test_list_directory(self):
