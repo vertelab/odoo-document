@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    Align the DMS upload ceiling with Odoo's own.
+
+    OCA dms caps a file at ``dms.binary_max_size`` MB, default 25, through
+    a constraint on dms.file. Odoo caps the request body at
+    ``web.max_file_upload_size``, default 128 MiB. On this database the
+    Odoo limit is raised to 512 MB, so a WebDAV client could upload a
+    200 MB file to /webdav/ and be told "The maximum upload size is 25 MB"
+    — a ceiling nobody set and nobody could see.
+
+    The DMS limit is the one that actually bites, so it is the one that
+    has to follow. 512 matches web.max_file_upload_size; raising one
+    without the other re-creates the same silent mismatch.
+
+    noupdate="1": an operator may lower this deliberately for a customer
+    with tighter needs, and an upgrade must not undo that.
+-->
+<odoo>
+    <data noupdate="1">
+        <record id="config_dms_binary_max_size" model="ir.config_parameter">
+            <field name="key">dms.binary_max_size</field>
+            <field name="value">512</field>
+        </record>
+    </data>
+</odoo>

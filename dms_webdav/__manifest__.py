@@ -1,7 +1,7 @@
 {
     "name": "DMS WebDAV",
     "summary": "Access OCA DMS documents via WebDAV",
-    "version": "18.0.1.0.20",
+    "version": "18.0.1.0.22",
     "category": "Document Management",
     "author": "Vertel Sverige AB",
     "website": "https://vertel.se/apps/odoo-document/dms_webdav",
@@ -9,6 +9,7 @@
     "depends": ["dms", "web", "http_routing"],
     "data": [
         "security/ir.model.access.csv",
+        "data/ir_config_parameter_data.xml",
     ],
     "installable": True,
     "application": False,
