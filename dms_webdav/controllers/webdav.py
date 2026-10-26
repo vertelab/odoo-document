@@ -284,6 +284,52 @@ class DmsWebdavController(http.Controller):
         xml += '\n</d:multistatus>'
         return request.make_response(xml, headers=[("Content-Type", "application/xml; charset=utf-8")])
 
+    @staticmethod
+    def _parse_range(range_header, total):
+        """Parse a single ``Range: bytes=...`` header.
+
+        Returns ``(start, end)`` as inclusive byte offsets, ``None`` when the
+        header is absent or malformed in a way that must be ignored (RFC 9110
+        lets a server serve the whole entity in that case), or the string
+        ``"unsatisfiable"`` when the range lies outside the entity and the
+        caller must answer 416.
+
+        Only a single range is supported. A multi-range request is answered
+        with the full entity, which the RFC permits.
+        """
+        if not range_header:
+            return None
+        value = range_header.strip()
+        if not value.lower().startswith("bytes="):
+            return None
+        spec = value[6:].strip()
+        if "," in spec or "-" not in spec:
+            return None
+        first, _, last = spec.partition("-")
+        first, last = first.strip(), last.strip()
+        if not first:
+            # Suffix range: ``bytes=-500`` means the final 500 bytes.
+            if not last.isdigit():
+                return None
+            length = int(last)
+            if length == 0 or total == 0:
+                return "unsatisfiable"
+            return (max(total - length, 0), total - 1)
+        if not first.isdigit():
+            return None
+        start = int(first)
+        if last:
+            if not last.isdigit():
+                return None
+            end = int(last)
+            if end < start:
+                return None
+        else:
+            end = total - 1
+        if total == 0 or start >= total:
+            return "unsatisfiable"
+        return (start, min(end, total - 1))
+
     def _get(self, path, head=False):
         resolver = request.env["dms.webdav.path"]
         record, record_type = self._resolve(resolver, path)
@@ -303,18 +349,73 @@ class DmsWebdavController(http.Controller):
 
         last_modified = record.write_date
         last_modified_str = last_modified.strftime("%a, %d %b %Y %H:%M:%S GMT") if last_modified else ""
+        etag = '"{}"'.format(record.checksum or "")
+        mimetype = record.mimetype or "application/octet-stream"
+
+        if head:
+            # ``request.make_response("")`` lets werkzeug recompute
+            # Content-Length to 0, which broke every client that asks how
+            # large a file is. Serve HEAD through the same path as GET but
+            # with an empty body and the entity length preserved.
+            response = request.make_response(
+                "",
+                headers=[
+                    ("Content-Type", mimetype),
+                    ("Accept-Ranges", "bytes"),
+                    ("ETag", etag),
+                    ("Last-Modified", last_modified_str),
+                ],
+            )
+            response.headers["Content-Length"] = str(int(record.size or 0))
+            return response
+
+        body = base64.b64decode(content)
+        total = len(body)
+
         headers = [
-            ("Content-Type", record.mimetype or "application/octet-stream"),
-            ("Content-Length", str(int(record.size or 0))),
-            ("ETag", '"{}"'.format(record.checksum or "")),
+            ("Content-Type", mimetype),
+            ("Content-Length", str(total)),
+            ("Accept-Ranges", "bytes"),
+            ("ETag", etag),
             ("Last-Modified", last_modified_str),
         ]
-        if head:
-            return request.make_response("", headers=headers)
-        return request.make_response(
-            base64.b64decode(content),
-            headers=headers,
-        )
+
+        range_header = request.httprequest.headers.get("Range")
+        # ``If-Range`` lets a client keep a partial download across a change:
+        # honour the range only while the validator still matches.
+        if_range = request.httprequest.headers.get("If-Range")
+        if range_header and if_range and if_range.strip() != etag:
+            range_header = None
+
+        parsed = self._parse_range(range_header, total)
+        if parsed == "unsatisfiable":
+            return request.make_response(
+                "",
+                status=416,
+                headers=[
+                    ("Content-Range", "bytes */{}".format(total)),
+                    ("Content-Length", "0"),
+                    ("Accept-Ranges", "bytes"),
+                    ("ETag", etag),
+                ],
+            )
+        if parsed:
+            start, end = parsed
+            chunk = body[start:end + 1]
+            return request.make_response(
+                chunk,
+                status=206,
+                headers=[
+                    ("Content-Type", mimetype),
+                    ("Content-Length", str(len(chunk))),
+                    ("Content-Range", "bytes {}-{}/{}".format(start, end, total)),
+                    ("Accept-Ranges", "bytes"),
+                    ("ETag", etag),
+                    ("Last-Modified", last_modified_str),
+                ],
+            )
+
+        return request.make_response(body, headers=headers)
 
     def _put(self, path):
         if request.httprequest.headers.get("Content-Range"):

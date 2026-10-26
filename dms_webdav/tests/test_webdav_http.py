@@ -65,6 +65,41 @@ class TestWebdavHttp(HttpCase):
                                  data=b"x")
         self.assertEqual(response.status_code, 401)
 
+    def test_parse_range_unit(self):
+        """The Range parser is pure logic - test it without HTTP."""
+        from odoo.addons.dms_webdav.controllers.webdav import DmsWebdavController
+
+        parse = DmsWebdavController._parse_range
+        total = 4194304
+
+        self.assertEqual(parse(None, total), None)
+        self.assertEqual(parse("", total), None)
+        self.assertEqual(parse("bytes=0-1023", total), (0, 1023))
+        self.assertEqual(parse("bytes=1000000-", total), (1000000, total - 1))
+        self.assertEqual(parse("bytes=-500", total), (total - 500, total - 1))
+        self.assertEqual(parse("bytes=0-0", total), (0, 0))
+        # An end past the entity is clamped, not rejected.
+        self.assertEqual(parse("bytes=0-99999999", total), (0, total - 1))
+        # A start at or past the end is unsatisfiable -> 416.
+        self.assertEqual(parse("bytes=%d-" % total, total), "unsatisfiable")
+        self.assertEqual(parse("bytes=5000000-6000000", total), "unsatisfiable")
+        # Malformed headers are ignored and the whole entity is served.
+        self.assertEqual(parse("bytes=abc-def", total), None)
+        self.assertEqual(parse("bytes=100-50", total), None)
+        self.assertEqual(parse("items=0-10", total), None)
+        # Multi-range is answered with the full entity.
+        self.assertEqual(parse("bytes=0-1023,2048-3071", total), None)
+        # Case-insensitive, whitespace tolerant.
+        self.assertEqual(parse("BYTES=0-99", total), (0, 99))
+        self.assertEqual(parse("bytes= 0-99 ", total), (0, 99))
+
+    def test_parse_range_empty_entity(self):
+        from odoo.addons.dms_webdav.controllers.webdav import DmsWebdavController
+
+        parse = DmsWebdavController._parse_range
+        self.assertEqual(parse("bytes=0-10", 0), "unsatisfiable")
+        self.assertEqual(parse("bytes=-5", 0), "unsatisfiable")
+
     def test_put_rejects_content_range(self):
         """Chunked PUT is not implemented and must say so, not truncate."""
         response = self._request("/webdav/some/file.txt", method="PUT",
