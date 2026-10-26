@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SEKTION 5: Manuellt test — verifiera att det fungerar
+         Slides: 2 (1 article, 1 quiz)
+         ═══════════════════════════════════════════════════════════════════ -->
+
+    <!-- SECTION HEADER -->
+    <record id="slide_category_doc_s5" model="slide.slide">
+        <field name="name">5. Manuellt test</field>
+        <field name="is_category" eval="True"/>
+        <field name="channel_id" ref="document_onboarding.slide_channel_document"/>
+        <field name="sequence">400</field>
+    </record>
+
+    <!-- SLIDE 5.1: Manuellt test -->
+    <record id="slide_doc_s5_01" model="slide.slide">
+        <field name="name">Manuellt test — uppladdning, WebDAV och versioner</field>
+        <field name="sequence">410</field>
+        <field name="slide_category">article</field>
+        <field name="channel_id" ref="document_onboarding.slide_channel_document"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="False"/>
+        <field name="completion_time">0.50</field>
+        <field name="html_content" type="html">
+<section class="s_cover o_cc o_cc3 pt160 pb160">
+    <div class="container">
+        <h1 class="display-3-fs" style="text-align: center;">Manuellt test</h1>
+        <p class="lead" style="text-align: center;">En fil upp, redigerad via nätverksdisken, och en version två som bevisar att spårbarheten fungerar.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt64 pb40">
+    <div class="container s_allow_columns">
+        <h2>Innan du börjar</h2>
+        <p>Du behöver:</p>
+        <ul>
+            <li>en mapp i dokumenthanteringen som du får skriva i</li>
+            <li>WebDAV monterad enligt sektion 3 — eller så testar du bara steg 1 och 4</li>
+            <li>en enkel fil att experimentera med, till exempel ett textdokument</li>
+        </ul>
+        <p class="small text-muted">Använd en testfil, inte ett skarpt dokument. Du kommer att ändra i den flera gånger.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt32 pb40">
+    <div class="container s_allow_columns">
+        <h2>Test 1 — ladda upp</h2>
+        <ol>
+            <li>Öppna dokumenthanteringen och gå in i din mapp.</li>
+            <li>Ladda upp testfilen.</li>
+            <li>Kontrollera att den syns i listan med rätt namn och storlek.</li>
+        </ol>
+        <p><strong>Förväntat resultat:</strong> filen finns i mappen och går att öppna. Försvinner den direkt är det behörigheten till mappen som saknas, inte uppladdningen.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt32 pb40">
+    <div class="container s_allow_columns">
+        <h2>Test 2 — via nätverksdisken</h2>
+        <ol>
+            <li>Öppna den monterade nätverksdisken i Utforskaren eller Finder.</li>
+            <li>Navigera till samma mapp. Filen du laddade upp ska synas där.</li>
+            <li>Öppna filen, ändra något och spara.</li>
+        </ol>
+        <p><strong>Förväntat resultat:</strong> ändringen sparas utan felmeddelande. Får du <em>"read-only"</em> är disken monterad med fel inloggning.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt32 pb40">
+    <div class="container s_allow_columns">
+        <h2>Test 3 — versionen</h2>
+        <ol>
+            <li>Gå tillbaka till dokumenthanteringen i webbläsaren och ladda om sidan.</li>
+            <li>Öppna filen och välj att se <strong>versioner</strong>.</li>
+            <li>Där ska nu finnas två versioner: den du laddade upp och den du sparade via nätverksdisken.</li>
+        </ol>
+        <p><strong>Förväntat resultat:</strong> version 2 finns, med rätt användare och rätt tidpunkt. Det är detta som gör att man kan svara på frågan "vem ändrade vad, och när?".</p>
+    </div>
+</section>
+
+<section class="s_text_block pt32 pb64">
+    <div class="container s_allow_columns">
+        <h2>Om det inte fungerar</h2>
+        <ol>
+            <li><strong>Filen syns i webbläsaren men inte på nätverksdisken.</strong> Disken är monterad mot en annan mapp, eller cachen är gammal — koppla från och montera om.</li>
+            <li><strong>Ändringen sparades men ingen version skapades.</strong> Filen sparades på disken utan att gå via dokumenthanteringen, till exempel i en lokal kopia. Öppna filen från disken, inte från Skrivbordet.</li>
+            <li><strong>Ingenting går att spara.</strong> Behörigheten till mappen är läsbar men inte skrivbar. Det är en administratörsfråga.</li>
+        </ol>
+        <p class="small text-muted">Nämn vilket av de tre testerna som föll när du kontaktar IT — det placerar felet direkt.</p>
+    </div>
+</section>
+
+<section class="s_call_to_action o_cc o_cc5 pt48 pb48">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-9">
+                <h3>Versionen är beviset</h3>
+                <p class="lead">Att filen syns är inte samma sak som att dokumenthanteringen fungerar. Först när version 2 dyker upp med rätt namn och tid vet du att filen lever i systemet — inte bara på disken.</p>
+            </div>
+        </div>
+    </div>
+</section>
+        </field>
+        <field name="description">Steg för steg: verifiera uppladdning, WebDAV-montering och att versionshanteringen skapar en ny version när du sparar via nätverksdisken.</field>
+    </record>
+
+    <!-- SLIDE 5.2: Quiz — Manuellt test -->
+    <record id="slide_doc_s5_02" model="slide.slide">
+        <field name="name">🧪 Testa dina kunskaper — Manuellt test</field>
+        <field name="sequence">420</field>
+        <field name="slide_category">quiz</field>
+        <field name="channel_id" ref="document_onboarding.slide_channel_document"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="False"/>
+        <field name="completion_time">0.25</field>
+        <field name="quiz_first_attempt_reward">100</field>
+        <field name="quiz_second_attempt_reward">75</field>
+        <field name="quiz_third_attempt_reward">50</field>
+        <field name="quiz_fourth_attempt_reward">25</field>
+        <field name="description">Kontrollera att du vet vad som bevisar att dokumenthanteringen fungerar.</field>
+    </record>
+
+    <record id="slide_doc_s5_02_q1" model="slide.question">
+        <field name="question">Vad bevisar att dokumenthanteringen fungerar — inte bara att filen finns?</field>
+        <field name="sequence">1</field>
+        <field name="slide_id" ref="slide_doc_s5_02"/>
+    </record>
+    <record id="slide_doc_s5_02_q1_a1" model="slide.answer">
+        <field name="text_value">Att filen går att öppna</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Det bevisar bara att filen finns. En fil på skrivbordet går också att öppna.</field>
+        <field name="question_id" ref="slide_doc_s5_02_q1"/>
+    </record>
+    <record id="slide_doc_s5_02_q1_a2" model="slide.answer">
+        <field name="text_value">Att en ny version skapas med rätt användare och tid</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt. Versionen är spårbarheten — det som gör systemet till en dokumenthantering i stället för en mapp.</field>
+        <field name="question_id" ref="slide_doc_s5_02_q1"/>
+    </record>
+    <record id="slide_doc_s5_02_q1_a3" model="slide.answer">
+        <field name="text_value">Att filen syns på nätverksdisken</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Det visar att monteringen fungerar — en annan sak.</field>
+        <field name="question_id" ref="slide_doc_s5_02_q1"/>
+    </record>
+
+    <record id="slide_doc_s5_02_q2" model="slide.question">
+        <field name="question">Du sparar en fil men ingen ny version skapas. Vad har troligen hänt?</field>
+        <field name="sequence">2</field>
+        <field name="slide_id" ref="slide_doc_s5_02"/>
+    </record>
+    <record id="slide_doc_s5_02_q2_a1" model="slide.answer">
+        <field name="text_value">Filen sparades i en lokal kopia, inte på nätverksdisken</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt. Öppnar du filen från Skrivbordet i stället för från disken sparas den lokalt — och systemet ser aldrig ändringen.</field>
+        <field name="question_id" ref="slide_doc_s5_02_q2"/>
+    </record>
+    <record id="slide_doc_s5_02_q2_a2" model="slide.answer">
+        <field name="text_value">Versionering är avstängd</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Möjligt men ovanligt. Kontrollera var filen sparades först.</field>
+        <field name="question_id" ref="slide_doc_s5_02_q2"/>
+    </record>
+    <record id="slide_doc_s5_02_q2_a3" model="slide.answer">
+        <field name="text_value">Filen är för stor</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Storlek ger felmeddelande, inte tyst utebliven version.</field>
+        <field name="question_id" ref="slide_doc_s5_02_q2"/>
+    </record>
+
+    <record id="slide_doc_s5_02_q3" model="slide.question">
+        <field name="question">Filen syns i webbläsaren men inte på nätverksdisken. Vad gör du?</field>
+        <field name="sequence">3</field>
+        <field name="slide_id" ref="slide_doc_s5_02"/>
+    </record>
+    <record id="slide_doc_s5_02_q3_a1" model="slide.answer">
+        <field name="text_value">Kopplar från och monterar om disken</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt. Oftast är disken monterad mot en annan mapp, eller så är cachen gammal.</field>
+        <field name="question_id" ref="slide_doc_s5_02_q3"/>
+    </record>
+    <record id="slide_doc_s5_02_q3_a2" model="slide.answer">
+        <field name="text_value">Laddar upp filen igen</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Då får du två kopior och ett nytt problem.</field>
+        <field name="question_id" ref="slide_doc_s5_02_q3"/>
+    </record>
+    <record id="slide_doc_s5_02_q3_a3" model="slide.answer">
+        <field name="text_value">Startar om datorn</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Hjälper ibland av misstag, men montera om disken först — det är snabbare och träffar rätt.</field>
+        <field name="question_id" ref="slide_doc_s5_02_q3"/>
+    </record>
+
+    <record id="slide_doc_s5_02_q4" model="slide.question">
+        <field name="question">Varför ska man testa med en testfil och inte ett skarpt dokument?</field>
+        <field name="sequence">4</field>
+        <field name="slide_id" ref="slide_doc_s5_02"/>
+    </record>
+    <record id="slide_doc_s5_02_q4_a1" model="slide.answer">
+        <field name="text_value">För att testet ändrar i filen flera gånger och skapar versioner</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt. Ett skarpt avtal ska inte få fem testversioner i historiken.</field>
+        <field name="question_id" ref="slide_doc_s5_02_q4"/>
+    </record>
+    <record id="slide_doc_s5_02_q4_a2" model="slide.answer">
+        <field name="text_value">För att testfiler är mindre</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Storleken är inte skälet.</field>
+        <field name="question_id" ref="slide_doc_s5_02_q4"/>
+    </record>
+    <record id="slide_doc_s5_02_q4_a3" model="slide.answer">
+        <field name="text_value">För att skarpa dokument är låsta</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">De är oftast inte låsta — det är just därför man ska akta sig.</field>
+        <field name="question_id" ref="slide_doc_s5_02_q4"/>
+    </record>
+
+    </data>
+</odoo>
