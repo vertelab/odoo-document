@@ -14,6 +14,13 @@ class TestWebdavPath(TransactionCase):
             "name": "TestStorage",
             "save_type": "database",
         })
+        # is_hidden on dms.directory is related to storage_id.is_hidden and
+        # readonly, so a hidden root can only be built on a hidden storage.
+        cls.hidden_storage = cls.Storage.create({
+            "name": "HiddenStorage",
+            "save_type": "database",
+            "is_hidden": True,
+        })
         cls.root_dir = cls.Directory.create({
             "name": "RootDir",
             "is_root_directory": True,
@@ -26,8 +33,7 @@ class TestWebdavPath(TransactionCase):
         cls.hidden_root = cls.Directory.create({
             "name": "HiddenRoot",
             "is_root_directory": True,
-            "storage_id": cls.storage.id,
-            "is_hidden": True,
+            "storage_id": cls.hidden_storage.id,
         })
         cls.test_file = cls.File.create({
             "name": "test.txt",

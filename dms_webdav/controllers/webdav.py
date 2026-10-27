@@ -10,6 +10,22 @@ _logger = logging.getLogger(__name__)
 
 AUTH_HEADER = 'Basic realm="Odoo DMS WebDAV", charset="UTF-8"'
 
+# P1c: in-process thumbnail cache, keyed by (file id, checksum, width).
+# Deliberately not an ir.attachment: a preview is derived data that must
+# disappear when the file changes, and the checksum in the key gives exactly
+# that for free. Cleared wholesale when it grows past the cap — a scroll
+# through a large folder is the only workload that fills it.
+_PREVIEW_CACHE = {}
+_PREVIEW_CACHE_MAX = 512
+
+# P1d: in-flight chunked uploads, keyed by (uid, destination path).
+# A value is {"total": int, "chunks": {offset: bytes}, "received": int}.
+# Kept in-process on purpose: a partial upload is worthless after a worker
+# restart, and writing half a file to the database would be worse than
+# asking the client to start over.
+_UPLOAD_BUFFER = {}
+_UPLOAD_BUFFER_MAX = 64
+
 WEBDAV_METHODS = [
     "GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS",
     "PROPFIND", "MKCOL", "MOVE", "COPY", "LOCK", "UNLOCK",
@@ -42,6 +58,77 @@ def _unauthorized():
         headers=[("WWW-Authenticate", AUTH_HEADER), ("Content-Type", "text/plain; charset=utf-8")],
         status=401,
     )
+
+
+def _parse_content_range(content_range):
+    """Parse ``Content-Range: bytes start-end/total`` into a 3-tuple.
+
+    Returns ``None`` for anything malformed, including the ``*/total`` form
+    (which is a query, not an upload). ``total`` must be known: a resumable
+    upload without a declared size cannot be assembled.
+    """
+    if not content_range or not content_range.startswith("bytes"):
+        return None
+    spec = content_range[len("bytes"):].strip()
+    if "/" not in spec:
+        return None
+    span, _, total_raw = spec.partition("/")
+    if "-" not in span:
+        return None
+    first, _, last = span.partition("-")
+    try:
+        start = int(first.strip())
+        end = int(last.strip())
+        total = int(total_raw.strip())
+    except ValueError:
+        return None
+    if start < 0 or end < start or total <= 0 or end >= total:
+        return None
+    return start, end, total
+
+
+def _parse_range(range_header, total):
+    """Parse an HTTP ``Range`` header into an inclusive ``(start, end)``.
+
+    Supports the three forms RFC 7233 allows for a single range::
+
+        bytes=0-1023      -> (0, 1023)
+        bytes=1000000-    -> (1000000, total - 1)
+        bytes=-500        -> (total - 500, total - 1)
+
+    Returns ``None`` when the header is malformed or the range cannot be
+    satisfied, so the caller can answer ``416`` with the real length. A
+    multi-range request (``bytes=0-10,20-30``) is also rejected: answering
+    ``multipart/byteranges`` is legal but no client we support needs it, and
+    silently returning the first range would be a lie about the response.
+    """
+    if not range_header or not range_header.startswith("bytes="):
+        return None
+    spec = range_header[len("bytes="):].strip()
+    if "," in spec:
+        return None
+    if "-" not in spec:
+        return None
+    first, _, last = spec.partition("-")
+    first, last = first.strip(), last.strip()
+    try:
+        if not first:
+            # Suffix range: the last N bytes.
+            if not last:
+                return None
+            suffix = int(last)
+            if suffix <= 0:
+                return None
+            start = max(total - suffix, 0)
+            end = total - 1
+        else:
+            start = int(first)
+            end = int(last) if last else total - 1
+    except ValueError:
+        return None
+    if start > end or start >= total:
+        return None
+    return start, min(end, total - 1)
 
 
 class DmsWebdavController(http.Controller):
@@ -282,7 +369,14 @@ class DmsWebdavController(http.Controller):
         xml += '<d:multistatus xmlns:d="DAV:">\n'
         xml += '\n'.join(responses)
         xml += '\n</d:multistatus>'
-        return request.make_response(xml, headers=[("Content-Type", "application/xml; charset=utf-8")])
+        # RFC 4918 §9.1: a PROPFIND answer is 207 Multi-Status, not 200. Some
+        # clients (notably the Android document providers) treat 200 as a
+        # plain document and skip the XML body entirely.
+        return request.make_response(
+            xml,
+            headers=[("Content-Type", "application/xml; charset=utf-8")],
+            status=207,
+        )
 
     def _get(self, path, head=False):
         resolver = request.env["dms.webdav.path"]
@@ -301,26 +395,142 @@ class DmsWebdavController(http.Controller):
         if not content:
             return request.make_response("", status=204)
 
+        payload = base64.b64decode(content)
+        total = len(payload)
+        etag = '"{}"'.format(record.checksum or "")
+
+        # P1c: server-side thumbnail. A folder with 200 images shows no
+        # previews in any WebDAV client without this: the client would have
+        # to download every original in full to render a grid. ?preview=1
+        # returns a scaled JPEG instead, and ?w= sets the target width.
+        preview = request.httprequest.args.get("preview")
+        if preview and preview not in ("0", "false", "no"):
+            preview_response = self._preview_response(record, payload, etag)
+            if preview_response is not None:
+                return preview_response
+
         last_modified = record.write_date
         last_modified_str = last_modified.strftime("%a, %d %b %Y %H:%M:%S GMT") if last_modified else ""
         headers = [
             ("Content-Type", record.mimetype or "application/octet-stream"),
-            ("Content-Length", str(int(record.size or 0))),
-            ("ETag", '"{}"'.format(record.checksum or "")),
+            ("Content-Length", str(total)),
+            ("ETag", etag),
             ("Last-Modified", last_modified_str),
+            # P1a: advertise byte-range support on every GET/HEAD. Without
+            # this Android clients (Voyager) treat the resource as a pipe of
+            # unknown length and download it in full before showing it.
+            ("Accept-Ranges", "bytes"),
         ]
+
         if head:
-            return request.make_response("", headers=headers)
+            # P1b: returning make_response("") lets werkzeug recompute
+            # Content-Length to 0 because the body is empty, which broke
+            # size display and progress bars in every client. Build the
+            # response from the real payload and then drop the body while
+            # keeping the header.
+            response = request.make_response(payload, headers=headers)
+            response.set_data(b"")
+            response.headers["Content-Length"] = str(total)
+            return response
+
+        # P1a: honour Range so clients can seek and stream. Android needs a
+        # seekable resource with a known length; without 206 it must download
+        # the whole file before rendering an image or playing a video.
+        range_header = request.httprequest.headers.get("Range")
+        if_range = request.httprequest.headers.get("If-Range")
+        if range_header and (not if_range or if_range.strip() == etag):
+            byte_range = _parse_range(range_header, total)
+            if byte_range is None:
+                # Malformed or unsatisfiable range: 416 with the real length.
+                return request.make_response(
+                    "Range Not Satisfiable",
+                    headers=[("Content-Range", "bytes */{}".format(total))],
+                    status=416,
+                )
+            start, end = byte_range
+            partial = payload[start:end + 1]
+            headers = [h for h in headers if h[0] != "Content-Length"]
+            headers.extend([
+                ("Content-Length", str(len(partial))),
+                ("Content-Range", "bytes {}-{}/{}".format(start, end, total)),
+            ])
+            return request.make_response(partial, headers=headers, status=206)
+
+        return request.make_response(payload, headers=headers)
+
+    def _preview_response(self, record, payload, etag):
+        """Return a scaled thumbnail for an image file, or ``None``.
+
+        ``None`` means "not previewable" — the caller falls back to serving
+        the original, so a client asking for a preview of a PDF or a zip
+        still gets a usable (if large) response instead of an error.
+
+        The generated thumbnail is cached on the record's checksum so a
+        folder listing does not re-encode the same image on every scroll.
+        """
+        try:
+            width = int(request.httprequest.args.get("w") or 256)
+        except (TypeError, ValueError):
+            width = 256
+        width = max(1, min(width, 2048))
+
+        mimetype = record.mimetype or ""
+        if not mimetype.startswith("image/"):
+            return None
+
+        cache_key = (record.id, record.checksum, width)
+        cached = _PREVIEW_CACHE.get(cache_key)
+        if cached is not None:
+            return request.make_response(
+                cached,
+                headers=[
+                    ("Content-Type", "image/jpeg"),
+                    ("Content-Length", str(len(cached))),
+                    ("ETag", etag),
+                    ("Cache-Control", "private, max-age=3600"),
+                ],
+            )
+
+        try:
+            from io import BytesIO
+
+            from PIL import Image
+
+            with Image.open(BytesIO(payload)) as image:
+                image = image.convert("RGB")
+                if image.width > width:
+                    height = max(1, round(image.height * width / image.width))
+                    image = image.resize((width, height), Image.LANCZOS)
+                buffer = BytesIO()
+                image.save(buffer, format="JPEG", quality=82, optimize=True)
+                thumbnail = buffer.getvalue()
+        except Exception as exc:  # noqa: BLE001 - never fail a GET on preview
+            _logger.info(
+                "[WebDAV] preview failed for %s (%s): %s",
+                record.name, record.id, exc)
+            return None
+
+        if len(_PREVIEW_CACHE) > _PREVIEW_CACHE_MAX:
+            _PREVIEW_CACHE.clear()
+        _PREVIEW_CACHE[cache_key] = thumbnail
         return request.make_response(
-            base64.b64decode(content),
-            headers=headers,
+            thumbnail,
+            headers=[
+                ("Content-Type", "image/jpeg"),
+                ("Content-Length", str(len(thumbnail))),
+                ("ETag", etag),
+                ("Cache-Control", "private, max-age=3600"),
+            ],
         )
 
     def _put(self, path):
-        if request.httprequest.headers.get("Content-Range"):
-            return request.make_response(
-                "Not Implemented: Content-Range (chunked PUT) is not supported", status=501
-            )
+        # P1d: resumable / chunked upload. A client that sends Content-Range
+        # is uploading one slice of a larger file; slices are buffered per
+        # destination and assembled when the last one arrives. This is what
+        # makes a 2 GB upload pausable and resumable (goal point 7).
+        content_range = request.httprequest.headers.get("Content-Range")
+        if content_range:
+            return self._put_chunked(path, content_range)
         resolver = request.env["dms.webdav.path"]
         record, record_type = self._resolve(resolver, path)
 
@@ -341,11 +551,152 @@ class DmsWebdavController(http.Controller):
         parent_record, parent_type = self._resolve(resolver, dir_path)
 
         if parent_record is None or parent_type not in ("storage", "directory"):
-            return request.make_response("Bad Request: parent not found", status=409)
+            # P1e: name the path that does not exist. "parent not found" alone
+            # leaves the client guessing which segment it got wrong.
+            return request.make_response(
+                "Conflict: the parent collection '{}' does not exist. Create "
+                "it first (MKCOL) and upload into it.".format(dir_path),
+                headers=[("Content-Type", "text/plain; charset=utf-8")],
+                status=409,
+            )
 
         if parent_type == "storage":
-            return request.make_response("Bad Request: cannot create file directly under storage", status=409)
+            # P1e: say what to do instead of only what went wrong. A client
+            # dragging a file onto /webdav/Filsystem/ has no way to know that
+            # files must live in a folder.
+            return request.make_response(
+                "Conflict: files must be created inside a folder, not directly "
+                "under a storage. Create a directory first (MKCOL) and upload "
+                "into it.",
+                headers=[("Content-Type", "text/plain; charset=utf-8")],
+                status=409,
+            )
 
+        if not parent_record.with_user(request.env.user)._filtered_access("create"):
+            return request.make_response(
+                "Forbidden: no create access in this directory", status=403)
+
+        new_file = request.env["dms.file"].sudo().create({
+            "name": file_name,
+            "directory_id": parent_record.id,
+            "content": base64.b64encode(data),
+        })
+        return request.make_response(
+            "",
+            headers=[("ETag", '"{}"'.format(new_file.checksum or ""))],
+            status=201,
+        )
+
+    def _put_chunked(self, path, content_range):
+        """Buffer one Content-Range slice and assemble on the final chunk.
+
+        The buffer is keyed by destination path *and* user, so two people
+        uploading to the same name cannot corrupt each other's file. A chunk
+        is acknowledged with 202 until the last one arrives, which then
+        creates or overwrites the dms.file and answers 201/204.
+        """
+        parsed = _parse_content_range(content_range)
+        if parsed is None:
+            return request.make_response(
+                "Bad Request: malformed Content-Range header",
+                headers=[("Content-Type", "text/plain; charset=utf-8")],
+                status=400,
+            )
+        start, end, total = parsed
+        data = request.httprequest.get_data()
+        if len(data) != end - start + 1:
+            return request.make_response(
+                "Bad Request: Content-Range says {}-{} ({} bytes) but the "
+                "body carried {} bytes".format(
+                    start, end, end - start + 1, len(data)),
+                headers=[("Content-Type", "text/plain; charset=utf-8")],
+                status=400,
+            )
+
+        key = (request.env.uid, path)
+        upload = _UPLOAD_BUFFER.get(key)
+        if upload is None or upload["total"] != total:
+            if len(_UPLOAD_BUFFER) >= _UPLOAD_BUFFER_MAX:
+                # Drop the oldest in-flight upload rather than grow without
+                # bound. The client re-sends from offset 0 on a 202 mismatch.
+                _UPLOAD_BUFFER.pop(next(iter(_UPLOAD_BUFFER)), None)
+            upload = {"total": total, "chunks": {}, "received": 0}
+            _UPLOAD_BUFFER[key] = upload
+
+        if start not in upload["chunks"]:
+            upload["chunks"][start] = data
+            upload["received"] += len(data)
+
+        if upload["received"] < total:
+            return request.make_response(
+                "",
+                headers=[
+                    ("Content-Type", "text/plain; charset=utf-8"),
+                    ("Range", "bytes 0-{}/{}".format(upload["received"] - 1, total)),
+                ],
+                status=202,
+            )
+
+        # Last chunk received: stitch the slices together in offset order.
+        try:
+            assembled = b"".join(
+                upload["chunks"][offset]
+                for offset in sorted(upload["chunks"])
+            )
+        except KeyError:
+            _UPLOAD_BUFFER.pop(key, None)
+            return request.make_response(
+                "Bad Request: upload has a gap in its byte ranges",
+                headers=[("Content-Type", "text/plain; charset=utf-8")],
+                status=400,
+            )
+        _UPLOAD_BUFFER.pop(key, None)
+
+        if len(assembled) != total:
+            return request.make_response(
+                "Bad Request: assembled {} bytes, expected {}".format(
+                    len(assembled), total),
+                headers=[("Content-Type", "text/plain; charset=utf-8")],
+                status=400,
+            )
+
+        return self._store_uploaded(path, assembled)
+
+    def _store_uploaded(self, path, data):
+        """Create or overwrite a dms.file with fully assembled content."""
+        resolver = request.env["dms.webdav.path"]
+        record, record_type = self._resolve(resolver, path)
+
+        if record is not None and record_type == "file":
+            if not record.with_user(request.env.user)._filtered_access("write"):
+                return request.make_response(
+                    "Forbidden: no write access to this resource", status=403)
+            record.sudo().write({"content": base64.b64encode(data)})
+            return request.make_response(
+                "",
+                headers=[("ETag", '"{}"'.format(record.checksum or ""))],
+            )
+
+        cleaned = path.strip("/")
+        *dir_parts, file_name = cleaned.split("/")
+        dir_path = "/" + "/".join(dir_parts) if dir_parts else "/"
+        parent_record, parent_type = self._resolve(resolver, dir_path)
+
+        if parent_record is None or parent_type not in ("storage", "directory"):
+            return request.make_response(
+                "Conflict: the parent collection '{}' does not exist. Create "
+                "it first (MKCOL) and upload into it.".format(dir_path),
+                headers=[("Content-Type", "text/plain; charset=utf-8")],
+                status=409,
+            )
+        if parent_type == "storage":
+            return request.make_response(
+                "Conflict: files must be created inside a folder, not directly "
+                "under a storage. Create a directory first (MKCOL) and upload "
+                "into it.",
+                headers=[("Content-Type", "text/plain; charset=utf-8")],
+                status=409,
+            )
         if not parent_record.with_user(request.env.user)._filtered_access("create"):
             return request.make_response(
                 "Forbidden: no create access in this directory", status=403)
