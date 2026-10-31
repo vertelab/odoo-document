@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_dms_file_version_user,dms.file.version user,model_dms_file_version,base.group_user,1,0,0,0
+access_dms_file_version_system,dms.file.version system,model_dms_file_version,base.group_system,1,1,1,1
