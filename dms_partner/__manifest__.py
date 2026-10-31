@@ -43,8 +43,9 @@ DMS Partner
     'contributor': '',
     'maintainer': 'Vertel Sverige AB',
     'repository': 'https://github.com/vertelab/odoo-document',
-    'depends': ['contacts', 'dms'],
+    'depends': ['contacts', 'dms', 'dms_record'],
     "data": [
+        'data/partner_data.xml',
         'views/res_partner_view.xml',
     ],
 }

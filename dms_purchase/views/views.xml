@@ -5,8 +5,8 @@
       <field name="model">purchase.order</field>
       <field name="inherit_id" ref="purchase.purchase_order_form"/>
       <field name="arch" type="xml">
-        <xpath expr="//div[@class='oe_button_box']" position="inside">
-          <button class="oe_stat_button" name="dms_tree_view" type="object" icon="fa-file-text-o">
+        <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+          <button class="oe_stat_button" name="action_open_dms_files" type="object" invisible="not dms_directory_id" icon="fa-file-text-o">
             <field string="Documents" name="doc_count" widget="statinfo"/>
           </button>
         </xpath>

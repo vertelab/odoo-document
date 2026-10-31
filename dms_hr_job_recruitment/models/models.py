@@ -1,50 +1,27 @@
 # -*- coding: utf-8 -*-
+from odoo import models
 
-from odoo import models, fields, api
-import logging
-_logger = logging.getLogger(__name__)
 
 class Job(models.Model):
-    _inherit = "hr.job"
-    doc_count = fields.Integer(compute='_compute_attached_docs_count', string="Doc count")
+    _name = "hr.job"
+    _inherit = ["hr.job", "dms.record.mixin"]
 
-    def _compute_attached_docs_count(self):
-        Document = self.env['dms.file']
-        for job in self:
-            job.doc_count = Document.search_count([
-                '&',
-                ('res_model', '=', 'hr.job'), ('res_id', '=', job.id),
-            ])
+    _dms_storage_xmlid = "dms_hr_job_recruitment.hr_job_dms_storage"
+    _dms_access_mode = "inherit"
 
-    def dms_kanban_view(self):
-            action = self.env['ir.actions.act_window']._for_xml_id('dms.action_dms_file')
-            action['domain'] = str([
-                '&',
-                ('res_model', '=', 'hr.job'),
-                ('res_id', 'in', self.ids),
-                
-            ])
-            return action
 
 class Applicant(models.Model):
-    _inherit = "hr.applicant"
-    doc_count = fields.Integer(compute='_compute_attached_docs_count', string="Doc count")
+    _name = "hr.applicant"
+    _inherit = ["hr.applicant", "dms.record.mixin"]
 
-    def _compute_attached_docs_count(self):
-        Document = self.env['dms.file']
-        for applicant in self:
-            applicant.doc_count = Document.search_count([
-                '&',
-                ('res_model', '=', 'hr.applicant'), ('res_id', '=', applicant.id),
-            ])
+    _dms_storage_xmlid = "dms_hr_job_recruitment.hr_applicant_dms_storage"
+    _dms_access_mode = "owner"
 
-    def dms_kanban_view(self):
-            action = self.env['ir.actions.act_window']._for_xml_id('dms.action_dms_file')
-            action['domain'] = str([
-                '&',
-                ('res_model', '=', 'hr.applicant'),
-                ('res_id', 'in', self.ids),
-                
-            ])
-            return action
+    def _dms_owner_field(self):
+        """The recruiter responsible for the candidate.
 
+        ``hr.applicant.user_id`` is the recruitment officer; it is set from the
+        job's recruiter when the application arrives.
+        """
+        self.ensure_one()
+        return self.user_id

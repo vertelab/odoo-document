@@ -17,11 +17,18 @@
             <field name="model_id" ref="hr.model_hr_job"/>
         </record>
 
+        <!--
+            Applicants get the "owner" access mode: a candidate's CV and
+            interview notes are not company-wide. That mode needs a
+            non-attachment storage, because attachment storages always inherit
+            from the parent record (dms_security_mixin hardcodes it) and an
+            applicant has no meaningful access rule to inherit.
+        -->
         <record id="hr_applicant_dms_storage" model="dms.storage">
             <field name="name">Applicants</field>
             <field name="company_id" ref="base.main_company"/>
-            <field name="save_type">attachment</field>
-            <field name="inherit_access_from_parent_record">True</field>
+            <field name="save_type">file</field>
+            <field name="inherit_access_from_parent_record">False</field>
             <field name="model_ids" eval="[(6, 0, [ref('hr_recruitment.model_hr_applicant')])]"/>
         </record>
 

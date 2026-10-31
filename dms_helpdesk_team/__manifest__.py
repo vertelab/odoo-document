@@ -21,7 +21,7 @@
 
 {
     'name': 'Document: DMS Helpdesk Team',
-    'version': '18.0.1.0.0',
+    'version': '18.0.1.1.0',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Short summary of the modules purpose.''s purpose.',
     'category': 'Technical',
@@ -50,10 +50,11 @@ DMS Helpdesk Team
     # for the full list
 
     # any module necessary for this one to work correctly
-    'depends': ['helpdesk_mgmt','dms',],
+    'depends': ['helpdesk_mgmt','dms', 'dms_record'],
 
     # always loaded
     'data': [
+        'data/helpdesk_team_data.xml',
         # 'security/ir.model.access.csv',
         'views/views.xml',
     ],

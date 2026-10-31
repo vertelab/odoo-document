@@ -1,29 +1,22 @@
 # -*- coding: utf-8 -*-
+from odoo import models
 
-from odoo import models, fields, api
-import logging
-_logger = logging.getLogger(__name__)
 
-class CRMTeam(models.Model):
-    _inherit = "crm.team"
-    doc_count = fields.Integer(compute='_compute_attached_docs_count', string="Doc count")
+class CrmTeam(models.Model):
+    _name = "crm.team"
+    _inherit = ["crm.team", "dms.record.mixin"]
 
-    def _compute_attached_docs_count(self):
-        Document = self.env['dms.file']
-        for crm_team in self:
-            crm_team.doc_count = Document.search_count([
-                '&',
-                ('res_model', '=', 'crm.team'), ('res_id', '=', crm_team.id),
-            ])
+    _dms_storage_xmlid = "dms_crm_team.crm_team_dms_storage"
+    _dms_access_mode = "team"
 
-    def dms_tree_view(self):
-            action = self.env['ir.actions.act_window']._for_xml_id('dms.action_dms_file')
-            action['domain'] = str([
-                '&',
-                ('res_model', '=', 'crm.team'),
-                ('res_id', 'in', self.ids),
-                
-            ])
-            action['view_mode'] = 'kanban, form'
-            action['binding_view_types'] = 'kanban, form'
-            return action
+    def _dms_access_group(self):
+        """The sales team's own members.
+
+        ``crm.team.member_ids`` is the authoritative list, so the group is
+        keyed on it rather than on the team leader alone.
+        """
+        self.ensure_one()
+        return self._dms_get_or_create_access_group(
+            name=f"CRM team: {self.display_name}",
+            users=self.member_ids,
+        )
