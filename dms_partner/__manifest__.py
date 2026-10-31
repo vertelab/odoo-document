@@ -35,7 +35,6 @@ DMS Partner
         - Extends Odoo: Builds on existing Odoo models.
     ''',
     'category': 'Technical',
-    'description': 'DMS Partner.',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_partner',
     'images': ['static/description/banner.png'], # 560x280 px.

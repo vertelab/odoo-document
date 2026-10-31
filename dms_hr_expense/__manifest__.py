@@ -36,7 +36,6 @@ DMS HR Expense
         - Extends Odoo: Builds on hr.expense.
     ''',
     'category': 'Technical',
-    'description': 'Long description of module''s purpose.',
     #'sequence': '1',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_hr_expense',

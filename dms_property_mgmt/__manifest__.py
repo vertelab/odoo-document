@@ -35,7 +35,6 @@ DMS Property
         - Extends Odoo: Builds on property.property.
     ''',
     'category': 'Technical',
-    'description': 'Creates the Link between Property and DMS',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_property_mgmt',
     'images': ['static/description/banner.png'],  # 560x280 px.

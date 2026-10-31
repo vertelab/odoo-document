@@ -36,7 +36,6 @@ DMS HR Job Recruitment
         - Extends Odoo: Builds on hr.applicant, hr.job.
     ''',
     'category': 'Technical',
-    'description': 'Long description of module''s purpose.',
     #'sequence': '1',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_hr_job_recruitment',

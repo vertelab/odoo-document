@@ -36,7 +36,6 @@ DMS Fleet Vehicle
         - Extends Odoo: Builds on fleet.vehicle.
     ''',
     'category': 'Technical',
-    'description': 'Long description of module''s purpose.',
     #'sequence': '1',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_fleet_vehicle',

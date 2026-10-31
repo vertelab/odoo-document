@@ -36,7 +36,6 @@ DMS CRM Team
         - Extends Odoo: Builds on crm.team.
     ''',
     'category': 'Technical',
-    'description': 'Long description of module''s purpose.',
     #'sequence': '1',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_crm_team',
