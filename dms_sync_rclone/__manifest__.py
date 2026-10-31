@@ -42,7 +42,7 @@ Sync Rclone
     'website': 'https://vertel.se/apps/odoo-document/dms_sync_rclone',
     'images': ['static/description/banner.png'], # 560x280
     'license': 'AGPL-3',
-    'depends': ["fs_storage_s3","dms"],
+    'depends': ["fs_attachment_s3", "dms"],
      #"external_dependencies": {
      #   "bin": ["openssl",], 
      #   "python": ["acme_tiny", "IPy",],
