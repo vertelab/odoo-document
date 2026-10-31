@@ -27,15 +27,19 @@
 DMS Project
 ===========
 
-    DMS Project.
+Gives every project a document directory, created with the project and
+linked by ``res_model``/``res_id`` rather than by name.
 
-    Features:
+The directory lives in an attachment storage with
+``inherit_access_from_parent_record``, so it inherits the project's own
+access rule. Note that ``project.project`` defaults to
+``privacy_visibility='portal'``, where every internal user sees every
+project's documents; set ``privacy_visibility='followers'`` on a project
+that should be genuinely per-project.
 
-        - UI Integration: Extends 3 view(s) in the Odoo interface.
-        - Extends Odoo: Builds on project.project, project.task.
+Builds on ``project.project`` and ``project.task`` via ``dms.record.mixin``.
     ''',
     'category': 'Technical',
-    'description': 'Creates the Link between Project/Task and DMS',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_project',
     'images': ['static/description/banner.png'],  # 560x280 px.
