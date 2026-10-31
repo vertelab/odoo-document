@@ -89,6 +89,28 @@ class DmsRecordMixin(models.AbstractModel):
                 .search_count([("directory_id", "child_of", directory.ids)])
             )
 
+    def action_open_dms_files(self):
+        """Open the documents of these records.
+
+        One action for every bridge, replacing the fifteen hand-written
+        ``dms_tree_view``/``dms_kanban_view`` copies. The domain goes through
+        ``res_model``/``res_id`` rather than the directory, so a file that was
+        uploaded into a subdirectory is still found.
+        """
+        self.ensure_one()
+        action = self.env["ir.actions.act_window"]._for_xml_id(
+            "dms.action_dms_file"
+        )
+        action["domain"] = [
+            ("res_model", "=", self._name),
+            ("res_id", "=", self.id),
+        ]
+        action["context"] = {
+            "default_directory_id": self.dms_directory_id.id,
+        }
+        action["name"] = _("Documents")
+        return action
+
     # ------------------------------------------------------------------
     # Hooks a bridge may override
     # ------------------------------------------------------------------
@@ -139,6 +161,30 @@ class DmsRecordMixin(models.AbstractModel):
         """
         self.ensure_one()
         return self.env["dms.access.group"]
+
+    def _dms_get_or_create_access_group(self, name, users):
+        """Return the ``dms.access.group`` called ``name``, creating it.
+
+        Shared by the ``team`` bridges so each one does not re-implement the
+        lookup. The group is matched on name and kept in sync with ``users``:
+        a member who left the team loses access to the team's documents.
+        """
+        self.ensure_one()
+        AccessGroup = self.env["dms.access.group"].sudo()
+        group = AccessGroup.search([("name", "=", name)], limit=1)
+        user_ids = [(6, 0, users.ids)] if users else [(5, 0, 0)]
+        if group:
+            group.write({"explicit_user_ids": user_ids})
+            return group
+        return AccessGroup.create(
+            {
+                "name": name,
+                "explicit_user_ids": user_ids,
+                "perm_create": True,
+                "perm_write": True,
+                "perm_unlink": True,
+            }
+        )
 
     def _dms_owner_field(self):
         """Field naming the owner in ``owner`` mode.

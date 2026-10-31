@@ -5,13 +5,18 @@
       <field name="model">hr.expense</field>
       <field name="inherit_id" ref="hr_expense.hr_expense_view_form"/>
       <field name="arch" type="xml">
-        <xpath expr="//div[@class='oe_title']" position="after">
+        <xpath expr="//div[hasclass('oe_title')]" position="after">
           <div name="button_box" id="button_box" class="oe_button_box">
-            <button class="oe_stat_button" name="dms_tree_view" type="object" icon="fa-file-text-o">
+            <button class="oe_stat_button" name="action_open_dms_files"
+                    type="object" icon="fa-file-text-o"
+                    invisible="not dms_directory_id">
               <field string="Documents" name="doc_count" widget="statinfo"/>
             </button>
           </div>
         </xpath>
+        <field name="name" position="after">
+          <field name="dms_directory_id" invisible="1"/>
+        </field>
       </field>
     </record>
   </data>

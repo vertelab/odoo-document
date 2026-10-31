@@ -5,11 +5,16 @@
       <field name="model">calendar.event</field>
       <field name="inherit_id" ref="calendar.view_calendar_event_form"/>
       <field name="arch" type="xml">
-        <xpath expr="//button[@name='action_open_calendar_event']" position="replace">
-          <button class="oe_stat_button" name="dms_kanban_view" type="object" icon="fa-file-text-o">
+        <xpath expr="//button[@name='action_open_calendar_event']" position="after">
+          <button class="oe_stat_button" name="action_open_dms_files"
+                  type="object" icon="fa-file-text-o"
+                  invisible="not dms_directory_id">
             <field string="Documents" name="doc_count" widget="statinfo"/>
           </button>
         </xpath>
+        <field name="name" position="after">
+          <field name="dms_directory_id" invisible="1"/>
+        </field>
       </field>
     </record>
   </data>
