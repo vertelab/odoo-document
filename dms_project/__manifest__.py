@@ -21,7 +21,7 @@
 
 {
     'name': 'Document: DMS Project',
-    'version': '18.0.1.1.0',
+    'version': '18.0.1.1.1',
     'summary': 'DMS Project.',
     'description': '''
 DMS Project
@@ -49,6 +49,7 @@ Builds on ``project.project`` and ``project.task`` via ``dms.record.mixin``.
     'repository': 'https://github.com/vertelab/odoo-document',
     # any module necessary for this one to work correctly
     'depends': ['project', 'dms', 'dms_record'],
+    'auto_install': True,
 
     # always loaded
     'data': [

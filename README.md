@@ -93,29 +93,47 @@ per-project, set `privacy_visibility='followers'`.
 
 ## Modules
 
-| Module | Access mode | Notes |
+Every bridge declares `auto_install`, so it installs itself when its domain
+module and `dms` are both present. `dms_record` deliberately does not — it
+arrives as a dependency.
+
+| Module | Access mode | Domain module | Notes |
+|---|---|---|---|
+| `dms_record` | — | — | The shared mixin |
+| `dms_project` | `inherit` | `project` | Project and task documents |
+| `dms_hr_expense` | `inherit` | `hr_expense` | |
+| `dms_calendar_event` | `inherit` | `calendar` | |
+| `dms_fleet_vehicle` | `inherit` | `fleet` | |
+| `dms_repair_order` | `inherit` | `repair` | |
+| `dms_hr_job_recruitment` | `inherit` (job), `owner` (applicant) | `hr_recruitment` | A candidate's CV is not company-wide |
+| `dms_partner` | `inherit` | `contacts` | |
+| `dms_sale_order` | `inherit` | `sale` | |
+| `dms_crm_lead` | `inherit` | `crm` | |
+| `dms_crm_team` | `team` | `sales_team` | Group keyed on `member_ids` |
+| `dms_purchase` | `inherit` | `purchase` | |
+| `dms_hr_employee` | `owner` | `hr` | Owner is the employee's `user_id` |
+| `dms_product_template` | `inherit` | `product` | |
+| `dms_helpdesk_ticket` | `inherit` | `helpdesk_mgmt` | |
+| `dms_helpdesk_team` | `team` | `helpdesk_mgmt` | Group keyed on `user_id` |
+| `dms_event` | `inherit` | `event` | |
+| `dms_account_move` | `inherit` | `account` | |
+| `dms_property_mgmt` | `inherit` | `property_mgmt` | |
+| `dms_contract` | `inherit` | `contract` | An agreement is a document |
+| `dms_account_asset` | `inherit` | `account_asset_management` | BFL requires supporting documents per asset |
+| `dms_slide` | `inherit` | `website_slides` | Course and lesson material; two storages |
+| `dms_webdav` | — | — | WebDAV endpoint at `/webdav/` |
+| `dms_version` | — | — | File versioning |
+
+### Deliberately uncovered
+
+| Model | Domain module | Why no bridge |
 |---|---|---|
-| `dms_record` | — | The shared mixin |
-| `dms_project` | `inherit` | Project and task documents |
-| `dms_hr_expense` | `inherit` | |
-| `dms_calendar_event` | `inherit` | |
-| `dms_fleet_vehicle` | `inherit` | |
-| `dms_repair_order` | `inherit` | |
-| `dms_hr_job_recruitment` | `inherit` (job), `owner` (applicant) | A candidate's CV is not company-wide |
-| `dms_partner` | `inherit` | |
-| `dms_sale_order` | `inherit` | |
-| `dms_crm_lead` | `inherit` | |
-| `dms_crm_team` | `team` | Group keyed on `member_ids` |
-| `dms_purchase` | `inherit` | |
-| `dms_hr_employee` | `owner` | Owner is the employee's `user_id` |
-| `dms_product_template` | `inherit` | |
-| `dms_helpdesk_ticket` | `inherit` | |
-| `dms_helpdesk_team` | `team` | Group keyed on `user_id` |
-| `dms_event` | `inherit` | |
-| `dms_account_move` | `inherit` | |
-| `dms_property_mgmt` | `inherit` | |
-| `dms_webdav` | — | WebDAV endpoint at `/webdav/` |
-| `dms_version` | — | File versioning |
+| `fieldservice.order` | `fieldservice_vrtl` | **Not built.** The module does not exist in any repository on the build host or anywhere in `addons_path` (verified 2026-10-31: zero hits). A bridge cannot depend on a module nobody has written. Revisit when `fieldservice_vrtl` exists. |
+
+The guard test (`dms_record/tests/test_bridge_guard.py`) fails when a bridge
+lacks `auto_install` or declares no domain module, so a new bridge cannot ship
+silently uninstallable. It also asserts every entry in its skip list still
+exists on disk.
 
 ## Testing a bridge
 

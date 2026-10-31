@@ -21,7 +21,7 @@
 
 {
     'name': 'Document: DMS Property',
-    'version': '18.0.1.1.0',
+    'version': '18.0.1.1.1',
     'summary': 'DMS Property.',
     'description': '''
 DMS Property
@@ -44,6 +44,7 @@ DMS Property
     'repository': 'https://github.com/vertelab/odoo-document',
     # any module necessary for this one to work correctly
     'depends': ['property_mgmt', 'dms', 'dms_record'],
+    'auto_install': True,
     # always loaded
     'data': [
         'data/property_property_data.xml',
