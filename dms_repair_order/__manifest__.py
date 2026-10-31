@@ -21,7 +21,7 @@
 
 {
     'name': 'Document: DMS Repair Order',
-    'version': '18.0.1.1.0',
+    'version': '18.0.1.1.1',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Short (1 phrase/line) summary of the modules purpose, used as subtitle on modules listing or apps.openerp.com.''s purpose, used as subtitle on modules listing or apps.openerp.com',
     'description': '''
@@ -51,6 +51,7 @@ DMS Repair Order
 
     # any module necessary for this one to work correctly
     'depends': ['repair', 'dms', 'dms_record'],
+    'auto_install': True,
 
     # always loaded
     'data': [

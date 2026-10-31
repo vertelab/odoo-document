@@ -21,7 +21,7 @@
 
 {
     'name': 'Document: DMS Partner',
-    'version': '18.0.1.1.0',
+    'version': '18.0.1.1.1',
     'summary': 'DMS Partner.',
     'description': '''
 DMS Partner
@@ -43,6 +43,7 @@ DMS Partner
     'maintainer': 'Vertel Sverige AB',
     'repository': 'https://github.com/vertelab/odoo-document',
     'depends': ['contacts', 'dms', 'dms_record'],
+    'auto_install': True,
     "data": [
         'data/partner_data.xml',
         'views/res_partner_view.xml',
