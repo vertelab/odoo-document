@@ -36,7 +36,6 @@ DMS Sale Order
         - Extends Odoo: Builds on sale.order.
     ''',
     'category': 'Technical',
-    'description': 'Long description of module''s purpose.',
     #'sequence': '1',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_sale_order',

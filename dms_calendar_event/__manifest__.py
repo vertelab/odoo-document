@@ -36,7 +36,6 @@ DMS Calendar Event
         - Extends Odoo: Builds on calendar.event.
     ''',
     'category': 'Technical',
-    'description': 'Long description of module''s purpose.',
     #'sequence': '1',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_calendar_event',

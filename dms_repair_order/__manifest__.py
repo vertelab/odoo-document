@@ -36,7 +36,6 @@ DMS Repair Order
         - Extends Odoo: Builds on repair.order.
     ''',
     'category': 'Technical',
-    'description': 'Long description of module''s purpose.',
     #'sequence': '1',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_repair_order',

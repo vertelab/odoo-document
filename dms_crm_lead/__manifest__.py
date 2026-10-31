@@ -36,7 +36,6 @@ DMS CRM Lead
         - Extends Odoo: Builds on crm.lead.
     ''',
     'category': 'Technical',
-    'description': 'Long description of module''s purpose.',
     #'sequence': '1',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_crm_lead',

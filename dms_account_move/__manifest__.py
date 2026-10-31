@@ -36,7 +36,6 @@ DMS Account Move
         - Extends Odoo: Builds on account.move.
     ''',
     'category': 'Technical',
-    'description': 'Long description of module''s purpose.',
     #'sequence': '1',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_account_move',
