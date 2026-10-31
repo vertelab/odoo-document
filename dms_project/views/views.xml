@@ -5,21 +5,17 @@
             <field name="model">project.project</field>
             <field name="inherit_id" ref="project.edit_project"/>
             <field name="arch" type="xml">
-                <xpath expr="//header//button[last()]" position="after">
-                    <button name="create_parent_dir" string="Create Project Dir" type="object" class="btn btn-primary" invisible="has_project_parent_dir"/>
-
-                </xpath>
-                <xpath expr="//div[@class='oe_button_box']" position="inside">
-                    <button class="oe_stat_button" name="kanban_view_directory" type="object" icon="fa-folder" invisible="not has_project_parent_dir">
+                <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+                    <button class="oe_stat_button" name="kanban_view_directory" type="object" icon="fa-folder" invisible="not dms_directory_id">
                         <field string="Directories" name="directory_count" widget="statinfo"/>
                     </button>
-                    <button class="oe_stat_button" name="dms_kanban_view" type="object" icon="fa-file-text-o" invisible="not has_project_parent_dir">
+                    <button class="oe_stat_button" name="dms_kanban_view" type="object" icon="fa-file-text-o" invisible="not dms_directory_id">
                         <field string="Documents" name="doc_count" widget="statinfo"/>
                     </button>
                 </xpath>
 
                 <field name="user_id" position="after">
-                    <field name="has_project_parent_dir"/>
+                    <field name="dms_directory_id" invisible="1"/>
                 </field>
             </field>
         </record>
@@ -43,7 +39,7 @@
             <field name="model">project.project</field>
             <field name="inherit_id" ref="project.view_project_kanban"/>
             <field name="arch" type="xml">
-                <xpath expr="//div[@class='o_project_kanban_boxes d-flex align-items-baseline']" position="inside">
+                <xpath expr="//div[hasclass('o_project_kanban_boxes')][hasclass('d-flex')][hasclass('align-items-baseline')]" position="inside">
                     <a class="o_project_kanban_box" name="dms_kanban_view" type="object">
                         <div>
                             <field name="doc_count"/>

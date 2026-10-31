@@ -21,7 +21,7 @@
 
 {
     'name': 'Document: DMS Project',
-    'version': '18.0.1.0.0',
+    'version': '18.0.1.1.0',
     'summary': 'DMS Project.',
     'description': '''
 DMS Project
@@ -44,12 +44,14 @@ DMS Project
     'maintainer': 'Vertel Sverige AB',
     'repository': 'https://github.com/vertelab/odoo-document',
     # any module necessary for this one to work correctly
-    'depends': ['project', 'dms'],
+    'depends': ['project', 'dms', 'dms_record'],
 
     # always loaded
     'data': [
+        'data/project_data.xml',
         'views/views.xml',
         'views/dms_directory.xml',
         'views/dms_file.xml',
     ],
+    'post_init_hook': 'post_init_hook',
 }
