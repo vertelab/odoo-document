@@ -417,20 +417,167 @@ class DmsWebdavController(http.Controller):
 
         return request.make_response(body, headers=headers)
 
-    def _put(self, path):
-        if request.httprequest.headers.get("Content-Range"):
-            return request.make_response(
-                "Not Implemented: Content-Range (chunked PUT) is not supported", status=501
+    @staticmethod
+    def _parse_content_range(header):
+        """Parse a ``Content-Range: bytes start-end/total`` header.
+
+        Returns ``(start, end, total)`` with inclusive byte offsets, ``None``
+        when the header is absent or malformed, or the string ``"status"`` for
+        the ``bytes */total`` form a client uses to ask how much was received.
+
+        Unlike ``_parse_range`` (a GET concern) a malformed header here is an
+        error, not something to ignore: silently treating a chunk as a whole
+        file would truncate the upload.
+        """
+        if not header:
+            return None
+        value = header.strip()
+        if not value.lower().startswith("bytes "):
+            return None
+        spec = value[6:].strip()
+        span, _, total = spec.partition("/")
+        span, total = span.strip(), total.strip()
+        if not total.isdigit():
+            return None
+        total = int(total)
+        if span == "*":
+            return "status"
+        if "-" not in span:
+            return None
+        first, _, last = span.partition("-")
+        first, last = first.strip(), last.strip()
+        if not first.isdigit() or not last.isdigit():
+            return None
+        start, end = int(first), int(last)
+        if end < start or end >= total:
+            return None
+        return (start, end, total)
+
+    def _chunk_dir(self):
+        """Directory holding in-progress chunked uploads."""
+        import os
+        import tempfile
+
+        path = os.path.join(tempfile.gettempdir(), "dms_webdav_chunks")
+        os.makedirs(path, exist_ok=True)
+        return path
+
+    def _chunk_path(self, path):
+        """Per-user, per-target path for an in-progress chunked upload."""
+        import hashlib
+        import os
+
+        key = "{}:{}".format(request.env.user.id, path)
+        digest = hashlib.sha1(key.encode("utf-8")).hexdigest()
+        return os.path.join(self._chunk_dir(), digest)
+
+    def _upload_id_path(self, path):
+        """Sidecar recording the target path and the total size received."""
+        return self._chunk_path(path) + ".meta"
+
+    def _append_chunk(self, path, start, data, total):
+        """Append one chunk, refusing anything that would corrupt the result.
+
+        Returns True when the upload is complete, False when more chunks are
+        needed. Raises ``ValueError`` on an out-of-order or oversized chunk so
+        the caller can answer 409 instead of writing a broken file.
+        """
+        import json
+        import os
+
+        chunk_path = self._chunk_path(path)
+        meta_path = self._upload_id_path(path)
+        received = 0
+        if os.path.exists(meta_path):
+            with open(meta_path, "r", encoding="utf-8") as handle:
+                meta = json.load(handle)
+            if meta.get("total") != total:
+                raise ValueError("total size changed mid-upload")
+            received = meta.get("received", 0)
+        if start != received:
+            raise ValueError(
+                "expected chunk at offset {}, got {}".format(received, start)
             )
+        with open(chunk_path, "ab") as handle:
+            handle.write(data)
+        received += len(data)
+        with open(meta_path, "w", encoding="utf-8") as handle:
+            json.dump({"total": total, "received": received}, handle)
+        return received >= total
+
+    def _assemble_chunks(self, path):
+        """Return the assembled bytes and remove the temporary files."""
+        import os
+
+        chunk_path = self._chunk_path(path)
+        with open(chunk_path, "rb") as handle:
+            data = handle.read()
+        self._cleanup_chunks(path)
+        return data
+
+    def _cleanup_chunks(self, path):
+        """Remove the temporary files of an upload, complete or abandoned."""
+        import os
+
+        for candidate in (self._chunk_path(path), self._upload_id_path(path)):
+            try:
+                os.unlink(candidate)
+            except FileNotFoundError:
+                pass
+
+    def _put(self, path):
+        content_range = request.httprequest.headers.get("Content-Range")
+
+        # RFC 7231: a chunked upload is buffered and written once, when the last
+        # chunk arrives. Writing per chunk would leave a half file behind on a
+        # crash and would create one version per chunk.
+        if content_range:
+            parsed = self._parse_content_range(content_range)
+            if parsed is None:
+                return request.make_response(
+                    "Bad Request: malformed Content-Range", status=400
+                )
+            if parsed == "status":
+                return request.make_response(
+                    "Bad Request: status query is not a chunk", status=400
+                )
+            start, end, total = parsed
+            data = request.httprequest.get_data()
+            if len(data) != end - start + 1:
+                return request.make_response(
+                    "Bad Request: chunk length does not match Content-Range",
+                    status=400,
+                )
+            try:
+                complete = self._append_chunk(path, start, data, total)
+            except ValueError as error:
+                self._cleanup_chunks(path)
+                return request.make_response(
+                    "Conflict: {}".format(error), status=409
+                )
+            if not complete:
+                return request.make_response(
+                    "",
+                    headers=[
+                        ("Range", "bytes=0-{}".format(end)),
+                        ("Content-Length", "0"),
+                    ],
+                    status=308,
+                )
+            data = self._assemble_chunks(path)
+
         resolver = request.env["dms.webdav.path"]
         record, record_type = self._resolve(resolver, path)
 
-        data = request.httprequest.get_data()
+        if not content_range:
+            data = request.httprequest.get_data()
         if record is not None and record_type == "file":
             if not record.with_user(request.env.user)._filtered_access("write"):
                 return request.make_response(
                     "Forbidden: no write access to this resource", status=403)
-            record.sudo().write({"content": base64.b64encode(data)})
+            record.sudo().with_context(dms_source="webdav").write(
+                {"content": base64.b64encode(data)}
+            )
             return request.make_response(
                 "",
                 headers=[("ETag", '"{}"'.format(record.checksum or ""))],
@@ -451,11 +598,18 @@ class DmsWebdavController(http.Controller):
             return request.make_response(
                 "Forbidden: no create access in this directory", status=403)
 
-        new_file = request.env["dms.file"].sudo().create({
-            "name": file_name,
-            "directory_id": parent_record.id,
-            "content": base64.b64encode(data),
-        })
+        new_file = (
+            request.env["dms.file"]
+            .sudo()
+            .with_context(dms_source="webdav")
+            .create(
+                {
+                    "name": file_name,
+                    "directory_id": parent_record.id,
+                    "content": base64.b64encode(data),
+                }
+            )
+        )
         return request.make_response(
             "",
             headers=[("ETag", '"{}"'.format(new_file.checksum or ""))],
