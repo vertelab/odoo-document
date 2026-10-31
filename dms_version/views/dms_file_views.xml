@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright (C) 2026 Vertel Sverige AB
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl.html). -->
+<odoo>
+
+    <record id="dms_file_version_action" model="ir.actions.act_window">
+        <field name="name">Versions</field>
+        <field name="res_model">dms.file.version</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="dms_file_version_view_list" model="ir.ui.view">
+        <field name="name">dms.file.version.list</field>
+        <field name="model">dms.file.version</field>
+        <field name="arch" type="xml">
+            <list string="Versions" create="false" edit="false">
+                <field name="version_number" />
+                <field name="create_date" string="Saved On" />
+                <field name="user_id" />
+                <field name="content_source" />
+                <field name="size" />
+                <field name="checksum" optional="show" />
+                <field name="note" optional="hide" />
+                <button
+                    name="action_restore"
+                    type="object"
+                    string="Restore"
+                    icon="fa-undo"
+                    confirm="Restore this version? The current content is kept as a new version."
+                />
+            </list>
+        </field>
+    </record>
+
+    <record id="dms_file_version_view_form" model="ir.ui.view">
+        <field name="name">dms.file.version.form</field>
+        <field name="model">dms.file.version</field>
+        <field name="arch" type="xml">
+            <form string="Version" create="false" edit="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="file_id" />
+                            <field name="version_number" />
+                            <field name="content_source" />
+                        </group>
+                        <group>
+                            <field name="create_date" string="Saved On" />
+                            <field name="user_id" />
+                            <field name="size" />
+                            <field name="checksum" />
+                        </group>
+                    </group>
+                    <field name="note" />
+                </sheet>
+                <footer>
+                    <button
+                        name="action_restore"
+                        type="object"
+                        string="Restore This Version"
+                        class="btn-primary"
+                    />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="dms_file_view_form_inherit_version" model="ir.ui.view">
+        <field name="name">dms.file.form.inherit.version</field>
+        <field name="model">dms.file</field>
+        <field name="inherit_id" ref="dms.view_dms_file_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Versioning">
+                    <group>
+                        <field name="version_count" />
+                    </group>
+                </group>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button
+                    name="action_view_versions"
+                    type="object"
+                    string="Versions"
+                    icon="fa-history"
+                    class="btn-secondary"
+                />
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
