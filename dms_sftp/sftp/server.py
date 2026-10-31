@@ -4,7 +4,6 @@ import logging
 from odoo import api, SUPERUSER_ID
 from odoo.modules.registry import Registry
 from odoo.exceptions import AccessDenied
-from odoo.service import db
 
 try:
     from paramiko.common import AUTH_SUCCESSFUL, AUTH_FAILED, \
@@ -39,49 +38,29 @@ class DmsSftpServer(ServerInterface):
                 pass
 
     def check_auth_password(self, username, password):
+        """Authenticate a password login.
+
+        The database is fixed when the server starts and never changed here.
+        The previous implementation called db.exp_list() and, on a login of the
+        form user@domain, reconnected the whole session to whichever database
+        happened to hold that login. That made the database a property of the
+        login attempt rather than of the connection: a typo, or a login that
+        exists in two databases, silently served another customer's data.
+
+        A user@domain login is still accepted, but only as a login name - the
+        domain no longer selects a database.
+        """
         user_login = username
-        db_name = self.dbname
-
-        if "@" in username:
-            user_login, domain = username.rsplit("@", 1)
-            db_candidate = domain.rsplit(".", 1)[0] if "." in domain else domain
-            all_dbs = db.exp_list()
-            if db_candidate in all_dbs:
-                db_name = db_candidate
-            elif domain in all_dbs:
-                db_name = domain
-            else:
-                for candidate_db in all_dbs:
-                    try:
-                        db_registry = Registry.new(candidate_db)
-                        with db_registry.cursor() as cr:
-                            env = api.Environment(cr, SUPERUSER_ID, {})
-                            user = env["res.users"].search([("login", "=", user_login)])
-                            if not user:
-                                continue
-                            valid = user.with_user(user.id)._verify_sftp_user(password)
-                            if valid:
-                                with db_registry.cursor() as cr:
-                                    self.env = api.Environment(cr, user.id, {})
-                                _logger.info(
-                                    "SFTP auth: user=%s db=%s (fallback)",
-                                    user_login, candidate_db,
-                                )
-                                return AUTH_SUCCESSFUL
-                    except Exception:
-                        continue
-                return AUTH_FAILED
-
         try:
             user = self.env["res.users"].search([("login", "=", user_login)])
             if not user:
                 return AUTH_FAILED
             valid = user.with_user(user.id)._verify_sftp_user(password)
             if valid:
-                db_registry = Registry.new(db_name)
+                db_registry = Registry.new(self.dbname)
                 with db_registry.cursor() as cr:
                     self.env = api.Environment(cr, user.id, {})
-                _logger.info("SFTP auth: user=%s db=%s", user_login, db_name)
+                _logger.info("SFTP auth: user=%s db=%s", user_login, self.dbname)
                 return AUTH_SUCCESSFUL
         except AccessDenied:
             pass

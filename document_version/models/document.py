@@ -77,8 +77,17 @@ class Document(models.Model):
             'views': [[False, 'form']],
         }
 
-    @api.constrains("name")
-    def _check_name(self):
+    @api.constrains("name", "document_version")
+    def _check_name_version_uniqueness(self):
+        """Reject a duplicate name at the same document_version.
+
+        Named explicitly rather than _check_name: dms_duplicate_filenames also
+        declares @api.constrains("name") def _check_name on dms.file, and two
+        methods with the same name on the same model means one silently
+        replaces the other depending on module load order. The constraint that
+        lost was never run - a file could be saved with a name that this check
+        exists to reject.
+        """
         for record in self:
             # if not file.check_name(record.name):
             #     raise ValidationError(_("The file name is invalid."))
