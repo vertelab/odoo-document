@@ -4,7 +4,7 @@
 {
     "name": "DMS File Versioning",
     "summary": "Keep a version history of every DMS file write",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "category": "Document Management",
     "author": "Vertel Sverige AB",
     "website": "https://vertel.se",

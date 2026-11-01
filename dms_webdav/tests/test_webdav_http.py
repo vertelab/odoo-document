@@ -100,10 +100,34 @@ class TestWebdavHttp(HttpCase):
         self.assertEqual(parse("bytes=0-10", 0), "unsatisfiable")
         self.assertEqual(parse("bytes=-5", 0), "unsatisfiable")
 
-    def test_put_rejects_content_range(self):
-        """Chunked PUT is not implemented and must say so, not truncate."""
+    def test_put_content_range_never_silently_truncates(self):
+        """A chunked PUT must never be answered 200/201 as if it were the file.
+
+        This test used to assert 501: chunked upload was not implemented and the
+        server had to say so rather than write the first chunk as the whole
+        file. Chunked upload is now implemented, so the contract changed - but
+        the invariant it protected did not: an upload must never be truncated
+        without the client being told. Either the auth gate answers 401, or the
+        chunk is accepted (308/201), or it is rejected (400/409). A bare 200 or
+        201 for a partial chunk is the bug this test exists to catch.
+        """
         response = self._request("/webdav/some/file.txt", method="PUT",
                                  data=b"x",
-                                 headers={"Content-Range": "bytes 0-0/1"})
-        # 401 comes first (auth gate) - assert we never get a silent 200/201
-        self.assertIn(response.status_code, (401, 501))
+                                 headers={"Content-Range": "bytes 0-0/10"})
+        self.assertIn(response.status_code, (401, 308, 400, 409, 201))
+
+    def test_parse_content_range(self):
+        """Content-Range parsing: offsets, the status form, and rejects."""
+        from odoo.addons.dms_webdav.controllers.webdav import DmsWebdavController
+
+        parse = DmsWebdavController._parse_content_range
+        self.assertEqual(parse("bytes 0-99/100"), (0, 99, 100))
+        self.assertEqual(parse("bytes 100-199/200"), (100, 199, 200))
+        self.assertEqual(parse("bytes */200"), "status")
+        self.assertIsNone(parse(""))
+        self.assertIsNone(parse(None))
+        self.assertIsNone(parse("bytes 0-99"))
+        self.assertIsNone(parse("bytes 50-10/100"))
+        self.assertIsNone(parse("bytes 0-100/100"))
+        self.assertIsNone(parse("bytes a-b/100"))
+        self.assertIsNone(parse("items 0-99/100"))

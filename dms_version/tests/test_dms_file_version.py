@@ -141,3 +141,19 @@ class TestDmsFileVersion(TransactionCase):
             self._write_content(self.file, payload)
         self.env["dms.file.version"]._cron_prune_versions()
         self.assertEqual(len(self.file.version_ids), before + 3)
+
+    def test_post_init_hook_is_idempotent(self):
+        """Task 3.2: running the migration twice creates no duplicates.
+
+        The hook selects only files that have no version yet, so a second
+        run must be a no-op. Without this, every upgrade would add another
+        "Initial version" to every file.
+        """
+        from odoo.addons.dms_version.hooks import post_init_hook
+
+        self._write_content(self.file, b"second")
+        before = len(self.file.version_ids)
+        post_init_hook(self.env)
+        self.assertEqual(len(self.file.version_ids), before)
+        post_init_hook(self.env)
+        self.assertEqual(len(self.file.version_ids), before)

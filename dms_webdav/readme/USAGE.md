@@ -71,7 +71,7 @@ rotmapp (`dms.directory` med `is_root_directory=True`). Försök ger 409.
 | OPTIONS | ✅ | `DAV: 1, 2` (ingen auth krävs) |
 | PROPFIND | ✅ | `Depth: 0/1/infinity` |
 | GET / HEAD | ✅ | |
-| PUT | ✅ | hela filen; **`Content-Range`/chunked PUT → 501** |
+| PUT | ✅ | hela filen, eller chunkad via `Content-Range` (se nedan) |
 | DELETE | ✅ | mapp måste vara tom (409 annars) |
 | MKCOL | ✅ | |
 | MOVE / COPY | ✅ | `Destination`-header krävs |
@@ -85,10 +85,41 @@ kraschar innan UNLOCK. Kontrollera/rensa i Odoo: fältet *Locked* på filen.
 
 ### Chunked PUT
 
-Office-program (Word, Excel, LibreOffice) och rclone kan skicka stora filer
-som `Content-Range`-chunks. Det stöds inte — servern svarar 501. Filen måste
-skickas i ett svep. Samma gäller `PUT` med `Transfer-Encoding: chunked` hos
-vissa proxys; sätt `request_buffering`/storleksgräns i Caddy i så fall.
+Office-program (Word, Excel, LibreOffice) och rclone skickar stora filer som
+`Content-Range`-chunks. Det stöds: servern buffrar varje chunk och svarar
+`308 Resume Incomplete` med en `Range`-header som talar om hur mycket som
+tagits emot.
+
+```
+PUT /webdav/Documents Storage/Documents/big.iso
+Content-Range: bytes 0-1048575/104857600
+
+308 Resume Incomplete
+Range: bytes=0-1048575
+```
+
+När sista chunken kommer sätts bitarna ihop och skrivs **en gång** genom den
+vanliga innehållsvägen. Svaret är `201 Created` (ny fil) eller `200 OK`
+(överskrivning) med `ETag`.
+
+Att skriva en gång, på slutet, spelar roll av två skäl: en krasch mitt i
+lämnar ingen halvskriven fil, och `dms_version` skapar **en** version för hela
+uppladdningen i stället för en per chunk.
+
+**Felfall:**
+
+- Chunk på fel offset → `409 Conflict`. Den läggs inte till — en osorterad
+  chunk skulle tyst förstöra resultatet.
+- `Content-Range` med annan total än uppladdningen startade med → `409 Conflict`.
+- Trasig `Content-Range` → `400 Bad Request`. Statusformen (`bytes */total`)
+  är ingen chunk och avvisas på samma sätt.
+- Uppladdningar nycklas på användare + målväg, så två klienter mot samma väg
+  blandas inte.
+
+**Övergivna uppladdningar:** en klient som dör mitt i lämnar sina chunks i
+tempkatalogen. En cron kör varje timme och raderar filer äldre än
+`dms_webdav.chunk_max_age_hours` (default 24). Fönstret är medvetet generöst —
+en långsam uppladdning över dålig länk får inte sopas bort mitt i.
 
 ## 5. Felsökning
 
