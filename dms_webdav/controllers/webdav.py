@@ -282,7 +282,16 @@ class DmsWebdavController(http.Controller):
         xml += '<d:multistatus xmlns:d="DAV:">\n'
         xml += '\n'.join(responses)
         xml += '\n</d:multistatus>'
-        return request.make_response(xml, headers=[("Content-Type", "application/xml; charset=utf-8")])
+        # RFC 4918 §9.1: a PROPFIND response carrying a DAV:multistatus body
+        # MUST use 207 Multi-Status. Returning 200 made strict clients such as
+        # gvfs (GNOME Files / Nautilus) reject the collection, so davs:// mounts
+        # failed even though the body was valid. Lenient clients (curl, rclone,
+        # davfs2) parse the body regardless and were unaffected.
+        return request.make_response(
+            xml,
+            status=207,
+            headers=[("Content-Type", "application/xml; charset=utf-8")],
+        )
 
     @staticmethod
     def _parse_range(range_header, total):
