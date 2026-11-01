@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!--
+            Ingen egen storage eller katalog: en whiteboard är en fil, inte
+            ett objekt. Den sparas i den katalog användaren står i och ärver
+            därmed den katalogens behörighet, backup och retention.
+
+            Detta är motsatsen till dms_partner/dms_project, som skapar en
+            katalog PER post (en kund = en mapp). En whiteboard har ingen
+            egen affärsobjekt-identitet — den hör till den katalog där den
+            skapades, precis som en PDF eller ett foto.
+        -->
+
+        <!-- Standardvärden för tjänsten. Sätts här så att modulen är
+             användbar direkt efter installation; driftavdelningen kan
+             överrida dem under Inställningar. -->
+        <record id="config_excalidraw_url" model="ir.config_parameter">
+            <field name="key">dms_excalidraw.url</field>
+            <field name="value"></field>
+        </record>
+
+        <record id="config_excalidraw_webdav_path" model="ir.config_parameter">
+            <field name="key">dms_excalidraw.webdav_path</field>
+            <field name="value">/webdav</field>
+        </record>
+
+    </data>
+</odoo>
