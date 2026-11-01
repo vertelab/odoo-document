@@ -159,3 +159,69 @@ checkmodule -d <db> -m dms_extract -t --test-tags '*/dms_extract' --multi-user -
 `TestDmsExtractVersionRestore` (kräver att `dms_version` faktiskt skapar
 versioner) och `TestDmsExtractClamavOrder` (kräver en levande `clamd` —
 fail-open-läget gör ordningen omöjlig att mäta).
+
+---
+
+## EXIF — bildens osynliga innehåll
+
+Ett foto bär mer än bilden. EXIF-blocket innehåller upp till hundra fält,
+och fyra av dem är personuppgifter i lagens mening. Modulen läser dem och
+delar upp dem efter **vad de är**, inte efter var de råkade ligga.
+
+### Fälten
+
+| Fält | Typ | Varför |
+|---|---|---|
+| `exif_datetime_original` | Datetime | När bilden togs — inte när den laddades upp |
+| `exif_make` | Char (index) | Kameratillverkare |
+| `exif_model` | Char (index) | Kameramodell |
+| `exif_orientation` | Integer | 1–8; en bild med 6 är tagen roterad |
+| `exif_gps_lat` | Float (10,7) | **Personuppgift** — se nedan |
+| `exif_gps_lon` | Float (10,7) | **Personuppgift** — se nedan |
+| `exif_raw` | Json | Hela blocket, för spårbarhet |
+
+### Vad som blir text, vad som blir fält, vad som blir tagg
+
+**Text → `okf_body`:** `ImageDescription`, `UserComment`, `XPTitle`,
+`XPKeywords`, `XPSubject`, `Artist`. Fritext är sökbart innehåll, och den går
+genom samma `_okf_body_source()` som dokumenttexten — ingen ny väg, ingen ny
+läckyta.
+
+**Fält:** allt numeriskt eller kontinuerligt. `DateTimeOriginal` som tagg
+hade gett en tagg per sekund; GPS som tagg (`"57.7089,11.9746"`) kan inte
+svara på "inom 500 meter".
+
+**Taggar:** inga. Modulen skapar aldrig en tagg. Skulle någon vilja gruppera
+på kamera är `exif_make`/`exif_model` ändliga mängder och kan taggas
+manuellt — men det är ett beslut någon fattar, inte något kameran tvingar
+fram.
+
+### GPS når aldrig sökningen
+
+`exif_gps_lat`/`exif_gps_lon` är Float-fält. OKF-mixinens generiska källa
+plockar bara upp `html`/`text`/`name`, så koordinaterna kan inte hamna i
+kroppen den vägen. `_okf_body_source_gps_guard()` är den uttryckliga
+kontrollen, och testet `test_gps_is_stored_in_fields_not_in_body` använder
+den.
+
+**Varför det spelar roll:** en bild tagen hemma hos en anställd bär den
+anställdas hemadress. Att indexera den i ett företagsminne är att publicera
+den. Se `odoo-ai/ai_agent_core/docs/gdpr.md` §4.
+
+### Katalogspärren gäller även EXIF
+
+`extract_enabled = False` stänger av **både** textutvinning och EXIF. Det
+finns inget separat GPS-reglage: en katalog som inte får indexeras får inte
+heller berikas.
+
+### Vad som inte är ett fel
+
+En skärmbild har ingen EXIF. En PNG från en skärmdump blir `done` med 0
+tecken — inte `failed`. Samma sak med ett trasigt EXIF-block: `except
+Exception` runt `Image.open`/`getexif` fångar det, och bilden behandlas som
+en bild utan metadata. Att kasta där hade gjort varje skärmbild till ett
+fel och fyllt `extract_error` med brus.
+
+**En trasig bild** (bytes som inte går att öppna) når aldrig hit — Odoos
+egen `image.py` validerar `content_binary` vid create och kastar innan
+posten finns. Det är rätt ordning: en trasig bild ska inte bli en fil.

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Document: Text Extraction',
-    'version': '18.0.1.1.1',
+    'version': '18.0.1.2.1',
     'summary': 'Extract text from dms.file content into the OKF body',
     'category': 'Hidden',
     'author': 'Vertel Sverige AB',
