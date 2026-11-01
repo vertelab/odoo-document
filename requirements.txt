@@ -1,2 +1,7 @@
 yt
 paramiko
+# dms_extract (dms-content-extraction): PDF-utvinning.
+# Apt-paketet python3-fitz (Ubuntu 24.04) racker pa en vard med
+# systempaket; den har raden ar fallback for miljoer dar bara pip finns.
+# Tesseract gar INTE att pip-installera — se odoo.repo_apply i /srv/salt.
+pymupdf
