@@ -131,3 +131,32 @@ class TestMobileCapture(TransactionCase):
                 [_Upload("x.jpg", b"x")],
                 directory_id=self.directory.id,
             )
+
+    def test_search_without_sudo_hides_directories(self):
+        """The reason /dms/mobile searches as sudo.
+
+        dms.directory record rules hide a directory whose group_ids the user
+        is not in, and a directory with no groups is hidden from everyone --
+        including an administrator. A plain search therefore returns nothing
+        and the page would look empty even though the flag is set. This test
+        pins that behaviour so nobody "simplifies" the controller back.
+        """
+        # Run as a real internal user: the test env itself is superuser and
+        # bypasses record rules, which is exactly the trap being pinned.
+        internal = self.env.ref("base.group_user")
+        user = self.env["res.users"].create({
+            "name": "Mobile Reader",
+            "login": "mobile_reader_test",
+        })
+        user.sudo().write({"groups_id": [(6, 0, [internal.id])]})
+        plain = self.env["dms.directory"].with_user(user).search([
+            ("mobile_target", "=", True),
+        ])
+        self.assertEqual(
+            plain.ids, [],
+            "expected the record rules to hide an ungrouped directory",
+        )
+        with_sudo = self.env["dms.directory"].sudo().search([
+            ("mobile_target", "=", True),
+        ])
+        self.assertIn(self.directory.id, with_sudo.ids)

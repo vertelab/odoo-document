@@ -4,7 +4,7 @@
 {
     "name": "DMS Mobile Capture",
     "summary": "Photograph a document straight into a DMS directory",
-    "version": "18.0.1.0.4",
+    "version": "18.0.1.0.9",
     "category": "Document Management",
     "author": "Vertel Sverige AB",
     "website": "https://vertel.se",
