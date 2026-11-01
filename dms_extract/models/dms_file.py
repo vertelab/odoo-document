@@ -18,6 +18,7 @@ dokumentet. Vi överrider `_okf_body_source()` och hissar `okf_dirty`.
 
 import base64
 import hashlib
+import io
 import logging
 import re
 
@@ -107,6 +108,48 @@ class DmsFile(models.Model):
         'Extracted text', copy=False,
         help='Texten som utvunnits ur filens innehåll. Ingår i OKF-kroppen '
              'via _okf_body_source().')
+
+    # ── EXIF (dms-content-extraction 5b) ───────────────────────────────
+    #
+    # VARFÖR FÄLT OCH INTE TAGGAR: en tagg är en klassificering någon kan
+    # välja. EXIF är mätvärden en kamera skrev. Att göra DateTimeOriginal
+    # till en tagg ger en tagg per sekund — 100 000 foton blir 100 000
+    # taggar, varav de flesta används en gång. Och GPS som tagg
+    # ("57.7089,11.9746") kan inte svara på "inom 500 meter".
+    #
+    # VARFÖR exif_raw: en kamera skriver upp till hundra fält. Vi indexerar
+    # de sex vi frågar på och dumpar resten — att modellera alla vore att
+    # göra Odoos schema till en EXIF-ordbok.
+
+    exif_datetime_original = fields.Datetime(
+        'Taken at', readonly=True, copy=False,
+        help='EXIF DateTimeOriginal — när bilden togs, inte när den '
+             'laddades upp.')
+
+    exif_make = fields.Char(
+        'Camera make', readonly=True, copy=False, index=True)
+
+    exif_model = fields.Char(
+        'Camera model', readonly=True, copy=False, index=True)
+
+    exif_orientation = fields.Integer(
+        'Orientation', readonly=True, copy=False,
+        help='EXIF Orientation (1-8). En bild med orientation 6 är tagen '
+             'roterad och visas fel utan korrigering.')
+
+    exif_gps_lat = fields.Float(
+        'GPS latitude', readonly=True, copy=False, digits=(10, 7),
+        help='Breddgrad. PERSONUPPGIFT: en bild tagen hemma bär någons '
+             'hemadress. Ingår ALDRIG i okf_body — se docs/gdpr.md.')
+
+    exif_gps_lon = fields.Float(
+        'GPS longitude', readonly=True, copy=False, digits=(10, 7),
+        help='Längdgrad. PERSONUPPGIFT — se exif_gps_lat.')
+
+    exif_raw = fields.Json(
+        'EXIF (raw)', readonly=True, copy=False,
+        help='Hela EXIF-blocket som det lästes. Indexera det ni frågar på; '
+             'resten ligger här för spårbarhet.')
 
     # ── Kön (D2) ───────────────────────────────────────────────────────
 
@@ -238,6 +281,13 @@ class DmsFile(models.Model):
         # inte använder _clean (PDF-texten kommer direkt från PyMuPDF).
         text = self._sanitize(text)
 
+        # EXIF (5b). Bara för bilder, och bara om katalogen tillåter det —
+        # spärren är densamma som för text: en katalog som inte får
+        # indexeras får inte heller berikas.
+        exif_vals, exif_text = self._extract_exif(raw, self.mimetype or '')
+        if exif_text:
+            text = (exif_text + '\n' + text).strip() if text else exif_text
+
         max_chars = int(self.env['ir.config_parameter'].sudo().get_param(
             'dms_extract.max_chars', '200000') or 200000)
         if len(text) > max_chars:
@@ -260,6 +310,7 @@ class DmsFile(models.Model):
             'extracted_chars': len(text),
             '_extracted_text': text,
         }
+        vals.update(exif_vals)
         # Hissa flaggan BARA när texten faktiskt ändrats — annars väcker
         # varje omkörning mixinens indexeringscron i onödan.
         if changed:
@@ -418,6 +469,159 @@ class DmsFile(models.Model):
                     continue
         return self._clean('\n'.join(parts))
 
+    # ── EXIF (5b) ──────────────────────────────────────────────────────
+
+    #: EXIF-fält vars fritext blir en del av OKF-kroppen.
+    #:
+    #: GPS ÄR INTE MED, och det är avsiktligt. "57.7089 11.9746" i kroppen
+    #: blir två sökbara tal som matchar allt och inget — och gör någons
+    #: hemadress sökbar för alla som ser konceptet. Se docs/gdpr.md §4.1.
+    EXIF_TEXT_FIELDS = ('ImageDescription', 'UserComment', 'XPTitle',
+                        'XPKeywords', 'XPSubject', 'Artist')
+
+    def _extract_exif(self, raw, mimetype):
+        """Läs EXIF ur en bild. Returnerar (vals, text).
+
+        VARFÖR TOM TEXT ÄR ETT GODKÄNT SVAR: en skärmbild har ingen EXIF. En
+        PNG från en skärmdump är inte ett fel — den är en bild utan metadata.
+        Att kasta här hade gjort varje skärmbild till `failed` och fyllt
+        fältet `extract_error` med brus.
+        """
+        if not mimetype.startswith('image/'):
+            return {}, ''
+        if mimetype == 'image/svg+xml':
+            # SVG är XML, inte en rasterbild — ingen EXIF.
+            return {}, ''
+
+        try:
+            from PIL import Image
+            from PIL.ExifTags import GPSTAGS, TAGS
+        except ImportError:
+            # Pillow saknas. Det är inte skäl att fälla filen: texten (som
+            # är det primära) kan fortfarande utvinnas för andra format.
+            _logger.info(
+                'dms_extract: Pillow saknas — hoppar över EXIF för %s',
+                self.name)
+            return {}, ''
+
+        try:
+            with Image.open(io.BytesIO(raw)) as image:
+                exif = image.getexif()
+                if not exif:
+                    return {}, ''
+                flat = {TAGS.get(key, str(key)): value
+                        for key, value in exif.items()}
+                # GPS ligger i en egen IFD — måste läsas separat.
+                gps = {}
+                try:
+                    gps_ifd = exif.get_ifd(0x8825)
+                    if gps_ifd:
+                        gps = {GPSTAGS.get(key, str(key)): value
+                               for key, value in gps_ifd.items()}
+                except Exception:  # noqa: BLE001
+                    gps = {}
+        except Exception as error:  # noqa: BLE001
+            # En trasig EXIF-header får inte fälla kön. Bilden är fortfarande
+            # en bild, och `done` med tom text är det ärliga svaret.
+            _logger.info('dms_extract: EXIF oläsbar för %s: %s',
+                         self.name, error)
+            return {}, ''
+
+        vals = {}
+        text_parts = []
+
+        taken = flat.get('DateTimeOriginal') or flat.get('DateTime')
+        if taken:
+            parsed = self._parse_exif_datetime(taken)
+            if parsed:
+                vals['exif_datetime_original'] = parsed
+
+        if flat.get('Make'):
+            vals['exif_make'] = str(flat['Make']).strip()[:128]
+        if flat.get('Model'):
+            vals['exif_model'] = str(flat['Model']).strip()[:128]
+        if flat.get('Orientation'):
+            try:
+                vals['exif_orientation'] = int(flat['Orientation'])
+            except (TypeError, ValueError):
+                pass
+
+        lat = self._gps_to_decimal(gps.get('GPSLatitude'),
+                                   gps.get('GPSLatitudeRef'))
+        lon = self._gps_to_decimal(gps.get('GPSLongitude'),
+                                   gps.get('GPSLongitudeRef'))
+        if lat is not None and lon is not None:
+            vals['exif_gps_lat'] = lat
+            vals['exif_gps_lon'] = lon
+
+        for field in self.EXIF_TEXT_FIELDS:
+            value = flat.get(field)
+            if not value:
+                continue
+            if isinstance(value, bytes):
+                # XPTitle m.fl. är UTF-16LE med nollbytes.
+                try:
+                    value = value.decode('utf-16-le', errors='ignore')
+                except Exception:  # noqa: BLE001
+                    continue
+            value = str(value).strip('\x00 ').strip()
+            if value:
+                text_parts.append(value)
+
+        # Rådata: allt vi läste, men JSON-säkert. Datetime-objekt och
+        # bytes kan inte serialiseras — vi strängar dem.
+        vals['exif_raw'] = self._json_safe({**flat, **gps})
+
+        return vals, self._clean(' '.join(text_parts))
+
+    @staticmethod
+    def _parse_exif_datetime(value):
+        """'2026:05:12 14:33:01' → datetime. EXIF använder kolon i datumet."""
+        from datetime import datetime
+        raw = str(value).strip().strip('\x00')
+        for fmt in ('%Y:%m:%d %H:%M:%S', '%Y-%m-%d %H:%M:%S',
+                    '%Y:%m:%d', '%Y-%m-%d'):
+            try:
+                return datetime.strptime(raw, fmt)
+            except ValueError:
+                continue
+        return None
+
+    @staticmethod
+    def _gps_to_decimal(coordinate, ref):
+        """EXIF GPS är (grader, minuter, sekunder) som Rational — inte float."""
+        if not coordinate:
+            return None
+        try:
+            parts = [float(part) for part in coordinate]
+        except (TypeError, ValueError):
+            return None
+        if len(parts) != 3:
+            return None
+        degrees, minutes, seconds = parts
+        decimal = degrees + minutes / 60.0 + seconds / 3600.0
+        if str(ref or '').strip().upper() in ('S', 'W'):
+            decimal = -decimal
+        return round(decimal, 7)
+
+    @staticmethod
+    def _json_safe(data):
+        """Gör EXIF-dicten serialiserbar — bytes och Rational blir strängar."""
+        result = {}
+        for key, value in (data or {}).items():
+            if isinstance(value, bytes):
+                try:
+                    result[key] = value.decode('utf-8', errors='replace')
+                except Exception:  # noqa: BLE001
+                    result[key] = repr(value)
+            elif isinstance(value, (int, float, str, bool)) or value is None:
+                result[key] = value
+            elif isinstance(value, (list, tuple)):
+                result[key] = [str(item) for item in value]
+            else:
+                result[key] = str(value)
+        return result
+
     # ── Hjälpare ───────────────────────────────────────────────────────
 
     @staticmethod
@@ -498,3 +702,26 @@ class DmsFile(models.Model):
         if body:
             return self._extracted_text + '\n\n' + body
         return self._extracted_text
+
+    def _okf_body_source_gps_guard(self):
+        """Kontroll att inga koordinater nådde kroppen (5b.4).
+
+        GPS ligger i `exif_gps_lat`/`exif_gps_lon` — Float-fält som mixinens
+        generiska källa aldrig plockar upp (den tar bara html/text/name).
+        Men ett fält kan hamna i kroppen på andra vägar: `exif_raw` är Json
+        och skulle kunna läsas av en framtida override. Den här metoden är
+        den uttryckliga kontrollen, och testet använder den.
+
+        Se docs/gdpr.md §4.1: en bild tagen hemma bär någons hemadress.
+        """
+        self.ensure_one()
+        body = self._okf_body_source()
+        for value in (self.exif_gps_lat, self.exif_gps_lon):
+            if not value:
+                continue
+            # Både punkt- och kommaform, och med sex decimaler.
+            for rendered in ('%.6f' % value, ('%.6f' % value).replace('.', ','),
+                             '%.4f' % value):
+                if rendered in body:
+                    return False
+        return True
