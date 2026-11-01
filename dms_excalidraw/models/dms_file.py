@@ -46,6 +46,23 @@ EMPTY_SCENE = {
 }
 
 
+class DmsDirectory(models.Model):
+    _inherit = "dms.directory"
+
+    def action_new_whiteboard(self):
+        """Skapa en tom Excalidraw-ritning i denna katalog.
+
+        Ligger på dms.directory (inte dms.file) eftersom knappen sitter i
+        katalogformuläret — där finns ingen dms.file-post att agera på.
+        """
+        self.ensure_one()
+        return (
+            self.env["dms.file"]
+            .with_context(default_directory_id=self.id)
+            .action_new_whiteboard()
+        )
+
+
 class DmsFile(models.Model):
     _inherit = "dms.file"
 
