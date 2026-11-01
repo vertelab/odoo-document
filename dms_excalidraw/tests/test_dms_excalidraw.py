@@ -94,12 +94,24 @@ class TestDmsExcalidraw(TransactionCase):
         with self.assertRaises(UserError):
             other.open_in_excalidraw_action()
 
+    def _new_whiteboard(self, directory_id, name):
+        """Skapa en whiteboard och returnera den skapade dms.file-posten.
+
+        `action_new_whiteboard()` returnerar en action (dict), inte posten —
+        den öppnar ritningen direkt i Excalidraw. Testet behöver posten, så
+        vi hämtar den ur katalogen i stället för att anta en returtyp.
+        """
+        self.env["dms.file"].with_context(
+            default_directory_id=directory_id,
+            default_name=name,
+        ).action_new_whiteboard()
+        return self.env["dms.file"].search(
+            [("directory_id", "=", directory_id)], order="id desc", limit=1
+        )
+
     def test_new_whiteboard_creates_valid_scene(self):
         """Den skapade filen måste vara en giltig Excalidraw-scen."""
-        drawing = self.env["dms.file"].with_context(
-            default_directory_id=self.subdir.id,
-            default_name="Flödesschema",
-        ).action_new_whiteboard()
+        drawing = self._new_whiteboard(self.subdir.id, "Flödesschema")
 
         self.assertEqual(drawing.name, "Flödesschema.excalidraw")
         self.assertEqual(drawing.directory_id, self.subdir)
@@ -118,11 +130,23 @@ class TestDmsExcalidraw(TransactionCase):
             self.env["dms.file"].action_new_whiteboard()
 
     def test_new_whiteboard_appends_extension(self):
-        drawing = self.env["dms.file"].with_context(
-            default_directory_id=self.subdir.id,
-            default_name="Redan döpt.excalidraw",
-        ).action_new_whiteboard()
+        drawing = self._new_whiteboard(self.subdir.id, "Redan döpt.excalidraw")
         self.assertEqual(drawing.name, "Redan döpt.excalidraw")
+
+    def test_new_whiteboard_returns_an_action(self):
+        """Metoden ska returnera en act_url mot Excalidraw — inte posten.
+
+        Regressionstestet för den tidigare krashen: action_new_whiteboard()
+        anropades på en TOM recordset från katalogvyn och föll på
+        `ensure_one()` innan den nådde context-fallbacken.
+        """
+        action = self.env["dms.file"].with_context(
+            default_directory_id=self.subdir.id,
+            default_name="Aktionsprov",
+        ).action_new_whiteboard()
+        self.assertIsInstance(action, dict)
+        self.assertEqual(action.get("type"), "ir.actions.act_url")
+        self.assertIn("url", action)
 
     def test_webdav_path_skips_nested_root(self):
         """Rotkatalogen är monteringspunkten och ska bara förekomma en gång."""

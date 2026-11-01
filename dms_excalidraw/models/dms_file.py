@@ -181,7 +181,10 @@ class DmsFile(models.Model):
         action som öppnar den nyskapade filen direkt i Excalidraw, så
         användaren slipper leta upp den.
         """
-        self.ensure_one()
+        # Ingen ensure_one(): metoden anropas medvetet på en TOM recordset
+        # från katalogvyn (dms.directory.action_new_whiteboard delegerar hit),
+        # där katalogen kommer ur context['default_directory_id']. Ett
+        # ensure_one() här gör att fallbacken på nästa rad aldrig nås.
         if self._name != "dms.file":
             raise UserError(_("Denna åtgärd kräver en dms.file-post."))
 
