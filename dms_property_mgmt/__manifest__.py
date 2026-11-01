@@ -21,7 +21,7 @@
 
 {
     'name': 'Document: DMS Property',
-    'version': '18.0.1.0.0',
+    'version': '18.0.1.1.1',
     'summary': 'DMS Property.',
     'description': '''
 DMS Property
@@ -35,7 +35,6 @@ DMS Property
         - Extends Odoo: Builds on property.property.
     ''',
     'category': 'Technical',
-    'description': 'Creates the Link between Property and DMS',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_property_mgmt',
     'images': ['static/description/banner.png'],  # 560x280 px.
@@ -44,9 +43,11 @@ DMS Property
     'maintainer': 'Vertel Sverige AB',
     'repository': 'https://github.com/vertelab/odoo-document',
     # any module necessary for this one to work correctly
-    'depends': ['property_mgmt', 'dms'],
+    'depends': ['property_mgmt', 'dms', 'dms_record'],
+    'auto_install': True,
     # always loaded
     'data': [
+        'data/property_property_data.xml',
         'views/property_property_view.xml',
     ],
 }

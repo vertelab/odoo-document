@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!--
+            Access mode: inherit.
+            save_type='attachment' + inherit_access_from_parent_record is what
+            makes the directory inherit the record's own ir.rule. Both are
+            required: dms.security.mixin hardcodes them.
+        -->
+        <record id="event_event_dms_storage" model="dms.storage">
+            <field name="name">Event documents</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="save_type">attachment</field>
+            <field name="inherit_access_from_parent_record">True</field>
+            <field name="model_ids" eval="[(6, 0, [ref('event.model_event_event')])]"/>
+        </record>
+
+        <record id="event_event_dms_directory" model="dms.directory">
+            <field name="name">Event documents</field>
+            <field name="is_root_directory">True</field>
+            <field name="storage_id" ref="event_event_dms_storage"/>
+            <field name="model_id" ref="event.model_event_event"/>
+        </record>
+
+    </data>
+</odoo>

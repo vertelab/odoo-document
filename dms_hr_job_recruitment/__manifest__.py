@@ -21,7 +21,7 @@
 
 {
     'name': 'Document: DMS HR Job Recruitment',
-    'version': '18.0.1.0.0',
+    'version': '18.0.1.1.1',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Short (1 phrase/line) summary of the modules purpose, used as subtitle on modules listing or apps.openerp.com.''s purpose, used as subtitle on modules listing or apps.openerp.com',
     'description': '''
@@ -36,7 +36,6 @@ DMS HR Job Recruitment
         - Extends Odoo: Builds on hr.applicant, hr.job.
     ''',
     'category': 'Technical',
-    'description': 'Long description of module''s purpose.',
     #'sequence': '1',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_hr_job_recruitment',
@@ -51,7 +50,8 @@ DMS HR Job Recruitment
     # for the full list
 
     # any module necessary for this one to work correctly
-    'depends': ['dms','hr_recruitment',],
+    'depends': ['dms','hr_recruitment', 'dms_record'],
+    'auto_install': True,
 
     # always loaded
     'data': [

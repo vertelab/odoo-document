@@ -21,7 +21,7 @@
 
 {
     'name': 'Document: DMS Partner',
-    'version': '18.0.1.1.0',
+    'version': '18.0.1.1.1',
     'summary': 'DMS Partner.',
     'description': '''
 DMS Partner
@@ -35,7 +35,6 @@ DMS Partner
         - Extends Odoo: Builds on existing Odoo models.
     ''',
     'category': 'Technical',
-    'description': 'DMS Partner.',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_partner',
     'images': ['static/description/banner.png'], # 560x280 px.
@@ -43,8 +42,10 @@ DMS Partner
     'contributor': '',
     'maintainer': 'Vertel Sverige AB',
     'repository': 'https://github.com/vertelab/odoo-document',
-    'depends': ['contacts', 'dms'],
+    'depends': ['contacts', 'dms', 'dms_record'],
+    'auto_install': True,
     "data": [
+        'data/partner_data.xml',
         'views/res_partner_view.xml',
     ],
 }
