@@ -20,11 +20,15 @@ class DmsMobileController(http.Controller):
     @http.route("/dms/mobile", type="http", auth="user", methods=["GET"],
                 sitemap=False)
     def dms_mobile(self):
-        directories = request.env["dms.directory"].search([
+        # Search as sudo, then filter on the user's own rights. Searching
+        # without sudo returns nothing at all: dms.directory record rules
+        # hide a directory whose group_ids the user is not in, and a
+        # directory with no groups is hidden from everyone. Filtering after
+        # the fact is what makes the page show exactly the directories the
+        # user may write to, and no others.
+        directories = request.env["dms.directory"].sudo().search([
             ("mobile_target", "=", True),
         ])
-        # Filter on the user's own rights rather than sudo: a directory the
-        # user cannot write to must not appear with a camera button.
         writable = directories.filtered(
             lambda d: d._filtered_access("create")
         )
