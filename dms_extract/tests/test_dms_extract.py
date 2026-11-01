@@ -205,11 +205,23 @@ class TestDmsExtract(TransactionCase):
 
     # ── 3.2 Kön ────────────────────────────────────────────────────────
 
+    def _drain_queue(self, rounds=20):
+        """Kör kön tills den är tom.
+
+        Ett enda anrop räcker inte: `_cron_extract_pending` tar högst
+        `batch_size` filer per gång, och en databas som redan har en kö
+        (dms_test har hundratals `pending`) fyller den batchen med filer
+        som ligger före testets egen. Testet ska mäta sin fil, inte
+        databasens historik.
+        """
+        for _ in range(rounds):
+            if not self.File._cron_extract_pending():
+                break
+
     def test_cron_is_idempotent(self):
         """Andra körningen får inte skriva något."""
         record = self._file('idem.txt', b'kort text', 'text/plain')
-        first = self.File._cron_extract_pending()
-        self.assertGreaterEqual(first, 1)
+        self._drain_queue()
         self.assertEqual(record.extract_state, 'done')
         self.assertEqual(self.File._cron_extract_pending(), 0)
 
@@ -238,7 +250,7 @@ class TestDmsExtract(TransactionCase):
             'directory_id': self.directory.id,
             'mimetype': 'text/plain',
         })
-        self.File._cron_extract_pending()
+        self._drain_queue()
         self.assertEqual(record.extract_state, 'skipped')
 
     # ── 2.4 / 3.4 Undantagna mappar ────────────────────────────────────
@@ -246,7 +258,7 @@ class TestDmsExtract(TransactionCase):
     def test_directory_with_extract_disabled_is_skipped(self):
         self.directory.extract_enabled = False
         record = self._file('hemlig.txt', b'chiffertext', 'text/plain')
-        self.File._cron_extract_pending()
+        self._drain_queue()
         self.assertEqual(record.extract_state, 'skipped')
         self.assertFalse(record._extracted_text)
 
@@ -588,7 +600,11 @@ class TestDmsExtractExif(TransactionCase):
             0x010E: 'Hemligt kvitto',
         })
         record = self._file('hemlig.jpg', photo, 'image/jpeg')
-        self.env['dms.file']._cron_extract_pending()
+        # Kön tar högst batch_size filer per gång, och en databas med en
+        # befintlig kö fyller den batchen före testets fil.
+        for _ in range(20):
+            if not self.env['dms.file']._cron_extract_pending():
+                break
         self.assertEqual(record.extract_state, 'skipped')
         self.assertFalse(record.exif_make)
         self.assertFalse(record._extracted_text)

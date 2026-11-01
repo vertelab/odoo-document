@@ -48,6 +48,7 @@ NON_BRIDGE_MODULES = {
     "dms_hierarchy",  # directory hierarchy
     "dms_clamav",  # virus scanning
     "dms_ai",  # AI features
+    "dms_extract",  # text extraction into the OKF body, no per-record directory
     "dms_oca_fixes",  # OCA patches
     "dms_auto_classification",  # classification
     "dms_duplicate_filenames",  # filename handling
