@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ────────────────────────────────────────────────────────────────
+         dms.file: "Open in Excalidraw" i formulärets header.
+         Samma mönster som dms_euro_office (view_dms_file_form_euro_office),
+         men villkorat på extension = excalidraw i stället för en lista
+         redigerbara kontorsformat.
+         ──────────────────────────────────────────────────────────────── -->
+    <record id="view_dms_file_form_excalidraw" model="ir.ui.view">
+        <field name="name">dms.file.form.excalidraw</field>
+        <field name="model">dms.file</field>
+        <field name="inherit_id" ref="dms.view_dms_file_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button
+                    name="open_in_excalidraw_action"
+                    type="object"
+                    string="Open in Excalidraw"
+                    class="btn-primary"
+                    invisible="not can_open_in_excalidraw"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ────────────────────────────────────────────────────────────────
+         Server action: "Open in Excalidraw" i Action-menyn på dms.file.
+         ──────────────────────────────────────────────────────────────── -->
+    <record id="action_dms_file_open_excalidraw" model="ir.actions.server">
+        <field name="name">Open in Excalidraw</field>
+        <field name="model_id" ref="dms.model_dms_file"/>
+        <field name="binding_model_id" ref="dms.model_dms_file"/>
+        <field name="binding_view_types">list,kanban,form</field>
+        <field name="state">code</field>
+        <field name="code">action = records.open_in_excalidraw_action()</field>
+    </record>
+
+    <!-- ────────────────────────────────────────────────────────────────
+         dms.directory: "New whiteboard" i formulärets header.
+         Skapar en tom .excalidraw-fil i katalogen och öppnar den direkt.
+         Routen tar katalogen ur URL:en, så ingen dms.file-post behövs.
+         ──────────────────────────────────────────────────────────────── -->
+    <record id="view_dms_directory_form_excalidraw" model="ir.ui.view">
+        <field name="name">dms.directory.form.excalidraw</field>
+        <field name="model">dms.directory</field>
+        <field name="inherit_id" ref="dms.view_dms_directory_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button
+                    name="action_new_whiteboard"
+                    type="object"
+                    string="New whiteboard"
+                    class="oe_highlight"
+                />
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

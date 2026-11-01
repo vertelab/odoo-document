@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Inställningar ▸ Documents ▸ Excalidraw: var tjänsten ligger.
+         Utan URL:en ger "Open in Excalidraw" ett tydligt fel i stället för
+         en trasig länk — det är avsiktligt.
+
+         FÄLLA: dms:s egen settings-vy använder `//form` + `<app name="dms">`
+         (inte `//div[@id='dms_settings']`). Vi hakar på app-elementet så att
+         blocket hamnar i rätt flik. -->
+    <record id="res_config_settings_view_form_dms_excalidraw" model="ir.ui.view">
+        <field name="name">res.config.settings.form.dms.excalidraw</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="21"/>
+        <field name="inherit_id" ref="dms.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='dms']" position="inside">
+                <block title="Excalidraw">
+                    <setting
+                        string="Excalidraw URL"
+                        help="Bas-URL till den fristående Excalidraw-tjänsten. Whiteboards sparas som DMS-filer och öppnas därifrån."
+                    >
+                        <field name="dms_excalidraw_url"
+                               placeholder="https://whiteboard.vertel.se"/>
+                    </setting>
+                    <setting
+                        string="WebDAV path"
+                        help="Sökvägen där dms_webdav monterar DMS-trädet. Ändra bara om modulen konfigurerats med en annan mount-punkt."
+                    >
+                        <field name="dms_excalidraw_webdav_path"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
