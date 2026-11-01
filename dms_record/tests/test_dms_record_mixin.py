@@ -78,12 +78,19 @@ class DmsRecordMixinBaseCase(BaseCommon):
         test has to register an ir.model.data row rather than set an
         attribute on the class.
         """
+        # model_ids only on an attachment storage. dms_field rejects a
+        # non-attachment storage that declares model_ids while its root
+        # directory has no res_id, and a root directory never has one. The
+        # owner mode resolves nothing from a model, so it needs neither.
+        is_attachment = save_type == "attachment"
         storage = cls.storage_model.create(
             {
                 "name": xmlid,
                 "save_type": save_type,
                 "inherit_access_from_parent_record": inherit_access,
-                "model_ids": [(6, 0, [cls.env["ir.model"]._get_id(model._name)])],
+                "model_ids": [(6, 0, [cls.env["ir.model"]._get_id(model._name)])]
+                if is_attachment
+                else [(5, 0, 0)],
             }
         )
         cls.directory_model.create(
@@ -91,7 +98,9 @@ class DmsRecordMixinBaseCase(BaseCommon):
                 "name": f"{xmlid} root",
                 "is_root_directory": True,
                 "storage_id": storage.id,
-                "model_id": cls.env["ir.model"]._get_id(model._name),
+                "model_id": cls.env["ir.model"]._get_id(model._name)
+                if is_attachment
+                else False,
             }
         )
         cls.env["ir.model.data"].create(

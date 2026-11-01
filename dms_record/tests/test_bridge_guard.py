@@ -39,6 +39,8 @@ _logger = logging.getLogger(__name__)
 NON_BRIDGE_MODULES = {
     "dms_record",  # the shared mixin
     "dms_webdav",  # WebDAV endpoint
+    "dms_excalidraw",  # whiteboard rendering on dms.file
+    "dms_mobile",  # PWA camera capture, no per-record directory
     "dms_version",  # file versioning
     "dms_sftp",  # SFTP access
     "dms_sync_rclone",  # rclone sync
@@ -47,13 +49,11 @@ NON_BRIDGE_MODULES = {
     "dms_clamav",  # virus scanning
     "dms_ai",  # AI features
     "dms_oca_fixes",  # OCA patches
-    "dms_euro_office",  # document editing
     "dms_auto_classification",  # classification
     "dms_duplicate_filenames",  # filename handling
     "dms_field",  # inline DMS field
     "dms_field_auto_classification",  # OCA: classification into the embedded field
     "dms_user_role",  # role-based access
-    "dms_webpage",  # website integration
     "dms_account_analytic_account",  # analytic account field
 }
 
