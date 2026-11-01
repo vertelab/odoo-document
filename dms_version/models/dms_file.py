@@ -28,22 +28,25 @@ class DmsFile(models.Model):
         for record in self:
             record.version_count = len(record.version_ids)
 
-    def _inverse_content(self):
+    def write(self, vals):
         """Keep the previous content as a version before overwriting it.
 
-        ``_inverse_content`` also runs on create, so guard on both ``record.id``
-        (the row already exists in the database) and ``record._origin.content``
-        (there was content before). A brand new file must not get a version of
-        itself.
+        Hooked on write() rather than _inverse_content(): by the time the
+        inverse runs, Odoo has already assigned the new value to the record,
+        so reading the old content there returns the new bytes. Reading
+        _origin.content here, before super().write(), is the only point where
+        the previous value is still available.
+
+        create() is deliberately not covered: a new file has no previous
+        content, so there is nothing to keep.
         """
-        for record in self:
-            if not record.id:
-                continue
-            previous = record._origin.content
-            if not previous:
-                continue
-            self.env["dms.file.version"]._create_version(record, previous)
-        return super()._inverse_content()
+        if "content" in vals and vals["content"]:
+            for record in self:
+                previous = record._origin.content
+                if not previous:
+                    continue
+                self.env["dms.file.version"]._create_version(record, previous)
+        return super().write(vals)
 
     def action_view_versions(self):
         self.ensure_one()

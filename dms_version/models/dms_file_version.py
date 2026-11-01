@@ -144,8 +144,7 @@ class DmsFileVersion(models.Model):
         """
         self.ensure_one()
         file_record = self.file_id
-        file_record.check_access_rights("write")
-        file_record.check_access_rule("write")
+        file_record.check_access("write")
         content = self._get_content()
         if not content:
             return False
