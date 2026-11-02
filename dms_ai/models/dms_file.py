@@ -112,7 +112,27 @@ class DmsFile(models.Model):
                 'category_id', 'active'}
 
     def _okf_skip_reason(self):
-        """Arkiverad fil = "tomt just nu", inte "tomt för alltid"."""
+        """Arkiverad fil = "tomt just nu", inte "tomt för alltid".
+
+        VAULT (dms_vault): en fil i ett valv får ALDRIG bli ett koncept.
+        Kroppen är filnamnet, mappen och taggarna — metadata som ligger i
+        klartext även när byten är krypterade. Ett koncept hade alltså läckt
+        namnet på ett dokument vars hela poäng är att det inte går att läsa
+        utanför valvet, och det hade gjort det sökbart för alla som når
+        konceptet.
+
+        Spärren bor HÄR och inte i dms_vault: `dms_ai` är bryggan mellan
+        `ai_agent_core` och `dms`, och en överridning i dms_vault hade gett
+        ett beroende åt fel håll (dms_vault -> dms_ai) för en regel som bara
+        handlar om vad ett DMS-dokument får bli.
+
+        `vault_id` finns bara när `dms_vault` är installerad, så uppslaget går
+        via `_fields` i stället för direkt attributåtkomst: bryggan ska inte
+        krascha på en databas där valvmodulen är avinstallerad men koncepten
+        ligger kvar.
+        """
+        if 'vault_id' in self._fields and self.vault_id:
+            return 'vault'
         return None
 
     # ── Registrering (okf-mixin D11) ───────────────────────────────────
