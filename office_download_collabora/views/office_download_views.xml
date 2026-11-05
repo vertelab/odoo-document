@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    Menu item under Documents, opening the list of download links.
+
+    The parent is `dms.main_menu_dms` — verified against
+    /usr/share/odooext-OCA-dms/dms/views/menu.xml on 18.0 (2026-11-05). A wrong
+    parent xmlid fails silently: the menu simply never appears.
+-->
+<odoo>
+
+    <record id="view_office_download_link_list" model="ir.ui.view">
+        <field name="name">office.download.link.list</field>
+        <field name="model">office.download.link</field>
+        <field name="arch" type="xml">
+            <list string="Download office suite" create="false" edit="false">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="platform"/>
+                <field name="os_family"/>
+                <field name="package_format"/>
+                <field name="url" widget="url"/>
+                <field name="note"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_office_download_link_form" model="ir.ui.view">
+        <field name="name">office.download.link.form</field>
+        <field name="model">office.download.link</field>
+        <field name="arch" type="xml">
+            <form string="Download link">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="platform"/>
+                            <field name="os_family"/>
+                        </group>
+                        <group>
+                            <field name="package_format"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="Link">
+                        <field name="url" widget="url"/>
+                        <field name="note"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_office_download_link" model="ir.actions.act_window">
+        <field name="name">Download office suite</field>
+        <field name="res_model">office.download.link</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add a download link
+            </p>
+            <p>
+                Links are records, not code: correct a URL here when the vendor
+                ships a new build, and the edit survives module upgrades.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_office_download"
+        name="Download office suite"
+        parent="dms.main_menu_dms"
+        action="action_office_download_link"
+        sequence="90"
+        groups="base.group_user"
+    />
+
+</odoo>

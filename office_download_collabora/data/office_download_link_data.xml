@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    Collabora Office desktop downloads.
+
+    Sources verified 2026-11-05 against collaboraonline.com/collabora-office and
+    the Collabora press release "Bringing Collabora Online to the Desktop":
+
+        Collabora Office is free to download for:
+          - Windows 11, 64-bit only (.appx)
+          - MacOS 15 Sequoia or later, ARM only (.app)
+          - Linux x86_64 only (flathub)
+
+    The narrow platform range is stated in `os_family` and `note` rather than
+    hidden — a customer on Windows 10 or an Intel Mac should learn it here, not
+    after a failed download.
+
+    noupdate="1" on every record: an administrator corrects URLs in the UI when
+    a vendor ships a new build, and those edits must survive a module upgrade.
+-->
+<odoo>
+    <data noupdate="1">
+
+        <record id="link_collabora_windows" model="office.download.link">
+            <field name="name">Collabora Office for Windows</field>
+            <field name="platform">windows</field>
+            <field name="os_family">Windows 11 (64-bit)</field>
+            <field name="url">https://apps.microsoft.com/detail/9p9mrbxjjg0m</field>
+            <field name="package_format">.appx (Microsoft Store)</field>
+            <field name="note">Windows 11, 64-bit only. Windows 10 is not supported by the desktop app.</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="link_collabora_macos" model="office.download.link">
+            <field name="name">Collabora Office for macOS</field>
+            <field name="platform">macos</field>
+            <field name="os_family">macOS 15 Sequoia or later</field>
+            <field name="url">https://apps.apple.com/app/collabora-office-desktop/id6754639856</field>
+            <field name="package_format">.app (App Store)</field>
+            <field name="note">Apple silicon (ARM) only. Intel Macs are not supported by the desktop app.</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="link_collabora_linux" model="office.download.link">
+            <field name="name">Collabora Office for Linux</field>
+            <field name="platform">linux</field>
+            <field name="os_family">Linux x86_64</field>
+            <field name="url">https://flathub.org/apps/com.collaboraoffice.Office</field>
+            <field name="package_format">Flatpak (Flathub)</field>
+            <field name="note">x86_64 only. The Flathub build is verified by Collabora.</field>
+            <field name="sequence">30</field>
+        </record>
+
+        <record id="link_collabora_android" model="office.download.link">
+            <field name="name">Collabora Office for Android</field>
+            <field name="platform">android</field>
+            <field name="os_family">Android</field>
+            <field name="url">https://play.google.com/store/apps/details?id=com.collabora.libreoffice</field>
+            <field name="package_format">Google Play</field>
+            <field name="sequence">40</field>
+        </record>
+
+        <record id="link_collabora_ios" model="office.download.link">
+            <field name="name">Collabora Office for iOS / iPadOS</field>
+            <field name="platform">ios</field>
+            <field name="os_family">iOS / iPadOS</field>
+            <field name="url">https://apps.apple.com/app/collabora-office/id1440482071</field>
+            <field name="package_format">App Store</field>
+            <field name="sequence">50</field>
+        </record>
+
+    </data>
+</odoo>
