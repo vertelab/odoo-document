@@ -21,6 +21,24 @@
 
         which is the convention dms itself uses (documents_binary_max_size ->
         dms.binary_max_size).
+
+        ⚠️ INHERIT `dms.res_config_settings_view_form`, NOT THE BASE FORM.
+        The base form (`base.res_config_settings_view_form`) does not contain
+        the `//app[@name='dms']` node — it is contributed by dms's own
+        settings view — so an xpath on it fails with "cannot be located in
+        parent view" (verified 2026-11-05).
+
+        The price is that Odoo re-validates the whole `res.config.settings`
+        view chain on every `-u`. If any view in that chain names a field the
+        registry does not have, the upgrade of THIS module fails with a
+        ParseError that points at the other module's field. That happened on
+        2026-11-05: `ai_agent_core`'s settings view declared
+        `ai_api_default_coworker_id` while its model still declared the
+        removed `ai_api_default_provider_id`, and every settings-view upgrade
+        died until the model field was committed (odoo-ai bf0951c6).
+
+        Nothing to do here — but if a ParseError names a field from another
+        module, look at that module first, not at this file.
     -->
     <record id="res_config_settings_view_form_excalidraw" model="ir.ui.view">
         <field name="name">res.config.settings.view.form.inherit.dms.excalidraw</field>

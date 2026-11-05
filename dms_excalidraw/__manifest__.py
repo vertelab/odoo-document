@@ -43,7 +43,7 @@ Refreshing it from the upstream catalogue is opt-in
     "author": "Vertel Sverige AB",
     "website": "https://vertel.se",
     "category": "Productivity/Documents",
-    "version": "18.0.2.5.0",
+    "version": "18.0.2.6.0",
     "depends": ["dms", "dms_webdav"],
     "data": [
         # MUST come before anything that reads a directory: it repairs the
