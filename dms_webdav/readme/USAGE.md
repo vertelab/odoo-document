@@ -176,3 +176,21 @@ rclone mount dms: /mnt/dms   # montera som filsystem (FUSE, userland)
 
 `rclone mount` ger samma filsystemsupplevelse som davfs2 utan att gå via
 davfs2:s katalogcache.
+
+### Varför begränsningen dokumenteras här
+
+Servern har inget att rätta: den svarar enligt RFC 4918 och rclone läser
+svaret korrekt. Att forma om svaret för att blidka davfs2:s katalogcache
+skulle göra endpointen felaktig för de klienter som fungerar. Begränsningen
+står därför hos den klient som inte fungerar, i stället för att döljas i en
+"kända fel"-lista utan ägare.
+
+### Vad som testas — och vad som inte testas
+
+`dms_webdav/tests/test_webdav_http.py` (elva tester) och
+`test_webdav_path.py` (arton tester) testar **serverns** svar: statuskoder,
+autentisering, `Content-Range`, well-known-redirect och path-uppslagning.
+Ingen av dem går genom en monterad klient, och ingen av dem kan fånga en
+klientbugg som davfs2:s. Den enda klient som verifierats end-to-end är
+`rclone` — därför är den den rekommenderade vägen, inte ett alternativ bland
+flera.

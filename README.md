@@ -123,6 +123,9 @@ arrives as a dependency.
 | `dms_slide` | `inherit` | `website_slides` | Course and lesson material; two storages |
 | `dms_webdav` | — | — | WebDAV endpoint at `/webdav/` |
 | `dms_version` | — | — | File versioning |
+| `dms_clamav` | — | — | ClamAV scan before every write; fail-open, see its README |
+| `dms_trash` | — | — | `deletion_delay` per directory + purge cron |
+| `dms_oca_fixes` | — | — | Three OCA fixes as `_inherit` instead of source patches |
 
 ### Deliberately uncovered
 
@@ -134,6 +137,51 @@ The guard test (`dms_record/tests/test_bridge_guard.py`) fails when a bridge
 lacks `auto_install` or declares no domain module, so a new bridge cannot ship
 silently uninstallable. It also asserts every entry in its skip list still
 exists on disk.
+
+## `document_page` is on its way out
+
+This repository's answer to "documents" is `dms` — `dms.storage` →
+`dms.directory` → `dms.file`, with access groups, WebDAV, SFTP, versioning and
+the bridge pattern above. The OCA `document_page` family is the older answer:
+a wiki-like tree of HTML pages, with no file storage and no per-directory
+access model.
+
+Both are installed on some databases, which is why this is written down.
+
+### What that means in practice
+
+| If you are about to… | Do this |
+|---|---|
+| Store a file (PDF, Office, image) | `dms` — never `document_page` |
+| Give a record (project, order, employee) a document folder | A `dms_record` bridge |
+| Write a procedure or a policy as text | `document_page` is still fine — it is a page, not a file |
+| Add a new `document_page_*` module to a repo | Don't. It grows a family we are leaving |
+
+### What was already removed
+
+`document_version` — the versioning module of the `document_page` family —
+was uninstalled from the `dms` instance in `dms-hardening`. It was broken in
+two ways that could not be patched from outside:
+
+- `float('')` on an empty version field raised, so a file with no prior
+  version could not be saved.
+- `@api.onchange` only fires in the UI, so every non-UI write path (WebDAV,
+  SFTP, the JSON API) silently skipped versioning.
+
+Its replacement is `dms_version`, which hooks `dms.file.write()` and therefore
+covers every write path.
+
+The four `document_page` records on that instance still work — the module
+itself was untouched. What went away is the versioning of its pages, which
+nothing depended on.
+
+### Why not delete the family outright
+
+`document_page` is a dependency of `document_knowledge` and of several
+`mgmtsystem_*` modules that the management-system databases use for manuals
+and procedures. Removing it would remove those. The direction is stated here
+so that new work does not add to the family, not so that existing pages are
+migrated today.
 
 ## Testing a bridge
 
