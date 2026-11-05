@@ -56,19 +56,30 @@ import {patch} from "@web/core/utils/patch";
  * Only formats whose editor is a separate page belong here. Images, PDFs,
  * video and audio are DMS's own preview and must keep falling through.
  */
-const EDITOR_CAPABILITIES = {
-    excalidraw: {
-        field: "can_open_in_excalidraw",
-        method: "open_in_excalidraw_action",
-    },
-    docx: {field: "can_open_in_euro_office", method: "open_in_euro_office_action"},
-    docxf: {field: "can_open_in_euro_office", method: "open_in_euro_office_action"},
-    xlsx: {field: "can_open_in_euro_office", method: "open_in_euro_office_action"},
-    pptx: {field: "can_open_in_euro_office", method: "open_in_euro_office_action"},
-    odt: {field: "can_open_in_euro_office", method: "open_in_euro_office_action"},
-    ods: {field: "can_open_in_euro_office", method: "open_in_euro_office_action"},
-    odp: {field: "can_open_in_euro_office", method: "open_in_euro_office_action"},
-};
+const OFFICE_EXTENSIONS = ["docx", "docxf", "xlsx", "pptx", "odt", "ods", "odp"];
+
+/**
+ * Which backend serves the office formats, in order of preference.
+ *
+ * WHY A LIST AND NOT A SINGLE ENTRY
+ * =================================
+ * This table used to name `can_open_in_euro_office` directly for every office
+ * extension. That is backend-agnostic in SHAPE but not in fact — replacing
+ * Euro-Office with Collabora required editing this file, which is the same
+ * defect the table was written to remove (a vendor hardcoded on the client).
+ *
+ * Now the extensions say "office", and the backend is whichever of these is
+ * installed. Each entry names a capability field and an action method that
+ * the owning module declares; an absent field means that module is not
+ * installed, so the next one is tried.
+ *
+ * Adding a third backend is one line here, and it does not make this module
+ * depend on any of them.
+ */
+const OFFICE_BACKENDS = [
+    {field: "can_open_in_collabora", method: "open_in_collabora_action"},
+    {field: "can_open_in_euro_office", method: "open_in_euro_office_action"},
+];
 
 /**
  * Return the extension of a file name, lower-case, without the dot.
@@ -91,8 +102,9 @@ patch(FileKanbanRecord.prototype, {
             return super.onGlobalClick(ev);
         }
 
-        const capability = EDITOR_CAPABILITIES[extensionOf(this.props.record.data.name)];
-        if (!capability) {
+        const extension = extensionOf(this.props.record.data.name);
+        const capabilities = this._capabilityFor(extension);
+        if (!capabilities.length) {
             return super.onGlobalClick(ev);
         }
 
@@ -102,8 +114,8 @@ patch(FileKanbanRecord.prototype, {
         ev.preventDefault();
         ev.stopPropagation();
 
-        const canOpen = await this._canOpenWith(capability);
-        if (!canOpen) {
+        const capability = await this._resolveCapability(capabilities);
+        if (!capability) {
             // The editor module is not installed (the field does not exist)
             // or the format is not editable. Fall back to the preview rather
             // than sending the user to a route nobody serves.
@@ -122,20 +134,51 @@ patch(FileKanbanRecord.prototype, {
     },
 
     /**
-     * Return whether the record can be opened by the capability's editor.
+     * Return the capabilities to try for `extension`, in preference order.
+     *
+     * `excalidraw` has exactly one editor; the office formats are resolved
+     * from whichever backend module is installed (OFFICE_BACKENDS).
+     */
+    _capabilityFor(extension) {
+        if (extension === "excalidraw") {
+            return [
+                {
+                    field: "can_open_in_excalidraw",
+                    method: "open_in_excalidraw_action",
+                },
+            ];
+        }
+        if (!OFFICE_EXTENSIONS.includes(extension)) {
+            return [];
+        }
+        return OFFICE_BACKENDS;
+    },
+
+    /**
+     * Return the first capability whose field the record reports as openable.
      *
      * The field is read on demand rather than added to the kanban view's
      * field list: the kanban is shared with every other DMS view, and a
      * capability field that only this module needs should not be fetched for
-     * every record in every list. One read per click is cheaper than one
-     * field per card.
+     * every record in every list.
+     *
+     * For office formats this is also how the installed backend is detected:
+     * a module that is not installed contributes no field, so its read
+     * returns undefined and the next backend is tried.
      */
-    async _canOpenWith(capability) {
+    async _resolveCapability(capabilities) {
+        if (!capabilities.length) {
+            return undefined;
+        }
         const fields = await this.env.services.orm.read(
             "dms.file",
             [this.props.record.data.id],
-            [capability.field]
+            capabilities.map((capability) => capability.field)
         );
-        return Boolean(fields && fields[0] && fields[0][capability.field]);
+        const record = fields && fields[0];
+        if (!record) {
+            return undefined;
+        }
+        return capabilities.find((capability) => Boolean(record[capability.field]));
     },
 });
