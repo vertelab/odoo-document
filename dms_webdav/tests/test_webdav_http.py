@@ -1,4 +1,8 @@
-from odoo.tests.common import HttpCase, tagged
+import datetime
+from unittest.mock import patch
+
+from odoo.tests import BaseCase, tagged
+from odoo.tests.common import HttpCase
 
 
 @tagged("post_install", "-at_install")
@@ -182,6 +186,141 @@ class TestWebdavHttp(HttpCase):
             resolve("/webdav/Documents Storage/f.txt"),
             ("/Documents Storage/f.txt", None),
         )
-        path, bad = resolve("/other/prefix/f.txt")
-        self.assertIsNone(path)
-        self.assertIsNotNone(bad)
+        # A bare path keeps its first component: the storage name must not be
+        # eaten just because the client omitted the /webdav prefix.
+        self.assertEqual(
+            resolve("/Documents Storage/f.txt"), ("/Documents Storage/f.txt", None)
+        )
+        self.assertEqual(resolve("/other/prefix/f.txt"), ("/other/prefix/f.txt", None))
+        # And a destination with no resource path at all is a client error.
+        for empty in ("/", "/webdav", "/webdav/"):
+            path, bad = resolve(empty)
+            self.assertIsNone(path, "expected %r to be rejected" % empty)
+            self.assertIsNotNone(bad)
+
+
+
+@tagged("post_install", "-at_install")
+class TestWebdavProps(BaseCase):
+    """Property/caching behaviour, tested without speaking HTTP.
+
+    These used to live in TestWebdavHttp and therefore never ran. Odoo 18's
+    HttpCase.setUpClass() calls cls.base_url(), which reaches
+    odoo.service.server.server.httpd - an attribute the prefork server (what
+    checkmodule starts) does not have, so setUpClass raised and every test in
+    the class was reported as an error instead of a result.
+    """
+
+    def test_propfind_returns_etag_and_last_modified(self):
+        """A PROPFIND must carry the cache validators, or clients never refresh.
+
+        GNOME's GVFS (and therefore Nautilus) caches directory listings and
+        decides whether a file changed by comparing getetag/getlastmodified.
+        This server used to answer every PROPFIND with the same fixed set of
+        four properties, so both were always absent and a stale listing could
+        be opened and saved over.
+        """
+        from odoo.addons.dms_webdav.controllers.webdav import DmsWebdavController
+
+        self.assertIn("getetag", DmsWebdavController.ALL_PROPS)
+        self.assertIn("getlastmodified", DmsWebdavController.ALL_PROPS)
+
+        # _rfc1123 must treat the naive Odoo datetime as UTC. Using
+        # datetime.timestamp() would read it as local time and shift it.
+        formatted = DmsWebdavController._rfc1123(
+            datetime.datetime(2026, 11, 5, 11, 39, 55)
+        )
+        self.assertEqual(formatted, "Thu, 05 Nov 2026 11:39:55 GMT")
+
+    def test_unavailable_property_gets_404_propstat(self):
+        """An unavailable property goes in a 404 propstat, never just vanishes.
+
+        RFC 4918 9.1 requires it, and "silently omitted" is indistinguishable
+        from "this resource has no etag" to a caching client. Built against a
+        fake record so the XML shape is asserted directly.
+        """
+        from odoo.addons.dms_webdav.controllers import webdav as webdav_mod
+
+        class FakeRecord:
+            name = "Logo.svg"
+            mimetype = "image/svg+xml"
+            size = 397923
+            checksum = "ab26c8c9344bb6c54ac9b318df24edb6ffe3c1f7"
+            write_date = datetime.datetime(2026, 11, 5, 11, 39, 55)
+            create_date = datetime.datetime(2026, 6, 5, 5, 32, 50)
+
+        class FakeRequest:
+            def __init__(self, body):
+                self.httprequest = type(
+                    "H", (), {"get_data": lambda self, cache=False: body}
+                )()
+
+        controller = webdav_mod.DmsWebdavController()
+        body = (
+            b'<?xml version="1.0"?><D:propfind xmlns:D="DAV:"><D:prop>'
+            b"<D:getetag/><D:quota-available-bytes/></D:prop></D:propfind>"
+        )
+        with patch.object(webdav_mod, "request", FakeRequest(body)):
+            xml = controller._propfind_response(
+                "/Documents Storage/Media/Graphics/Logo.svg", "file", FakeRecord()
+            )
+
+        self.assertIn("<d:getetag>", xml)
+        self.assertIn("HTTP/1.1 200 OK", xml)
+        # The property the server cannot answer must be reported as 404.
+        self.assertIn("<d:quota-available-bytes/>", xml)
+        self.assertIn("HTTP/1.1 404 Not Found", xml)
+        # And it must not be mixed into the 200 block.
+        ok_start = xml.index("HTTP/1.1 200 OK")
+        self.assertLess(xml.index("<d:getetag>"), ok_start)
+
+    def test_requested_props_parsing(self):
+        """The PROPFIND body decides which properties come back."""
+        from odoo.addons.dms_webdav.controllers import webdav as webdav_mod
+
+        class FakeHttpRequest:
+            def __init__(self, body):
+                self._body = body
+
+            def get_data(self, cache=False):
+                return self._body
+
+        class FakeRequest:
+            def __init__(self, body):
+                self.httprequest = FakeHttpRequest(body)
+
+        parse = webdav_mod.DmsWebdavController._requested_props
+
+        # No body means allprop (RFC 4918 9.1).
+        with patch.object(webdav_mod, "request", FakeRequest(b"")):
+            self.assertEqual(parse(), ("allprop", None))
+
+        # propname asks for names only.
+        with patch.object(
+            webdav_mod,
+            "request",
+            FakeRequest(
+                b'<?xml version="1.0"?><D:propfind xmlns:D="DAV:">'
+                b"<D:propname/></D:propfind>"
+            ),
+        ):
+            self.assertEqual(parse(), ("propname", None))
+
+        # An explicit prop list comes back in the order requested.
+        with patch.object(
+            webdav_mod,
+            "request",
+            FakeRequest(
+                b'<?xml version="1.0"?><D:propfind xmlns:D="DAV:"><D:prop>'
+                b"<D:getetag/><D:getlastmodified/></D:prop></D:propfind>"
+            ),
+        ):
+            self.assertEqual(parse(), ("prop", ["getetag", "getlastmodified"]))
+
+    def test_xml_escape_protects_names(self):
+        """A file called 'a&b.svg' must not produce unparseable XML."""
+        from odoo.addons.dms_webdav.controllers.webdav import _xml_escape
+
+        self.assertEqual(_xml_escape("a&b.svg"), "a&amp;b.svg")
+        self.assertEqual(_xml_escape("<tag>"), "&lt;tag&gt;")
+        self.assertEqual(_xml_escape("normal.svg"), "normal.svg")

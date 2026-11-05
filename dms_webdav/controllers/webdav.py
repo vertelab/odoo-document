@@ -1,5 +1,8 @@
 import base64
+import calendar
 import logging
+import re
+from email.utils import formatdate
 from urllib.parse import unquote, urlparse
 
 from odoo import http
@@ -14,6 +17,20 @@ WEBDAV_METHODS = [
     "GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS",
     "PROPFIND", "MKCOL", "MOVE", "COPY", "LOCK", "UNLOCK",
 ]
+
+
+def _xml_escape(value):
+    """Escape a text value for inclusion in XML content.
+
+    Names come from users, so a file called ``a&b.svg`` must not produce
+    invalid XML that a client then fails to parse.
+    """
+    return (
+        str(value)
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+    )
 
 
 def _basic_auth():
@@ -163,45 +180,148 @@ class DmsWebdavController(http.Controller):
             href += "/"
         return href
 
-    def _prop_xml(self, record, record_type, path):
-        if record_type == "collection":
-            return (
-                '<d:prop>'
-                '<d:displayname>DMS Root</d:displayname>'
-                '<d:resourcetype><d:collection/></d:resourcetype>'
-                '<d:getcontenttype>httpd/unix-directory</d:getcontenttype>'
-                '</d:prop>'
-            )
-        parts = ['<d:prop>']
-        if record_type == "directory":
-            parts.append('<d:displayname>{}</d:displayname>'.format(record.name))
-            parts.append('<d:resourcetype><d:collection/></d:resourcetype>')
-            parts.append('<d:getcontenttype>httpd/unix-directory</d:getcontenttype>')
-        elif record_type == "file":
-            parts.append('<d:displayname>{}</d:displayname>'.format(record.name))
-            parts.append('<d:resourcetype/>')
-            parts.append('<d:getcontenttype>{}</d:getcontenttype>'.format(
-                record.mimetype or "application/octet-stream"))
-            parts.append('<d:getcontentlength>{}</d:getcontentlength>'.format(int(record.size or 0)))
-        elif record_type == "storage":
-            parts.append('<d:displayname>{}</d:displayname>'.format(record.name))
-            parts.append('<d:resourcetype><d:collection/></d:resourcetype>')
-            parts.append('<d:getcontenttype>httpd/unix-directory</d:getcontenttype>')
-        parts.append('</d:prop>')
-        return '\n'.join(parts)
+    # Every live property we can answer, in DAV: namespace, without the
+    # ``d:`` prefix. The order is the order they are emitted in.
+    ALL_PROPS = (
+        "displayname",
+        "resourcetype",
+        "getcontenttype",
+        "getcontentlength",
+        "getetag",
+        "getlastmodified",
+        "creationdate",
+        "supportedlock",
+    )
+
+    @staticmethod
+    def _rfc1123(dt):
+        """Format a naive UTC datetime as an RFC 1123 HTTP date.
+
+        Odoo stores create_date/write_date as naive UTC. ``datetime.timestamp()``
+        would read a naive value as *local* time and shift it by the server's
+        UTC offset, so go through ``calendar.timegm`` which is explicitly UTC.
+        """
+        if not dt:
+            return None
+        return formatdate(calendar.timegm(dt.utctimetuple()), usegmt=True)
+
+    @staticmethod
+    def _requested_props():
+        """Return the property names the client asked for, or None for allprop.
+
+        RFC 4918 9.1: the request body selects properties. A client that sends
+        ``<d:propfind><d:prop><d:getetag/></d:prop></d:propfind>`` must not be
+        handed a response that silently contains different properties -- that
+        is how a cache decides a resource never changes. ``propname`` asks for
+        names only (no values).
+
+        Returns ``(mode, names)`` where mode is "prop", "propname" or
+        "allprop". A PROPFIND without a body means allprop (RFC 4918 9.1).
+        """
+        raw = request.httprequest.get_data(cache=True) or b""
+        text = raw.decode("utf-8", "replace").strip()
+        if not text:
+            return "allprop", None
+        root = re.search(r"<(?:\w+:)?propfind\b[^>]*>(.*)</(?:\w+:)?propfind>", text, re.S)
+        if not root:
+            return "allprop", None
+        body = root.group(1)
+        if re.search(r"<(?:\w+:)?propname\b", body):
+            return "propname", None
+        prop = re.search(r"<(?:\w+:)?prop\b[^>]*>(.*?)</(?:\w+:)?prop>", body, re.S)
+        if not prop:
+            return "allprop", None
+        names = re.findall(r"<(?:\w+:)?([A-Za-z_][\w.\-]*)\b[^>]*/?>", prop.group(1))
+        # Drop namespace declarations and the prop's own children markers.
+        names = [n for n in names if n.lower() not in ("prop", "xmlns")]
+        return "prop", names
 
     def _propfind_response(self, path, record_type, record):
+        """One <d:response> honouring the requested property set.
+
+        Properties we cannot answer go into a second <d:propstat> with
+        404 Not Found, as RFC 4918 9.1 requires. Omitting them entirely --
+        what this server used to do -- is indistinguishable from "this
+        resource has no etag", and a client that caches on etag then never
+        sees a modified file.
+        """
         href = self._href(path, is_collection=record_type in ("collection", "storage", "directory"))
-        prop_xml = self._prop_xml(record, record_type, path)
+        available, missing = self._prop_values(record, record_type)
+
+        mode, requested = self._requested_props()
+        if mode == "propname":
+            wanted, missing_names = list(available), []
+            block = "".join("<d:{}/>".format(n) for n in wanted)
+        elif mode == "prop" and requested is not None:
+            wanted = [n for n in requested if n in available]
+            missing_names = [n for n in requested if n not in available]
+            block = "".join(available[n] for n in wanted)
+        else:
+            wanted = [n for n in self.ALL_PROPS if n in available]
+            missing_names = [n for n in self.ALL_PROPS if n not in available]
+            block = "".join(available[n] for n in wanted)
+
+        propstats = [
+            '<d:propstat><d:prop>' + block + '</d:prop>'
+            '<d:status>HTTP/1.1 200 OK</d:status></d:propstat>'
+        ]
+        if missing_names:
+            propstats.append(
+                '<d:propstat><d:prop>'
+                + "".join("<d:{}/>".format(n) for n in missing_names)
+                + '</d:prop><d:status>HTTP/1.1 404 Not Found</d:status></d:propstat>'
+            )
+
         return (
             '<d:response>'
             f'<d:href>{href}</d:href>'
-            '<d:propstat>'
-            f'{prop_xml}'
-            '<d:status>HTTP/1.1 200 OK</d:status>'
-            '</d:propstat>'
-            '</d:response>'
+            + "".join(propstats)
+            + '</d:response>'
         )
+
+    def _prop_values(self, record, record_type):
+        """Build {propname: xml}<d:...> for everything this resource has."""
+        values = {}
+
+        def add(name, xml):
+            values[name] = "<d:{}>{}</d:{}>".format(name, xml, name)
+
+        if record_type == "collection":
+            add("displayname", "DMS Root")
+            add("resourcetype", "<d:collection/>")
+            add("getcontenttype", "httpd/unix-directory")
+            return values, list(self.ALL_PROPS)
+
+        name = record.name or ""
+        add("displayname", _xml_escape(name))
+        if record_type in ("storage", "directory"):
+            add("resourcetype", "<d:collection/>")
+            add("getcontenttype", "httpd/unix-directory")
+        elif record_type == "file":
+            add("resourcetype", "")
+            add("getcontenttype", _xml_escape(record.mimetype or "application/octet-stream"))
+            add("getcontentlength", str(int(record.size or 0)))
+            if record.checksum:
+                # Strong validator: Odoo's checksum IS the sha1 of the bytes,
+                # so it changes exactly when the content does.
+                add("getetag", '"{}"'.format(record.checksum))
+
+        modified = self._rfc1123(record.write_date)
+        if modified:
+            add("getlastmodified", modified)
+        created = self._rfc1123(record.create_date)
+        if created:
+            add("creationdate", created)
+
+        # RFC 4918 15.9: advertise what LOCK actually grants. Files take an
+        # exclusive write lock, collections a shared one (see _lock()).
+        scope = "exclusive" if record_type == "file" else "shared"
+        add(
+            "supportedlock",
+            '<d:lockentry><d:lockscope><d:{} /></d:lockscope>'
+            '<d:locktype><d:write /></d:locktype></d:lockentry>'.format(scope),
+        )
+        return values, None
 
     @staticmethod
     def _overwrite_allowed():
@@ -270,9 +390,11 @@ class DmsWebdavController(http.Controller):
         if parts and parts[0] == "webdav":
             parts = parts[1:]
         if not parts or not parts[-1]:
-            return None, request.make_response(
-                "Bad Request: Destination has no resource path", status=400
-            )
+            # No response object here on purpose: building one needs a request
+            # context, which made the parse step untestable and would raise
+            # RuntimeError outside a request. The caller turns the error code
+            # into a response.
+            return None, "Destination has no resource path"
         return "/" + "/".join(parts), None
 
     def _propfind_children(self, parent_path, record, resolver, depth):
@@ -823,7 +945,7 @@ class DmsWebdavController(http.Controller):
 
         dest_path, bad = self._destination_path(destination)
         if bad:
-            return bad
+            return request.make_response("Bad Request: %s" % bad, status=400)
 
         dest_record, dest_type = self._resolve(resolver, dest_path)
 
@@ -873,7 +995,7 @@ class DmsWebdavController(http.Controller):
 
         dest_path, bad = self._destination_path(destination)
         if bad:
-            return bad
+            return request.make_response("Bad Request: %s" % bad, status=400)
 
         dest_record, dest_type = self._resolve(resolver, dest_path)
         if dest_record is not None:

@@ -21,15 +21,22 @@ alltid `https://…`.
 |---|---|---|
 | **rclone** | ✅ **verifierad** | `rclone config` → typ `webdav` → URL `https://<odoo-host>/webdav/` |
 | curl (test) | ✅ verifierad | `curl -u user:pass -X PROPFIND https://<odoo-host>/webdav/ -H "Depth: 1"` |
-| GNOME Files / Nautilus | ⚠️ ej testad | `davs://<odoo-host>/webdav/` (davs = WebDAV över TLS) |
+| GNOME Files / Nautilus | ⚠️ protokollet klart, klienten ej körd | `davs://<odoo-host>/webdav/` (davs = WebDAV över TLS) |
 | KDE Dolphin | ⚠️ ej testad | `webdavs://<odoo-host>/webdav/` |
 | Windows Explorer | ⚠️ ej testad | `https://<odoo-host>/webdav/` |
 | macOS Finder (Cmd+K) | ⚠️ ej testad | `https://<odoo-host>/webdav/` |
 | **davfs2** (`mount.davfs`) | ❌ **fungerar inte** | se avsnitt 7 |
 
-**Använd rclone.** Det är den enda klient vi verifierat end-to-end mot en
-körande Odoo 18 (2026-10-20, `dms_webdav` 18.0.1.0.20): lista, skriva,
-läsa, kopiera, flytta och radera fungerar.
+**rclone är den enda klient vi verifierat end-to-end** mot en körande Odoo 18:
+lista, skriva, läsa, kopiera, flytta och radera fungerar.
+
+**Om Nautilus/davs:** själva GVFS-klienten har vi inte kört här (servern är
+headless — ingen Nautilus installerad). Däremot är numera *alla* HTTP-anrop
+GVFS gör verifierade med curl mot den körande instansen: `PROPFIND` Depth 0/1
+med GVFS:s exakta egenskapslista, `GET` med `Range` (206), `PUT`, `MKCOL`,
+`MOVE`/`COPY` med `Overwrite`, `DELETE`. Det som återstår är att GNOME:s egen
+implementation också beter sig som dokumenterat — det kan bara avgöras på en
+arbetsstation med skrivbord.
 
 **Avslutande snedstreck krävs.** `/webdav` (utan slash) ger 404 — routen är
 registrerad med `strict_slashes`, så `/webdav/` är den enda giltiga formen.
@@ -69,13 +76,61 @@ rotmapp (`dms.directory` med `is_root_directory=True`). Försök ger 409.
 | Metod | Stöds | Not |
 |---|---|---|
 | OPTIONS | ✅ | `DAV: 1, 2` (ingen auth krävs) |
-| PROPFIND | ✅ | `Depth: 0/1/infinity` |
+| PROPFIND | ✅ | `Depth: 0/1/infinity`; `allprop`/`propname`/`prop` respekteras, se §4.1 |
 | GET / HEAD | ✅ | |
 | PUT | ✅ | hela filen eller `Content-Range`-chunks, se §4.2 |
 | DELETE | ✅ | mapp måste vara tom (409 annars) |
 | MKCOL | ✅ | |
 | MOVE / COPY | ✅ | `Destination`-header krävs; procentkodning hanteras; `Overwrite: F` → 412 |
 | LOCK / UNLOCK | ⚠️ | se nedan |
+
+### 4.1 PROPFIND — egenskaper (properties)
+
+Servern svarar på den egenskapsfråga klienten faktiskt ställer:
+
+| Kropp | Läge | Svar |
+|---|---|---|
+| ingen / otydbar | `allprop` | alla egenskaper servern har |
+| `<D:propname/>` | `propname` | alla namn, tomma värden |
+| `<D:prop>…</D:prop>` | `prop` | endast de efterfrågade |
+
+Egenskaper som lämnas ut:
+
+| Egenskap | Källa | Gäller |
+|---|---|---|
+| `displayname` | fil-/mappnamn | båda |
+| `resourcetype` | `<D:collection/>` för mappar, tom för filer | båda |
+| `getcontenttype` | `mimetype`, annars `application/octet-stream` | båda |
+| `getcontentlength` | `size` | båda |
+| `getetag` | `checksum` (sha1 av innehållet) | **endast filer** |
+| `getlastmodified` | `write_date` | båda |
+| `creationdate` | `create_date` | båda |
+| `supportedlock` | `<D:exclusive/>` fil, `<D:shared/>` mapp | båda |
+
+RFC 4918 §9.1 kräver att en egenskap servern inte kan leverera hamnar i en
+**egen `propstat` med `404 Not Found`** — inte att den utelämnas tyst. Så här
+ser det ut när en klient frågar efter `quota-available-bytes` (som vi inte har):
+
+```xml
+<D:propstat>
+  <D:prop><D:getetag>"ab26…"</D:getetag></D:prop>
+  <D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+  <D:prop><D:quota-available-bytes/></D:prop>
+  <D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+```
+
+`getetag` är en **stark** validator: den är sha1 av bytesen, så den ändras
+exakt när innehållet ändras. Mappar har ingen `checksum` och får därför
+`getetag` i 404-blocket — det är korrekt, inte ett fel.
+
+**Varför detta spelar roll:** GNOME/gvfs (Nautilus) cachar kataloglistningar
+och använder `getetag` + `getlastmodified` för att avgöra om en fil ändrats.
+Utan dem visar Nautilus inaktuella filstorlekar och upptäcker inte att någon
+annan skrivit i filen — den öppnar då en gammal version i Inkscape/GIMP och
+skriver över nyare data vid spara.
 
 ### LOCK — varning
 
@@ -149,6 +204,9 @@ att varje klient sätter rätt header.
 | Filen blev 0 byte | åtgärdat i 18.0.1.6.0; uppgradera modulen, se §4.3 |
 | Filen "låst" i Odoo | LOCK utan efterföljande UNLOCK — rensa *Locked* |
 | Tom katalog i davfs2 | känt fel i davfs2, se avsnitt 7 — använd rclone |
+| Nautilus visar fel storlek / upptäcker inte ändringar | saknade `getetag`/`getlastmodified` — åtgärdat i 18.0.1.9.0, se §4.1 |
+| Klienten visar "0 objekt" men curl listar allt | `PROPFIND` gav inte de egenskaper klienten frågade efter — åtgärdat i 18.0.1.9.0 |
+| Filnamn med `&` eller `<` ger trasig lista | XML eskapers numera, se §4.1 |
 
 Logga inkommande anrop: `grep '\[WebDAV\]' /var/log/odoo/odoo-server.log`.
 
@@ -235,10 +293,31 @@ står därför hos den klient som inte fungerar, i stället för att döljas i e
 
 ### Vad som testas — och vad som inte testas
 
-`dms_webdav/tests/test_webdav_http.py` (elva tester) och
-`test_webdav_path.py` (arton tester) testar **serverns** svar: statuskoder,
-autentisering, `Content-Range`, well-known-redirect och path-uppslagning.
+`dms_webdav/tests/test_webdav_http.py` och `test_webdav_path.py` testar
+**serverns** svar: statuskoder, autentisering, `Content-Range`,
+well-known-redirect, path-uppslagning och egenskapsutlämningen i §4.1.
 Ingen av dem går genom en monterad klient, och ingen av dem kan fånga en
 klientbugg som davfs2:s. Den enda klient som verifierats end-to-end är
-`rclone` — därför är den den rekommenderade vägen, inte ett alternativ bland
-flera.
+`rclone` — därför är den fortsatt den rekommenderade vägen när något måste
+fungera utan överraskningar. Nautilus/gvfs är protokollmässigt förberedd men
+oskodd i praktiken.
+
+### Kör testerna rätt — `--single-mode` hoppar tyst över HTTP-testerna
+
+`checkmodule --single-mode` startar Odoo med `--no-http`. Då finns ingen
+HTTP-server, och varje `HttpCase.setUpClass()` kastar
+`AttributeError: 'PreforkServer' object has no attribute 'httpd'`. Klassen
+markeras som fel och **körs aldrig** — ett grönt testresultat betyder alltså
+inte att HTTP-testerna har gått.
+
+Kör dem med en konfiguration som har `workers = 0` (Odoo varnar själv:
+"Unit testing in workers mode could fail; use --workers 0"):
+
+```bash
+sudo -n su odoo -c "ODOO_SERVER_CONF=/var/tmp/picm/odoo.conf \
+  /usr/local/bin/checkmodule -d dms -m dms_webdav -t --test-tags /dms_webdav"
+```
+
+Sätt `workers = 0` i den kopian, inte i `/etc/odoo/odoo.conf`. Rena
+hjälpfunktionstester hör hemma i en `BaseCase` (som `TestWebdavProps`) så att
+de körs även i `--single-mode`.
