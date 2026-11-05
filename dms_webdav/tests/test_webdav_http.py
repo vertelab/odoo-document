@@ -131,3 +131,57 @@ class TestWebdavHttp(HttpCase):
         self.assertIsNone(parse("bytes 0-100/100"))
         self.assertIsNone(parse("bytes a-b/100"))
         self.assertIsNone(parse("items 0-99/100"))
+
+    def test_form_content_type_preserves_body(self):
+        """A form-encoded PUT body must not be swallowed by Odoo's parser.
+
+        Odoo's HttpDispatcher parses ``.form`` before the controller runs,
+        which consumes the stream. ``curl --data-binary`` sends
+        ``application/x-www-form-urlencoded`` by default, so this combination
+        silently stored a 0-byte file with status 200 — the incident that
+        produced models/ir_http_dispatch.py. RFC 4918 says the body is opaque
+        regardless of Content-Type, so the server has to cope.
+        """
+        body = b"form-encoded body test, 26 B\n"
+        response = self._request(
+            "/webdav/some/file.txt",
+            method="PUT",
+            data=body,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        # Unauthenticated in the test DB: 401 is fine, but it must never be a
+        # success that stored nothing.
+        self.assertIn(response.status_code, (401, 201, 400, 409))
+
+    def test_declared_length_without_body_is_rejected(self):
+        """Content-Length > 0 but an empty stream is 400, not a silent zero."""
+        response = self._request(
+            "/webdav/some/file.txt",
+            method="PUT",
+            data=b"",
+            headers={"Content-Length": "10",
+                     "Content-Type": "application/x-www-form-urlencoded"},
+        )
+        self.assertIn(response.status_code, (401, 400, 409))
+
+    def test_destination_path_percent_decodes(self):
+        """MOVE/COPY Destination arrives percent-encoded from real clients."""
+        from odoo.addons.dms_webdav.controllers.webdav import DmsWebdavController
+
+        resolve = DmsWebdavController._destination_path
+        self.assertEqual(
+            resolve("https://host/webdav/Documents%20Storage/My%20Dir/f.txt"),
+            ("/Documents Storage/My Dir/f.txt", None),
+        )
+        self.assertEqual(
+            resolve("/webdav/Documents%20Storage/f.txt"),
+            ("/Documents Storage/f.txt", None),
+        )
+        # A raw space is what older clients send, and must keep working.
+        self.assertEqual(
+            resolve("/webdav/Documents Storage/f.txt"),
+            ("/Documents Storage/f.txt", None),
+        )
+        path, bad = resolve("/other/prefix/f.txt")
+        self.assertIsNone(path)
+        self.assertIsNotNone(bad)

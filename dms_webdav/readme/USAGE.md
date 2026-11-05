@@ -71,10 +71,10 @@ rotmapp (`dms.directory` med `is_root_directory=True`). Försök ger 409.
 | OPTIONS | ✅ | `DAV: 1, 2` (ingen auth krävs) |
 | PROPFIND | ✅ | `Depth: 0/1/infinity` |
 | GET / HEAD | ✅ | |
-| PUT | ✅ | hela filen; **`Content-Range`/chunked PUT → 501** |
+| PUT | ✅ | hela filen eller `Content-Range`-chunks, se §4.2 |
 | DELETE | ✅ | mapp måste vara tom (409 annars) |
 | MKCOL | ✅ | |
-| MOVE / COPY | ✅ | `Destination`-header krävs |
+| MOVE / COPY | ✅ | `Destination`-header krävs; procentkodning hanteras; `Overwrite: F` → 412 |
 | LOCK / UNLOCK | ⚠️ | se nedan |
 
 ### LOCK — varning
@@ -86,9 +86,54 @@ kraschar innan UNLOCK. Kontrollera/rensa i Odoo: fältet *Locked* på filen.
 ### Chunked PUT
 
 Office-program (Word, Excel, LibreOffice) och rclone kan skicka stora filer
-som `Content-Range`-chunks. Det stöds inte — servern svarar 501. Filen måste
-skickas i ett svep. Samma gäller `PUT` med `Transfer-Encoding: chunked` hos
-vissa proxys; sätt `request_buffering`/storleksgräns i Caddy i så fall.
+som `Content-Range`-chunks. Det stöds: servern buffrar chunkarna i
+`/tmp/dms_webdav_chunks/` och skriver filen när sista chunken anlänt.
+Mellansvar är **308** med `Range: bytes=0-<end>`; sista chunken ger **201**.
+
+```
+PUT /webdav/.../stor.xcf   Content-Range: bytes 0-4194303/12582912  -> 308
+PUT /webdav/.../stor.xcf   Content-Range: bytes 4194304-12582911/12582912 -> 201
+```
+
+Skicka alltid `Content-Type: application/octet-stream` — se §4.3.
+
+### 4.3 `Content-Type` styr om bodyn överlever
+
+**Sätt `Content-Type: application/octet-stream` på PUT.** Skickas kroppen som
+`application/x-www-form-urlencoded` eller `multipart/form-data` parsar Odoo
+den som ett formulär *innan* kontrollern körs, och då kan den inte längre
+läsas som rådata.
+
+Det här är inte teoretiskt. `curl --data-binary` sätter
+`application/x-www-form-urlencoded` som default, och den kombinationen
+nollställde en 397 923-byte SVG till 0 byte med status **200 OK** — klienten
+såg alltså en lyckad uppladdning.
+
+Modulen försvarar sig på tre nivåer (`models/ir_http_dispatch.py` och
+`_reject_form_urlencoded()`):
+
+| Skydd | Verkan |
+|---|---|
+| Body cachas före formulärparsningen | `Content-Type` spelar ingen roll — rätt bytes lagras |
+| Enskilt formfält återvinns | kropp som redan parsats räddas om den är entydig |
+| `Content-Length` > 0 men 0 lästa byte | **400** i stället för tyst nollning |
+| Tom body mot befintlig icke-tom fil | **409** — filen röres inte |
+
+Den sista raden betyder att en legitim tömning av en fil **inte** kan göras
+med en tom PUT. Radera filen och skapa en ny, eller skriv ett tecken.
+
+```bash
+# rätt
+curl -u user:pass -T fil.xcf -H "Content-Type: application/octet-stream" https://host/webdav/.../fil.xcf
+
+# fel — kroppen kan parsas bort
+curl -u user:pass --data-binary @fil.xcf https://host/webdav/.../fil.xcf
+```
+
+RFC 4918 säger att servern ska behandla PUT-kroppen som ogenomskinlig
+oberoende av `Content-Type`. Att Odoo:s formulärparsning ändå rör den är en
+avvikelse från det, som modulen nu kompenserar för i stället för att lita på
+att varje klient sätter rätt header.
 
 ## 5. Felsökning
 
@@ -98,7 +143,10 @@ vissa proxys; sätt `request_buffering`/storleksgräns i Caddy i så fall.
 | 404 på `/webdav/` | modulen `dms_webdav` är inte installerad i den databas Odoo kör |
 | 401 trots rätt lösenord | användaren finns i en DB utanför `list_db`, eller 2FA är på |
 | 409 vid uppladdning | föräldramappen finns inte, eller filen ligger direkt under en storage |
-| 501 vid uppladdning | chunked PUT (`Content-Range`) |
+| 409 vid tom PUT mot befintlig fil | avsiktligt skydd mot dataförlust, se §4.3 |
+| 400 vid uppladdning | `Content-Length` utlovade byte som aldrig kom fram, se §4.3 |
+| 412 vid MOVE/COPY | destinationen finns och `Overwrite: F`, se §4 |
+| Filen blev 0 byte | åtgärdat i 18.0.1.6.0; uppgradera modulen, se §4.3 |
 | Filen "låst" i Odoo | LOCK utan efterföljande UNLOCK — rensa *Locked* |
 | Tom katalog i davfs2 | känt fel i davfs2, se avsnitt 7 — använd rclone |
 

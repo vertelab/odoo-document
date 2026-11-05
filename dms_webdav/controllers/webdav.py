@@ -1,6 +1,6 @@
 import base64
 import logging
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 from odoo import http
 from odoo.http import request
@@ -203,6 +203,33 @@ class DmsWebdavController(http.Controller):
             '</d:response>'
         )
 
+    @staticmethod
+    def _overwrite_allowed():
+        """RFC 4918 10.6: ``Overwrite`` defaults to ``T``, ``F`` means fail.
+
+        If a destination exists and Overwrite is F the server must answer 412
+        and leave both resources alone. With T (the default) it must replace
+        the destination -- clients such as rclone rename by MOVE onto an
+        existing name.
+        """
+        return (
+            request.httprequest.headers.get("Overwrite", "T").strip().upper()
+            != "F"
+        )
+
+    def _replace_destination(self, dest_record, dest_type):
+        """Remove an existing destination before MOVE/COPY writes over it."""
+        if dest_type == "directory" and (
+            dest_record.child_directory_ids or dest_record.file_ids
+        ):
+            # RFC 4918 9.8.4/9.9.4: a non-empty collection can only be
+            # replaced by deleting it first, which we do not do implicitly.
+            return request.make_response(
+                "Conflict: destination collection is not empty", status=409
+            )
+        dest_record.sudo().unlink()
+        return None
+
     def _resolve(self, resolver, path):
         """Resolve a WebDAV path, tolerating a missing leading slash.
 
@@ -220,6 +247,33 @@ class DmsWebdavController(http.Controller):
         #     sudo().resolve("/DavTest/Docs")  -> ("Docs", "directory")
         # Access is enforced afterwards via _filtered_access() in _propfind().
         return resolver.sudo().resolve(path)
+
+    @staticmethod
+    def _destination_path(destination):
+        """Turn a Destination header into a WebDAV path, decoded.
+
+        ``urlparse().path`` does **not** decode percent-encoding, so RFC 4918
+        clients that send ``Destination: https://host/webdav/Documents%20Storage/x``
+        used to reach ``resolve("/Documents%20Storage/x")``, which never
+        matches a real name. The parent was then "not found" and MOVE/COPY
+        returned 409 for every destination below a name containing a space.
+        Unquoting once makes both the encoded and the raw form work.
+
+        The ``/webdav`` prefix is stripped after decoding, because a leading
+        component cannot itself contain an encoded slash. Some clients send
+        the bare path (``/Documents Storage/x``) instead of the full URL;
+        stripping the first component unconditionally would then eat the
+        storage name, so the prefix is only removed when it is really there.
+        """
+        dest_path = unquote(urlparse(destination).path)
+        parts = dest_path.strip("/").split("/")
+        if parts and parts[0] == "webdav":
+            parts = parts[1:]
+        if not parts or not parts[-1]:
+            return None, request.make_response(
+                "Bad Request: Destination has no resource path", status=400
+            )
+        return "/" + "/".join(parts), None
 
     def _propfind_children(self, parent_path, record, resolver, depth):
         results = []
@@ -427,6 +481,55 @@ class DmsWebdavController(http.Controller):
         return request.make_response(body, headers=headers)
 
     @staticmethod
+    def _request_body():
+        """Return the raw request body as bytes, whatever the Content-Type.
+
+        Odoo's ``Dispatcher.dispatch()`` builds ``request.params`` from
+        ``request.get_http_params()``, which merges ``args``, ``form`` and
+        ``files``. Touching ``.form`` runs Werkzeug's form parser for any
+        request that carries a ``Content-Type``
+        (``want_form_data_parsed`` is true whenever ``CONTENT_TYPE`` is set),
+        and that parser *consumes the stream*: the body ends up in
+        ``request.params`` instead of on ``httprequest`` and the endpoint's
+        signature only accepts route arguments, so the payload is logged as
+        ``called ignoring args`` and dropped.
+
+        ``curl --data-binary`` sends ``application/x-www-form-urlencoded`` by
+        default, so a plain PUT looked successful (201/200) while writing
+        zero bytes -- this silently emptied a live file.
+
+        Reading the body here always yields the bytes, but the positional-arg
+        capture that drops them has to be handled too, hence
+        ``models.ir_http_dispatch.webserver_dispatch_keeps_body``.
+        """
+        return request.httprequest.get_data(cache=True)
+
+    @staticmethod
+    def _reject_form_urlencoded(body):
+        """Return a 400 when a non-empty body arrived unparsed as a form.
+
+        Belt and braces: if ``webserver_dispatch_keeps_body`` is missing (an
+        Odoo patch that renames the dispatcher again) and the body was eaten,
+        ``body`` is empty while ``Content-Length`` says otherwise. Writing
+        nothing over a file is the one thing this route must never do
+        silently, so the caller gets a 400 instead of a 0-byte overwrite.
+        """
+        declared = request.httprequest.content_length
+        if declared and not body:
+            _logger.warning(
+                "[WebDAV] body missing: %s bytes declared, 0 read "
+                "(Content-Type %r) -- refusing to write empty content",
+                declared,
+                request.httprequest.headers.get("Content-Type"),
+            )
+            return request.make_response(
+                "Bad Request: request body was consumed by form parsing; "
+                "send Content-Type: application/octet-stream",
+                status=400,
+            )
+        return None
+
+    @staticmethod
     def _parse_content_range(header):
         """Parse a ``Content-Range: bytes start-end/total`` header.
 
@@ -551,7 +654,10 @@ class DmsWebdavController(http.Controller):
                     "Bad Request: status query is not a chunk", status=400
                 )
             start, end, total = parsed
-            data = request.httprequest.get_data()
+            data = self._request_body()
+            rejected = self._reject_form_urlencoded(data)
+            if rejected:
+                return rejected
             if len(data) != end - start + 1:
                 return request.make_response(
                     "Bad Request: chunk length does not match Content-Range",
@@ -579,11 +685,33 @@ class DmsWebdavController(http.Controller):
         record, record_type = self._resolve(resolver, path)
 
         if not content_range:
-            data = request.httprequest.get_data()
+            data = self._request_body()
+            rejected = self._reject_form_urlencoded(data)
+            if rejected:
+                return rejected
         if record is not None and record_type == "file":
             if not record.with_user(request.env.user)._filtered_access("write"):
                 return request.make_response(
                     "Forbidden: no write access to this resource", status=403)
+            # An empty body over an existing, non-empty file is almost always a
+            # client bug -- a consumed stream, a failed read, a truncated
+            # upload -- and the result is indistinguishable from data loss.
+            # This is how a 397923-byte SVG became 0 bytes next to a 200 OK.
+            # Truncating to zero is possible on purpose by deleting the file.
+            if not data and record.size:
+                _logger.error(
+                    "[WebDAV] refusing to empty %s (%s bytes) -- PUT carried "
+                    "no content (Content-Length %s, Content-Type %r)",
+                    path,
+                    record.size,
+                    request.httprequest.content_length,
+                    request.httprequest.headers.get("Content-Type"),
+                )
+                return request.make_response(
+                    "Conflict: refusing to overwrite a non-empty file with an "
+                    "empty body",
+                    status=409,
+                )
             record.sudo().with_context(dms_source="webdav").write(
                 {"content": base64.b64encode(data)}
             )
@@ -693,15 +821,26 @@ class DmsWebdavController(http.Controller):
         if not destination:
             return request.make_response("Bad Request: no Destination header", status=400)
 
-        dest_path = urlparse(destination).path
-        dest_path = "/" + "/".join(dest_path.strip("/").split("/")[1:])
+        dest_path, bad = self._destination_path(destination)
+        if bad:
+            return bad
 
         dest_record, dest_type = self._resolve(resolver, dest_path)
 
         if not record.with_user(request.env.user)._filtered_access("write"):
             return request.make_response("Forbidden", status=403)
         if dest_record is not None:
-            return request.make_response("Conflict: destination already exists", status=409)
+            if dest_record.id == record.id:
+                # RFC 4918 9.9.2: moving a resource onto itself is a no-op.
+                return request.make_response("", status=204)
+            if not self._overwrite_allowed():
+                return request.make_response(
+                    "Precondition Failed: destination exists and Overwrite is F",
+                    status=412,
+                )
+            rejected = self._replace_destination(dest_record, dest_type)
+            if rejected:
+                return rejected
 
         dest_path_clean = dest_path.strip("/")
         *dest_dir_parts, dest_name = dest_path_clean.split("/")
@@ -732,12 +871,20 @@ class DmsWebdavController(http.Controller):
         if not destination:
             return request.make_response("Bad Request: no Destination header", status=400)
 
-        dest_path = urlparse(destination).path
-        dest_path = "/" + "/".join(dest_path.strip("/").split("/")[1:])
+        dest_path, bad = self._destination_path(destination)
+        if bad:
+            return bad
 
         dest_record, dest_type = self._resolve(resolver, dest_path)
         if dest_record is not None:
-            return request.make_response("Conflict: destination already exists", status=409)
+            if not self._overwrite_allowed():
+                return request.make_response(
+                    "Precondition Failed: destination exists and Overwrite is F",
+                    status=412,
+                )
+            rejected = self._replace_destination(dest_record, dest_type)
+            if rejected:
+                return rejected
 
         dest_path_clean = dest_path.strip("/")
         *dest_dir_parts, dest_name = dest_path_clean.split("/")
