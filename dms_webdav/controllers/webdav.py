@@ -33,6 +33,57 @@ def _xml_escape(value):
     )
 
 
+# LibreOffice's lock-file convention: `.~lock.<document name>#`, written
+# beside the document it locks. Its first line is
+# `<user>,<login>,<host>,<timestamp>`.
+#
+# This is the SECOND way LibreOffice announces a lock -- the first is
+# LOCK/UNLOCK. Both are honoured; see `_lock_refusal` for the protocol path.
+LOCK_FILE_RE = re.compile(r"^\.~lock\..+#$")
+
+
+def _is_lock_file(name):
+    """True for `.~lock.<something>#`, false for anything else.
+
+    Deliberately narrow. Not "starts with a dot" (dotfiles are legitimate
+    documents), not "is small" (43 bytes is typical, not a rule), not
+    "contains lock" (a document may be called `lock-report.docx`).
+    """
+    return bool(LOCK_FILE_RE.match(name or ""))
+
+
+def _locked_document_name(lock_name):
+    """Return the document name a lock file refers to.
+
+    `.~lock.Budget.docx#` -> `Budget.docx`. The document is looked up by this
+    name in the SAME directory -- a lock file does not name a path.
+    """
+    if not _is_lock_file(lock_name):
+        return None
+    return lock_name[len(".~lock."):-1]
+
+
+def _lock_holder(content):
+    """Parse `<user>,<login>,<host>,<timestamp>` from a lock file.
+
+    Returns `(name, login)`, or `(None, None)` when it cannot be parsed. A
+    caller must still treat the document as locked in that case -- the file
+    exists, so somebody holds it; only the holder is unknown. Guessing from a
+    partial parse would be worse than saying "unknown".
+    """
+    if not content:
+        return None, None
+    try:
+        first_line = content.decode("utf-8", "replace").splitlines()[0]
+    except (IndexError, AttributeError):
+        return None, None
+    parts = first_line.split(",")
+    if len(parts) < 2:
+        return None, None
+    name, login = parts[0].strip(), parts[1].strip()
+    return (name or None), (login or None)
+
+
 def _basic_auth():
     auth = request.httprequest.headers.get("Authorization", "")
     if not auth.startswith("Basic "):
@@ -991,18 +1042,36 @@ class DmsWebdavController(http.Controller):
             return request.make_response(
                 "Forbidden: no create access in this directory", status=403)
 
+        vals = {
+            "name": file_name,
+            "directory_id": parent_record.id,
+            "content": base64.b64encode(data),
+        }
+        is_lock = _is_lock_file(file_name)
+        if is_lock:
+            # A lock file must be stored -- a client that cannot read back
+            # what it wrote reports "the document could not be locked" and
+            # refuses to edit -- but it is not a document.
+            #
+            # `active = False` is the hiding mechanism, not `is_hidden`:
+            # `is_hidden` on dms.file is `related="storage_id.is_hidden"`,
+            # readonly and stored, so writing it would hide the whole storage
+            # (OCA dms, abstract_dms_mixin.py:15). `active` is the only
+            # boolean that hides one record without touching its neighbours.
+            #
+            # Consequence: the lock file is absent from `search([])`, so the
+            # DELETE path has to look for it with `active_test=False`.
+            vals["active"] = False
+
         new_file = (
             request.env["dms.file"]
             .sudo()
             .with_context(dms_source="webdav")
-            .create(
-                {
-                    "name": file_name,
-                    "directory_id": parent_record.id,
-                    "content": base64.b64encode(data),
-                }
-            )
+            .create(vals)
         )
+
+        if is_lock:
+            self._apply_lock_file(new_file, parent_record, data)
         return request.make_response(
             "",
             headers=[("ETag", '"{}"'.format(new_file.checksum or ""))],
@@ -1029,6 +1098,9 @@ class DmsWebdavController(http.Controller):
         if record_type == "directory":
             if record.child_directory_ids or record.file_ids:
                 return request.make_response("Conflict: directory not empty", status=409)
+
+        if record_type == "file" and _is_lock_file(record.name):
+            self._release_lock_file(record)
 
         record.sudo().unlink()
         return request.make_response("", status=204)
@@ -1286,6 +1358,88 @@ class DmsWebdavController(http.Controller):
             "Locked: the resource is locked by {}".format(record.locked_by.name),
             status=423,
         )
+
+    def _apply_lock_file(self, lock_file, directory, content):
+        """Mark the document a lock file names as locked (design D3/D4).
+
+        Silent when the named document does not exist: a client may write its
+        lock before the document's own create has landed, and that is not an
+        error. The lock file is still stored and hidden.
+        """
+        document_name = _locked_document_name(lock_file.name)
+        if not document_name:
+            return
+
+        document = (
+            request.env["dms.file"]
+            .sudo()
+            .search(
+                [
+                    ("directory_id", "=", directory.id),
+                    ("name", "=", document_name),
+                ],
+                limit=1,
+            )
+        )
+        if not document:
+            _logger.info(
+                "[WebDAV] lock file %s names %r, which does not exist here",
+                lock_file.name,
+                document_name,
+            )
+            return
+
+        holder_name, holder_login = _lock_holder(content)
+        holder = request.env["res.users"].sudo().search(
+            [("login", "=", holder_login)], limit=1
+        ) if holder_login else request.env["res.users"]
+
+        if not holder:
+            # Locked, holder unknown. The file exists; somebody holds it.
+            _logger.info(
+                "[WebDAV] lock file %s: holder %r not found, locking anyway",
+                lock_file.name,
+                holder_login,
+            )
+            document.write({"locked_by": request.env.user.id})
+            return
+
+        document.write({"locked_by": holder.id})
+        _logger.info(
+            "[WebDAV] lock file %s locks dms.file %s for %s",
+            lock_file.name,
+            document.id,
+            holder_name or holder_login,
+        )
+
+    def _release_lock_file(self, record):
+        """Clear the lock a lock file asserted, when the file goes.
+
+        Only clears a lock this file is responsible for: if the document is
+        locked by someone else -- a protocol LOCK taken after the file was
+        written -- that lock is not ours to clear.
+        """
+        document_name = _locked_document_name(record.name)
+        if not document_name:
+            return
+        document = (
+            request.env["dms.file"]
+            .sudo()
+            .search(
+                [
+                    ("directory_id", "=", record.directory_id.id),
+                    ("name", "=", document_name),
+                ],
+                limit=1,
+            )
+        )
+        if document and document.locked_by:
+            document.write({"locked_by": None})
+            _logger.info(
+                "[WebDAV] lock file %s removed, dms.file %s unlocked",
+                record.name,
+                document.id,
+            )
 
     def _lockdiscovery(self, record, record_type):
         """Return the `<d:lockdiscovery>` body for this resource.

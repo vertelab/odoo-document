@@ -1,4 +1,10 @@
+import re
+
 from odoo import api, models
+
+# Same rule as `webdav.LOCK_FILE_RE`. Duplicated rather than imported: the
+# controller imports this model's module, so importing back is a cycle.
+_LOCK_FILE_RE = re.compile(r"^\.~lock\..+#$")
 
 
 class DmsWebdavPath(models.AbstractModel):
@@ -40,7 +46,15 @@ class DmsWebdavPath(models.AbstractModel):
                     return current_dir, "directory"
             else:
                 if i == len(parts) - 1 and current_dir:
-                    file_rec = self.env["dms.file"].search([
+                    # Lock files are archived on create (`active=False`) so
+                    # they stay out of the listing -- see
+                    # webdav-dotfile-locks. Without `active_test=False` the
+                    # resolver cannot find one, and the DELETE that releases
+                    # the lock would 404 on a file that is right there.
+                    DmsFile = self.env["dms.file"]
+                    if _LOCK_FILE_RE.match(part):
+                        DmsFile = DmsFile.with_context(active_test=False)
+                    file_rec = DmsFile.search([
                         ("name", "=", part),
                         ("directory_id", "=", current_dir.id),
                     ], limit=1)
