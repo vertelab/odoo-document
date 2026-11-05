@@ -3,7 +3,9 @@
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl.html).
 
 import base64
+import io
 import logging
+import socket
 
 from odoo import api, models
 from odoo.exceptions import ValidationError
@@ -49,8 +51,13 @@ class DmsFile(models.Model):
         host, port = self._clamav_config()
         try:
             client = clamd.ClamdNetworkSocket(host=host, port=port, timeout=30)
-            result = client.instream(data)
-        except Exception as error:  # noqa: BLE001 - fail-open by design
+            # clamd 1.0.2's instream() takes a FILE-LIKE object, not bytes:
+            # it calls buff.read(max_chunk_size). Passing bytes raised
+            # AttributeError, the except below swallowed it, and every scan
+            # silently returned "clean" - an infected file was stored with
+            # only a warning in the log (verified 2026-11-05).
+            result = client.instream(io.BytesIO(data))
+        except (clamd.ClamdError, OSError, socket.error) as error:
             _logger.warning(
                 "dms_clamav: clamd at %s:%s unavailable (%s) - "
                 "storing without scan (fail-open)",
@@ -59,6 +66,16 @@ class DmsFile(models.Model):
                 error,
             )
             return None
+        except Exception as error:  # noqa: BLE001
+            # NOT fail-open. A bug in this module or in the clamd client is
+            # not the same thing as clamd being down: failing open on it
+            # means a scanner that never scans and never says so.
+            _logger.exception(
+                "dms_clamav: the scan itself failed (%s) - refusing to "
+                "store unscanned content",
+                error,
+            )
+            raise
         # clamd returns {'stream': ('OK', None)} or {'stream': ('FOUND', 'Name')}
         status, signature = (result or {}).get("stream", (None, None))
         if status == "FOUND":
