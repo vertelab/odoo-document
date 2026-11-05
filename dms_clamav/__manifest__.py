@@ -4,7 +4,7 @@
 {
     "name": "DMS Antivirus (ClamAV)",
     "summary": "Scan every DMS file write with ClamAV before it is stored",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "category": "Document Management",
     "author": "Vertel Sverige AB",
     "website": "https://vertel.se",
