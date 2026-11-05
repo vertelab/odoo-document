@@ -57,6 +57,30 @@ Rekommendation: skapa en dedikerad WebDAV-användare med åtkomst bara till
 de storage:n som ska delas. Basic auth skickar lösenordet i klartext över
 nätet — **använd alltid HTTPS** (Caddy-terminering framför Odoo).
 
+### Nautilus (GNOME Files) — `davs://`
+
+```
+davs://<odoo-host>/webdav/
+```
+
+Nautilus frågar efter användarnamn och lösenord (Odoo-inloggning, inte
+API-nyckel) och kan spara dem i GNOME:s nyckelring. `davs` = WebDAV över TLS;
+använd aldrig `dav://` mot en publik värd.
+
+Två saker att känna till:
+
+1. **Snedstrecket i slutet måste med.** Nautilus normaliserar inte bort det,
+   men om adressen skrivs utan slash blir det 404.
+2. **Filen hämtas till en lokal tempfil när den öppnas.** Redigering i
+   Inkscape eller GIMP sker alltså lokalt, och hela filen laddas upp igen när
+   programmet sparar. Det betyder att stora filer (`.xcf`, `.psd`) går över
+   hela vägen två gånger, och att ett sparbeteende som skapar tempfil +
+   byter namn kan ge en ny fil i stället för en överskriven. Öppna därför
+   **inte** samma fil från två håll samtidigt.
+
+Om Nautilus visar fel storlek eller inte upptäcker att en fil ändrats är det
+`getetag`/`getlastmodified` som saknas — se §4.1 och felsökningstabellen.
+
 ## 3. Vad man ser i monteringen
 
 ```
