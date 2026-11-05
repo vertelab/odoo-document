@@ -603,6 +603,61 @@
       [scheduleSave]
     );
 
+    /*
+     * "Save my library" — task 6.1.
+     *
+     * A user library is a `dms.file` with `extension = excalidrawlib`, not a
+     * catalogue record: it belongs in a folder and must inherit that folder's
+     * `dms.access.group`. The catalogue is a separate model precisely because
+     * it has no folder and no owner (see the model's docstring).
+     *
+     * The file is created NEXT TO the whiteboard, so a user who saves their
+     * library while working in a customer folder finds it there rather than
+     * in a global pile they cannot locate.
+     */
+    var librarySaveState = React.useState(null);
+    var librarySaveMessage = librarySaveState[0];
+    var setLibrarySaveMessage = librarySaveState[1];
+
+    var saveMyLibrary = React.useCallback(
+      function () {
+        var items = libraryRef.current;
+        if (!items || !items.length) {
+          setLibrarySaveMessage(
+            "Your library is empty — add a shape to it first."
+          );
+          return;
+        }
+        setLibrarySaveMessage("Saving\u2026");
+        fetch("/dms_excalidraw/save_library/" + fileId, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ libraryItems: items }),
+        })
+          .then(function (response) {
+            return response.json().then(function (body) {
+              return { ok: response.ok, body: body };
+            });
+          })
+          .then(function (result) {
+            if (!result.ok) {
+              setLibrarySaveMessage(
+                result.body.error || "The library could not be saved."
+              );
+              return;
+            }
+            setLibrarySaveMessage(
+              "Saved as '" + result.body.name + "' in this folder."
+            );
+          })
+          .catch(function (reason) {
+            setLibrarySaveMessage("The library could not be saved: " + reason);
+          });
+      },
+      [fileId]
+    );
+
     /* ---- flush on blur and Ctrl+S ---- */
     React.useEffect(
       function () {
@@ -999,6 +1054,26 @@
         },
       }),
       h(SaveIndicator, { state: saveState, message: saveMessage }),
+      /*
+       * The shape library picker.
+       *
+       * Optional on purpose: `library.js` is a separate script, and a page
+       * that loaded without it must still be a working editor. A missing
+       * picker is a missing sidebar, not a blank canvas.
+       *
+       * It sits ABOVE the canvas as an overlay rather than beside it: the
+       * editor owns the viewport, and a layout shift while someone is
+       * drawing is worse than a panel they close.
+       */
+      window.ExcalidrawLibraryPicker
+        ? h(window.ExcalidrawLibraryPicker.LibraryPicker, {
+            h: h,
+            React: React,
+            apiRef: apiRef,
+            onSaveMyLibrary: saveMyLibrary,
+            saveMessage: librarySaveMessage,
+          })
+        : null,
       /*
        * The deck layer.
        *

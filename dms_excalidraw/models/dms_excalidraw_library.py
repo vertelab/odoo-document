@@ -28,8 +28,10 @@ user may have a saved whiteboard that references it.
 
 import json
 import logging
+import os
 
 from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -229,6 +231,127 @@ class DmsExcalidrawLibrary(models.Model):
         count stored by the sync must agree.
         """
         return len(items)
+
+
+    # ------------------------------------------------------------------
+    # Serving a library to the picker
+    # ------------------------------------------------------------------
+
+    _MAX_BYTES_PARAM = "dms_excalidraw.library_max_bytes"
+    _DEFAULT_MAX_BYTES = 2 * 1024 * 1024
+
+    @api.model
+    def _max_bytes(self):
+        """Return the largest library the picker will load.
+
+        A cap exists because a library is fetched and parsed in the browser:
+        a 20 MB file is a frozen tab, not a slow one. 2 MB is roughly ten
+        times the largest library in the upstream catalogue.
+        """
+        raw = (
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param(self._MAX_BYTES_PARAM, str(self._DEFAULT_MAX_BYTES))
+        )
+        try:
+            return int(raw)
+        except (TypeError, ValueError):
+            return self._DEFAULT_MAX_BYTES
+
+    def _read_source(self):
+        """Return the raw bytes of this library's `source_url`.
+
+        A seeded library points at the module's own static path, so this is a
+        local file read. A synced library points at GitHub, so it is a fetch.
+        Both go through here so the size cap and the error messages are
+        written once.
+        """
+        self.ensure_one()
+        if not self.source_url:
+            raise UserError(
+                _("The library '%s' has no source URL.", self.name)
+            )
+
+        url = self.source_url
+        if url.startswith("/"):
+            # Module static path: read from disk. `/dms_excalidraw/static/...`
+            # maps to `<module>/static/...`; anything else is refused rather
+            # than resolved, so a crafted record cannot read the filesystem.
+            prefix = "/dms_excalidraw/static/"
+            if not url.startswith(prefix):
+                raise UserError(
+                    _("The library '%(name)s' points at %(url)s, which is not "
+                      "a module static path.", name=self.name, url=url)
+                )
+            relative = url[len(prefix):]
+            if ".." in relative.split("/"):
+                raise UserError(
+                    _("The library '%s' has an unsafe path.", self.name)
+                )
+            module_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            path = os.path.join(module_dir, "static", *relative.split("/"))
+            try:
+                with open(path, "rb") as handle:
+                    return handle.read()
+            except OSError as error:
+                raise UserError(
+                    _("Could not read the library '%(name)s': %(reason)s.",
+                      name=self.name, reason=error)
+                ) from error
+
+        return self._fetch_bytes(url)
+
+    def action_load(self):
+        """Return the library payload for the picker.
+
+        Returns a dict rather than raising for the two conditions the picker
+        must SHOW (too large, unreadable): the user picked this library and is
+        owed an explanation naming it, not a generic error page.
+        """
+        self.ensure_one()
+        limit = self._max_bytes()
+        if self.byte_size and self.byte_size > limit:
+            return {
+                "error": _(
+                    "The library '%(name)s' is %(size)s, which is over the "
+                    "%(limit)s limit.",
+                    name=self.name,
+                    size=_human_size(self.byte_size),
+                    limit=_human_size(limit),
+                )
+            }
+        try:
+            blob = self._read_source()
+        except UserError as error:
+            return {"error": _("The library '%(name)s' could not be loaded: "
+                              "%(reason)s", name=self.name, reason=error.args[0])}
+        if len(blob) > limit:
+            return {
+                "error": _(
+                    "The library '%(name)s' is %(size)s, which is over the "
+                    "%(limit)s limit.",
+                    name=self.name,
+                    size=_human_size(len(blob)),
+                    limit=_human_size(limit),
+                )
+            }
+        try:
+            data = json.loads(blob.decode("utf-8"))
+        except (UnicodeDecodeError, ValueError) as error:
+            return {"error": _("The library '%(name)s' is not valid JSON: "
+                              "%(reason)s", name=self.name, reason=error)}
+        return {"library": data}
+
+
+def _human_size(size):
+    """Format a byte count the way a user reads it."""
+    value = float(size)
+    for unit in ("B", "kB", "MB", "GB"):
+        if value < 1024 or unit == "GB":
+            return ("%d %s" % (value, unit)) if unit == "B" else (
+                "%.1f %s" % (value, unit)
+            )
+        value /= 1024.0
 
 
 class UnknownLibraryVersion(ValueError):

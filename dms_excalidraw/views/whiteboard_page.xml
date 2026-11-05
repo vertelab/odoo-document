@@ -80,6 +80,16 @@
                     defer="defer"
                     t-attf-src="/dms_excalidraw/static/src/whiteboard/presentation/presentation.js?v=#{asset_version}"
                 ></script>
+                <!--
+                    The library picker defines `window.ExcalidrawLibraryPicker`
+                    and nothing else. It loads before main.js because main.js
+                    renders it; a missing picker must not break the editor, so
+                    main.js treats it as optional.
+                -->
+                <script
+                    defer="defer"
+                    t-attf-src="/dms_excalidraw/static/src/whiteboard/library.js?v=#{asset_version}"
+                ></script>
                 <script
                     defer="defer"
                     t-attf-src="/dms_excalidraw/static/src/whiteboard/main.js?v=#{asset_version}"

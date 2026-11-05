@@ -99,6 +99,37 @@ class DmsExcalidrawLibrarySync(models.Model):
     # ------------------------------------------------------------------
 
     @api.model
+    def _fetch_bytes(self, url):
+        """Fetch a URL and return its raw bytes.
+
+        Separate from `_fetch_json` because a `.excalidrawlib` is fetched for
+        the BROWSER to parse, not for the server: parsing it here would mean
+        re-serialising it, and the picker must receive exactly the bytes the
+        upstream published.
+        """
+        request = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "odoo-dms-excalidraw-library/18.0",
+                "Accept": "application/json",
+            },
+        )
+        try:
+            with urllib.request.urlopen(
+                request, timeout=self._sync_timeout()
+            ) as response:
+                return response.read()
+        except urllib.error.HTTPError as error:
+            raise UserError(
+                _("Could not fetch %(url)s: HTTP %(code)s.",
+                  url=url, code=error.code)
+            ) from error
+        except (urllib.error.URLError, OSError) as error:
+            raise UserError(
+                _("Could not reach %(url)s: %(reason)s.", url=url, reason=error)
+            ) from error
+
+    @api.model
     def _fetch_json(self, url):
         """Fetch and parse a JSON document.
 

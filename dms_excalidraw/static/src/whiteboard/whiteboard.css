@@ -297,3 +297,163 @@ body {
   outline: 2px solid #1971c2;
   outline-offset: 1px;
 }
+
+/* ---------------------------------------------------------------------------
+ * Shape library picker
+ *
+ * A floating panel over the canvas, not a sidebar that shrinks it: the
+ * editor owns the viewport and a layout shift mid-drawing is worse than an
+ * overlay the user closes.
+ * ------------------------------------------------------------------------- */
+
+.wb-libs__toggle {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 20;
+  padding: 6px 12px;
+  border: 1px solid var(--wb-border, #d0d0d0);
+  border-radius: 6px;
+  background: var(--wb-surface, #fff);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.wb-libs {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 21;
+  width: 300px;
+  max-height: calc(100% - 24px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--wb-border, #d0d0d0);
+  border-radius: 8px;
+  background: var(--wb-surface, #fff);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+.wb-libs__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--wb-border, #d0d0d0);
+  font-weight: 600;
+}
+
+.wb-libs__close {
+  border: 0;
+  background: transparent;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  color: inherit;
+}
+
+.wb-libs__list {
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.wb-libs__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wb-libs__item:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.wb-libs__item:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* The placeholder holds the row's height before a preview arrives, so the
+   list does not jump as images load. */
+.wb-libs__thumb {
+  flex: 0 0 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.06);
+  font-size: 16px;
+}
+
+.wb-libs__meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.wb-libs__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wb-libs__sub {
+  font-size: 12px;
+  opacity: 0.7;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wb-libs__busy {
+  margin-left: auto;
+}
+
+.wb-libs__error {
+  margin: 0;
+  padding: 10px 12px;
+  color: #b00020;
+  font-size: 13px;
+}
+
+.wb-libs__loading {
+  margin: 0;
+  padding: 12px;
+  opacity: 0.7;
+}
+
+.wb-libs__save {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--wb-border, #d0d0d0);
+}
+
+.wb-libs__savebtn {
+  padding: 4px 10px;
+  border: 1px solid var(--wb-border, #d0d0d0);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.wb-libs__savemsg {
+  font-size: 12px;
+  opacity: 0.75;
+}
