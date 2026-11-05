@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Request-scoped metadata cache for WebDAV PROPFIND.
 
 WHY NOT A CROSS-REQUEST CACHE
@@ -53,6 +52,11 @@ CACHED_FIELDS = {
         "checksum",
         "write_date",
         "create_date",
+        # `lockdiscovery` needs it. The PROPFIND property list is built from
+        # this cache, so a field that is not cached here is simply absent --
+        # `_prop_values` would see None and report every file as unlocked,
+        # which is the bug this change exists to fix.
+        "locked_by",
     ),
     "dms.directory": (
         "name",

@@ -40,7 +40,11 @@ def _basic_auth():
     try:
         decoded = base64.b64decode(auth[6:]).decode("utf-8")
         login, password = decoded.split(":", 1)
-    except Exception:
+    except Exception as error:
+        _logger.warning(
+            "[WebDAV] basic-auth decode failed: %s: %s (raw=%r)",
+            type(error).__name__, error, auth[:30],
+        )
         return _unauthorized()
     credential = {"type": "password", "login": login, "password": password}
     for db_name in db.exp_list():
@@ -48,7 +52,19 @@ def _basic_auth():
             auth_info = request.session.authenticate(db_name, credential)
             if auth_info.get("uid"):
                 return
-        except Exception:
+            _logger.warning(
+                "[WebDAV] auth returned no uid for %r on %s", login, db_name
+            )
+        except Exception as error:
+            # Swallowing this made a 401 look like "wrong password" when the
+            # real cause was anything at all. Log it.
+            _logger.warning(
+                "[WebDAV] auth failed for %r on %s: %s: %s",
+                login,
+                db_name,
+                type(error).__name__,
+                error,
+            )
             continue
     return _unauthorized()
 
@@ -191,6 +207,7 @@ class DmsWebdavController(http.Controller):
         "getlastmodified",
         "creationdate",
         "supportedlock",
+        "lockdiscovery",
     )
 
     @staticmethod
@@ -366,6 +383,18 @@ class DmsWebdavController(http.Controller):
             '<d:lockentry><d:lockscope><d:{} /></d:lockscope>'
             '<d:locktype><d:write /></d:locktype></d:lockentry>'.format(scope),
         )
+
+        # RFC 4918 15.8: what lock is ACTIVE right now. A different question
+        # from `supportedlock` above, and both are required:
+        #
+        #   supportedlock  "what lock could I take?"
+        #   lockdiscovery  "what lock is held?"
+        #
+        # This was missing, so a client asking whether a document was locked
+        # was told the property does not exist (a 404 propstat) -- which per
+        # RFC 4918 9.1 means "this resource has no such property", not "no
+        # locks". DMS recorded the lock in `locked_by` and nothing read it.
+        add("lockdiscovery", self._lockdiscovery(record, record_type))
         return values, None
 
     @staticmethod
@@ -936,6 +965,9 @@ class DmsWebdavController(http.Controller):
                     "empty body",
                     status=409,
                 )
+            refused = self._lock_refusal(record)
+            if refused:
+                return refused
             record.sudo().with_context(dms_source="webdav").write(
                 {"content": base64.b64encode(data)}
             )
@@ -987,6 +1019,12 @@ class DmsWebdavController(http.Controller):
         if not record.with_user(request.env.user)._filtered_access("unlink"):
             return request.make_response(
                 "Forbidden: no delete access to this resource", status=403)
+
+        # A lock that only stops PUT is defeated by renaming or deleting.
+        if record_type == "file":
+            refused = self._lock_refusal(record)
+            if refused:
+                return refused
 
         if record_type == "directory":
             if record.child_directory_ids or record.file_ids:
@@ -1053,6 +1091,15 @@ class DmsWebdavController(http.Controller):
 
         if not record.with_user(request.env.user)._filtered_access("write"):
             return request.make_response("Forbidden", status=403)
+
+        # The SOURCE, not the destination: moving a locked file out from under
+        # its holder is the same harm as overwriting it. The destination is a
+        # different question -- moving INTO a locked file is caught by the
+        # write that follows.
+        if record_type == "file":
+            refused = self._lock_refusal(record)
+            if refused:
+                return refused
         if dest_record is not None:
             if dest_record.id == record.id:
                 # RFC 4918 9.9.2: moving a resource onto itself is a no-op.
@@ -1183,6 +1230,91 @@ class DmsWebdavController(http.Controller):
             headers=[("Content-Type", "application/xml; charset=utf-8")],
         )
 
+    @staticmethod
+    def lock_token(user_id):
+        """Return the lock token for a holder.
+
+        One function so `LOCK`, `lockdiscovery` and the `If:`-header check
+        cannot disagree about the format. Weak by design -- see the design
+        note: an unguessable token means storing it, which means a second lock
+        state, and the security boundary here is authentication plus the
+        holder check, not token secrecy.
+        """
+        return "opaquelocktoken:{}".format(user_id)
+
+    @staticmethod
+    def _if_tokens():
+        """Return the lock tokens presented in the `If:` header.
+
+        RFC 4918 10.4: `If: (<opaquelocktoken:...>)`. Only the token inside
+        angle brackets matters here; anything else in the header is ignored.
+
+        An unparseable header yields an empty set, which fails closed -- the
+        caller then refuses the write. Parsing generously would turn a
+        malformed header into a permission.
+        """
+        header = request.httprequest.headers.get("If", "")
+        if not header:
+            return set()
+        return set(re.findall(r"<([^>]+)>", header))
+
+    def _lock_refusal(self, record):
+        """Return a 423 response when this request may not modify `record`.
+
+        RFC 4918 9.10.6: a write to a locked resource without the token is
+        423 Locked. Three cases are allowed through:
+
+          * the file is not locked
+          * the requester holds the lock (`locked_by` is them)
+          * the request presents this lock's token
+
+        The holder is allowed without a token on purpose: a desktop client
+        does not reliably send `If:` on its first save, and refusing the holder
+        would be worse than having no lock at all.
+        """
+        if not getattr(record, "locked_by", None):
+            return None
+
+        user = request.env.user
+        if record.locked_by.id == user.id:
+            return None
+
+        if self.lock_token(record.locked_by.id) in self._if_tokens():
+            return None
+
+        return request.make_response(
+            "Locked: the resource is locked by {}".format(record.locked_by.name),
+            status=423,
+        )
+
+    def _lockdiscovery(self, record, record_type):
+        """Return the `<d:lockdiscovery>` body for this resource.
+
+        Empty when unlocked -- present and empty, never missing. A client that
+        gets "no such property" cannot tell an unlocked file from a server
+        that does not do locks at all.
+
+        DMS locks are per-file (`dms.file.locked_by`). A directory or storage
+        therefore always reports empty, which matches `_lock()`'s shared-scope
+        answer for collections: it advertises the capability without claiming
+        a lock is held.
+        """
+        if record_type != "file":
+            return ""
+
+        holder = getattr(record, "locked_by", None)
+        if not holder:
+            return ""
+
+        return (
+            "<d:activelock>"
+            "<d:locktype><d:write/></d:locktype>"
+            "<d:lockscope><d:exclusive/></d:lockscope>"
+            "<d:depth>infinity</d:depth>"
+            "<d:locktoken><d:href>{}</d:href></d:locktoken>"
+            "</d:activelock>"
+        ).format(self.lock_token(holder.id))
+
     def _lock_xml(self, lock_type, path):
         return (
             '<?xml version="1.0" encoding="utf-8"?>'
@@ -1192,11 +1324,11 @@ class DmsWebdavController(http.Controller):
             '<d:locktype><d:write/></d:locktype>'
             f'<d:lockscope><d:{lock_type}/></d:lockscope>'
             '<d:depth>infinity</d:depth>'
-            '<d:locktoken><d:href>opaquelocktoken:{}</d:href></d:locktoken>'
+            '<d:locktoken><d:href>{}</d:href></d:locktoken>'
             '</d:activelock>'
             '</d:lockdiscovery>'
             '</d:prop>'
-        ).format(request.env.user.id)
+        ).format(self.lock_token(request.env.user.id))
 
     def _unlock(self, path):
         resolver = request.env["dms.webdav.path"]
