@@ -324,3 +324,54 @@ class TestWebdavProps(BaseCase):
         self.assertEqual(_xml_escape("a&b.svg"), "a&amp;b.svg")
         self.assertEqual(_xml_escape("<tag>"), "&lt;tag&gt;")
         self.assertEqual(_xml_escape("normal.svg"), "normal.svg")
+
+
+@tagged("post_install", "-at_install")
+class TestIfNoneMatch(HttpCase):
+    """If-None-Match on PROPFIND (task 3).
+
+    A client that already holds a file can ask "has it changed?" by sending
+    the etag back. A matching validator answers 304 — no body, no XML, no
+    per-child work.
+    """
+
+    def _propfind(self, path, depth="0", if_none_match=None):
+        headers = {"Depth": depth}
+        if if_none_match is not None:
+            headers["If-None-Match"] = if_none_match
+        # Reuses TestWebdavHttp._request: Odoo 18's url_open() cannot send a
+        # PROPFIND (it GETs, or POSTs when given data).
+        return TestWebdavHttp._request(
+            self, path, method="PROPFIND", headers=headers
+        )
+
+    def test_if_none_match_never_turns_propfind_into_a_500(self):
+        """The first version read `record.checksum` unguarded.
+
+        A directory has no such field, so a Depth: 0 PROPFIND against a
+        collection raised AttributeError and answered 500.
+        """
+        response = self._propfind("/webdav/", depth="0", if_none_match='"x"')
+        self.assertLess(
+            response.status_code,
+            500,
+            "If-None-Match must not turn PROPFIND into a server error",
+        )
+
+    def test_depth_one_never_answers_304(self):
+        """A 304 for Depth: 1 would claim the CHILDREN are unchanged.
+
+        A collection's checksum does not cover its children, so a client
+        would skip files that did change — worse than the saving.
+        """
+        response = self._propfind(
+            "/webdav/", depth="1", if_none_match='"anything"'
+        )
+        self.assertNotEqual(response.status_code, 304)
+
+    def test_a_collection_never_answers_304(self):
+        """Only a file has a checksum, so only a file can be 304."""
+        response = self._propfind(
+            "/webdav/", depth="0", if_none_match='"anything"'
+        )
+        self.assertNotEqual(response.status_code, 304)
