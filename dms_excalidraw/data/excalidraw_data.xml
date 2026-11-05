@@ -1,30 +1,31 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <odoo>
-    <data noupdate="1">
+    <!--
+        Defaults for the two config parameters read by dms.file.
 
-        <!--
-            Ingen egen storage eller katalog: en whiteboard är en fil, inte
-            ett objekt. Den sparas i den katalog användaren står i och ärver
-            därmed den katalogens behörighet, backup och retention.
+        `dms_excalidraw.url` ships with the same-host whiteboard path as its
+        default: the host page is served by Odoo at
+        /dms_excalidraw/whiteboard/<id>, and the Excalidraw service lives at
+        <host>/whiteboard. A guessed absolute URL would be wrong for every
+        customer but one, so the default is the RELATIVE path and the model
+        resolves it against the current host. An administrator can override
+        it under Settings > Documents > Excalidraw.
 
-            Detta är motsatsen till dms_partner/dms_project, som skapar en
-            katalog PER post (en kund = en mapp). En whiteboard har ingen
-            egen affärsobjekt-identitet — den hör till den katalog där den
-            skapades, precis som en PDF eller ett foto.
-        -->
+        ⚠️ ir.config_parameter.value is NOT NULL in Odoo 18. An empty
+        <field name="value"/> raises NotNullViolation on install, which
+        aborts the whole module upgrade. The value must be a real string.
 
-        <!-- Standardvärden för tjänsten. Sätts här så att modulen är
-             användbar direkt efter installation; driftavdelningen kan
-             överrida dem under Inställningar. -->
-        <record id="config_excalidraw_url" model="ir.config_parameter">
-            <field name="key">dms_excalidraw.url</field>
-            <field name="value"></field>
-        </record>
+        `dms_excalidraw.webdav_path` defaults to /webdav, which is where
+        dms_webdav mounts. noupdate="1" so a later upgrade does not overwrite
+        an administrator's choice.
+    -->
+    <record id="config_excalidraw_url" model="ir.config_parameter">
+        <field name="key">dms_excalidraw.url</field>
+        <field name="value">/whiteboard</field>
+    </record>
 
-        <record id="config_excalidraw_webdav_path" model="ir.config_parameter">
-            <field name="key">dms_excalidraw.webdav_path</field>
-            <field name="value">/webdav</field>
-        </record>
-
-    </data>
+    <record id="config_excalidraw_webdav_path" model="ir.config_parameter">
+        <field name="key">dms_excalidraw.webdav_path</field>
+        <field name="value">/webdav</field>
+    </record>
 </odoo>

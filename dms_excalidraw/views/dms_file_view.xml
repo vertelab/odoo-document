@@ -1,21 +1,61 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <odoo>
+    <!--
+        "Open in Excalidraw" on the dms.file form.
 
-    <!-- ────────────────────────────────────────────────────────────────
-         dms.file: "Open in Excalidraw" i formulärets header.
-         Samma mönster som dms_euro_office (view_dms_file_form_euro_office),
-         men villkorat på extension = excalidraw i stället för en lista
-         redigerbara kontorsformat.
-         ──────────────────────────────────────────────────────────────── -->
+        The button is a header button, not a stat button: it shows no count, it
+        opens an external editor. `invisible` is a bare expression (Odoo 18),
+        not an `attrs` dict.
+
+        The action is a server action rather than a plain object method so it
+        also reaches the list and kanban action menus, where no form header
+        exists. Same shape as dms_euro_office, which is the proven pattern on
+        this database.
+    -->
+    <!-- Server action: "Open in Excalidraw" i Action-menyn.
+
+         DEFINIERAS FÖRE vyn som refererar den. `%(action_open_in_excalidraw)d`
+         i vyn slår upp xmlid:n när filen parsas, så en action som deklareras
+         EFTER sin användare ger
+             ValueError: External ID not found in the system:
+             dms_excalidraw.action_open_in_excalidraw
+         (verifierat genom att installera modulen i en riktig databas
+         2026-11-02 — XML-parsning och py_compile såg det inte).
+
+         binding_view_types är `form` — INTE `list,kanban,form`.
+         `open_in_excalidraw_action()` gör `ensure_one()`, och en
+         list-/kanban-vy har flera markerade poster som default. Att binda
+         åtgärden där ger `ValueError: Expected singleton` → 500 för en
+         användare som markerar två filer. En åtgärd som öppnar EN fil ska
+         bara erbjudas där EN post är vald. -->
+    <record id="action_open_in_excalidraw" model="ir.actions.server">
+        <field name="name">Open in Excalidraw</field>
+        <field name="model_id" ref="dms.model_dms_file" />
+        <field name="binding_model_id" ref="dms.model_dms_file" />
+        <field name="binding_view_types">form</field>
+        <field name="state">code</field>
+        <field name="code">
+            action = records.open_in_excalidraw_action()
+        </field>
+    </record>
+
     <record id="view_dms_file_form_excalidraw" model="ir.ui.view">
         <field name="name">dms.file.form.excalidraw</field>
         <field name="model">dms.file</field>
-        <field name="inherit_id" ref="dms.view_dms_file_form"/>
+        <field name="inherit_id" ref="dms.view_dms_file_form" />
         <field name="arch" type="xml">
+            <!-- `can_open_in_excalidraw` MASTE finnas som <field> i vyn:
+                 en `invisible`-modifier läses från vy-fältlistan, och ett
+                 beräknat fält som bara nämns i modifiern har inget värde att
+                 läsa på en ny post. `invisible="1"` döljer fältet men
+                 behåller det i listan. -->
+            <xpath expr="//sheet" position="inside">
+                <field name="can_open_in_excalidraw" invisible="1" />
+            </xpath>
             <xpath expr="//header" position="inside">
                 <button
-                    name="open_in_excalidraw_action"
-                    type="object"
+                    name="%(action_open_in_excalidraw)d"
+                    type="action"
                     string="Open in Excalidraw"
                     class="btn-primary"
                     invisible="not can_open_in_excalidraw"
@@ -25,36 +65,54 @@
     </record>
 
     <!-- ────────────────────────────────────────────────────────────────
-         Server action: "Open in Excalidraw" i Action-menyn på dms.file.
-         ──────────────────────────────────────────────────────────────── -->
-    <record id="action_dms_file_open_excalidraw" model="ir.actions.server">
-        <field name="name">Open in Excalidraw</field>
-        <field name="model_id" ref="dms.model_dms_file"/>
-        <field name="binding_model_id" ref="dms.model_dms_file"/>
-        <field name="binding_view_types">list,kanban,form</field>
-        <field name="state">code</field>
-        <field name="code">action = records.open_in_excalidraw_action()</field>
-    </record>
+         "New document" i Filer-vyn.
 
-    <!-- ────────────────────────────────────────────────────────────────
-         dms.directory: "New whiteboard" i formulärets header.
-         Skapar en tom .excalidraw-fil i katalogen och öppnar den direkt.
-         Routen tar katalogen ur URL:en, så ingen dms.file-post behövs.
+         VARFÖR INTE binding_model_id
+         Den uppenbara vägen — en server action med `binding_model_id` på
+         `dms.file` — fungerar inte här. DMS:s Filer-vy har `js_class`
+         (`file_list` / `file_kanban`), och de vyerna renderar inte Odoos
+         standard-Action-meny. Verifierat 2026-11-04: menyn visade bara
+         "Import records", "Export All", "Dashboard" — ingen egen post.
+
+         Så knappen sätts i `header` på båda vyerna i stället. Katalogen tas
+         från `active_directory_id` i kontexten (den katalog användaren
+         bläddrar i), och faller tillbaka på den valda raden.
          ──────────────────────────────────────────────────────────────── -->
-    <record id="view_dms_directory_form_excalidraw" model="ir.ui.view">
-        <field name="name">dms.directory.form.excalidraw</field>
-        <field name="model">dms.directory</field>
-        <field name="inherit_id" ref="dms.view_dms_directory_form"/>
+    <!--
+        "New document" i Filer-listans kontrollpanel.
+
+        VARFÖR controlpanel OCH INTE header
+        En `<list>`-vy har ingen `<header>` — Odoo:s schema avvisar den med
+        `ParseError: while parsing ... somewhere inside`. Knappar i en listvy
+        hör i `controlpanel`, som renderas ovanför listan.
+    -->
+    <record id="view_dms_file_kanban_new_document" model="ir.ui.view">
+        <field name="name">dms.file.kanban.new.document</field>
+        <field name="model">dms.file</field>
+        <field name="inherit_id" ref="dms.view_dms_file_kanban" />
         <field name="arch" type="xml">
-            <xpath expr="//header" position="inside">
-                <button
-                    name="action_new_whiteboard"
-                    type="object"
-                    string="New whiteboard"
-                    class="oe_highlight"
-                />
+            <xpath expr="//kanban/field[@name='name']" position="after">
+                <!--
+                    `directory_id` must be in the kanban's field list for the
+                    record override to read it. It is the directory the user is
+                    browsing, and it becomes the `?from=` hint on the target
+                    page so its back button returns here.
+                -->
+                <field name="directory_id" />
             </xpath>
         </field>
     </record>
 
+    <!--
+        Action för knapparna ovan. Ingen `binding_model_id`: den skulle lägga
+        posten i en meny som dessa vyer inte renderar.
+    -->
+    <record id="action_new_document" model="ir.actions.server">
+        <field name="name">New document</field>
+        <field name="model_id" ref="dms.model_dms_file" />
+        <field name="state">code</field>
+        <field name="code">
+            action = env["dms.file"].action_new_document_from_selection()
+        </field>
+    </record>
 </odoo>

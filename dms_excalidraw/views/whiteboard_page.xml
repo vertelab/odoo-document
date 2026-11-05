@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--
+        The whiteboard host page.
+
+        WHY NOT `t-call-assets`
+        =======================
+        The first version loaded the bundle through Odoo's asset pipeline
+        (`t-call-assets="dms_excalidraw.whiteboard_assets"`). That wraps every
+        file in `odoo.define('@dms_excalidraw/whiteboard/main', [], function
+        (require) { ... })` — and this page is NOT an Odoo web-client page.
+        It never loads `web.assets_web`, so `odoo` is undefined and the bundle
+        dies on the first line:
+
+            Uncaught TypeError: odoo.define is not a function
+                dms_excalidraw.whiteboard_assets.min.js:4158
+
+        The canvas stayed white because `main.js` is what mounts
+        `<Excalidraw>` into #whiteboard-root.
+
+        So the page is plain HTML with plain <script> tags. The vendored
+        bundle is a self-contained IIFE that sets `window.ExcalidrawLib`,
+        `window.React` and `window.ReactDOM`; it needs no module loader.
+
+        `defer` on both scripts preserves order (bundle before main) and lets
+        the HTML parse first, so #whiteboard-root exists when main.js runs.
+
+        WHY THE PAGE IS A QWEB TEMPLATE AND NOT A STATIC FILE
+        =====================================================
+        It needs `file_id` from the route. Odoo's data loader also validates
+        every file in `data` against the XML schema, so a bare `<html>`
+        document does not comply — the template wrapper is required.
+
+        The controller renders this with `request.render()` and passes
+        `file_id`; it does NOT use `web.layout`, because that pulls in the
+        whole backend asset bundle (menus, Owl, the works) for a page that
+        must be nothing but a canvas.
+    -->
+    <template id="whiteboard_page" name="Excalidraw Whiteboard">
+        <html>
+            <head>
+                <meta charset="utf-8" />
+                <meta
+                    name="viewport"
+                    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+                />
+                <title>Whiteboard</title>
+                <link
+                    rel="stylesheet"
+                    t-attf-href="/dms_excalidraw/static/lib/excalidraw/excalidraw.bundle.css?v=#{asset_version}"
+                />
+                <link
+                    rel="stylesheet"
+                    t-attf-href="/dms_excalidraw/static/src/whiteboard/whiteboard.css?v=#{asset_version}"
+                />
+                <!--
+                    Presentation mode. Loaded ALWAYS, not on demand: it is
+                    ~20 KB of plain JS and the Present button has to know
+                    whether the scene has frames the moment the page renders.
+                -->
+                <link
+                    rel="stylesheet"
+                    t-attf-href="/dms_excalidraw/static/src/whiteboard/presentation/presentation.css?v=#{asset_version}"
+                />
+                <script
+                    defer="defer"
+                    t-attf-src="/dms_excalidraw/static/lib/excalidraw/excalidraw.bundle.js?v=#{asset_version}"
+                ></script>
+                <!--
+                    ORDER MATTERS: `defer` preserves document order, so the
+                    two presentation modules are defined before main.js runs.
+                    main.js reads `window.ExcalidrawPresentation` and
+                    `window.ExcalidrawPresentationAnimation` at render time.
+                -->
+                <script
+                    defer="defer"
+                    t-attf-src="/dms_excalidraw/static/src/whiteboard/presentation/animation.js?v=#{asset_version}"
+                ></script>
+                <script
+                    defer="defer"
+                    t-attf-src="/dms_excalidraw/static/src/whiteboard/presentation/presentation.js?v=#{asset_version}"
+                ></script>
+                <script
+                    defer="defer"
+                    t-attf-src="/dms_excalidraw/static/src/whiteboard/main.js?v=#{asset_version}"
+                ></script>
+            </head>
+            <body>
+                <div
+                    id="whiteboard-root"
+                    t-att-data-file-id="file_id"
+                    t-att-data-file-name="file_name"
+                    t-att-data-back-url="back_url"
+                    t-att-data-record-url="record_url"
+                />
+            </body>
+        </html>
+    </template>
+</odoo>

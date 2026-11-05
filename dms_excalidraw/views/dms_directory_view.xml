@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--
+        "New whiteboard" on the dms.directory form.
+
+        A server action rather than a static act_url: the URL must carry the
+        *current* directory id, and a static act_url cannot. The action runs on
+        the record in the form and returns the redirect built by the model.
+
+        The controller at /dms_excalidraw/new/<directory_id> is what actually
+        creates the file (design D6), so the permission check lives there and
+        answers 404 on denial rather than disclosing the directory's existence.
+        That is also why there is no `invisible` here: creating a whiteboard is
+        valid in every directory, and the controller is the authority on
+        whether this user may write to it.
+    -->
+
+    <!-- Server action: "New whiteboard" on a directory.
+
+         DEFINIERAS FÖRE vyn som refererar den. `%(action_new_whiteboard)d` i
+         vyn slår upp xmlid:n när filen parsas, så en action som deklareras
+         EFTER sin användare ger
+             ValueError: External ID not found in the system:
+             dms_excalidraw.action_new_whiteboard
+         (verifierat genom att installera modulen i en riktig databas
+         2026-11-02 — XML-parsning och py_compile såg det inte).
+
+         2026-11-03: öppnar NAMNFRÅGAN (dms.excalidraw.wizard) i stället för
+         att skapa filen direkt. Den gamla vägen skapade alltid
+         "Whiteboard.excalidraw", så ett andra klick kolliderade och svarade
+         404 — och det fanns ingen väg att namnge whiteboarden innan den
+         öppnades. Wizarden frågar först, skapar sedan.
+
+         Den underliggande routen /dms_excalidraw/new/<id> finns kvar och
+         fungerar: den är fallback för en direkt URL och för automatiserade
+         anrop, och den numrerar namnet när det är upptaget. -->
+    <record id="action_new_whiteboard" model="ir.actions.server">
+        <field name="name">New whiteboard</field>
+        <field name="model_id" ref="dms.model_dms_directory" />
+        <field name="binding_model_id" ref="dms.model_dms_directory" />
+        <field name="binding_view_types">form</field>
+        <field name="state">code</field>
+        <field name="code">
+            action = records.action_new_document_wizard()
+        </field>
+    </record>
+
+    <record id="view_dms_directory_form_excalidraw" model="ir.ui.view">
+        <field name="name">dms.directory.form.excalidraw</field>
+        <field name="model">dms.directory</field>
+        <field name="inherit_id" ref="dms.view_dms_directory_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button
+                    name="%(action_new_whiteboard)d"
+                    type="action"
+                    string="New document"
+                    class="btn-primary"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>

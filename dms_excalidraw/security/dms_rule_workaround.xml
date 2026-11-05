@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--
+        =====================================================================
+        WORKAROUND: OCA `dms` 18.0 refuses EVERYBODY the right to create a
+        directory or a file, including administrators.
+        =====================================================================
+
+        THE BUG
+        =======
+        `dms/security/security.xml` declares four GLOBAL record rules per
+        model that compare a BOOLEAN field with a USER ID:
+
+            <field name="domain_force">
+                [('permission_create', '=', user.id)]
+            </field>
+
+        `permission_create` is a `fields.Boolean` (computed from the
+        directory's access groups). `user.id` is an integer. `True == 2` is
+        false, so the rule denies every record to every user, always.
+
+        OCA knows about this and works around it in
+        `dms/models/dms_security_mixin.py`:
+
+            def _filtered_access(self, operation):
+                result = super()._filtered_access(operation)
+                # HACK Always fall back to applying rules by SQL.
+                # Upstream `_filtered_access()` doesn't use computed fields
+                # search methods. Thus, it will take the
+                # `[('permission_{operation}', '=', user.id)]` rule literally.
+                # Obviously that will always fail because
+                # `self[f"permission_{operation}"]` will always be a `bool`,
+                # while `user.id` will always be an `int`.
+                result |= self._filtered_access_no_recursion(operation)
+                return result
+
+        But `create()` does not go through `_filtered_access()`. It goes
+        through `create()` -> `_check_access_dms_record("create")` ->
+        `ir.rule._compute_domain()`, which evaluates the rule literally. The
+        HACK never runs on that path.
+
+        Verified 2026-11-05 in a fresh database with `dms` + `dms_webdav`:
+
+            sub.permission_create(admin)            -> True
+            Dms.search(create-domain) finds sub     -> False
+            Dms.create(...) as admin                -> AccessError
+
+        The field and the rule disagree, and the rule wins.
+
+        WHY THIS IS IN OUR MODULE AND NOT IN `dms`
+        ==========================================
+        Patching an OCA module in place would be overwritten on the next
+        `repo_apply`. A small override here is visible, reversible, and
+        disappears the day upstream fixes it.
+
+        WHAT THIS DOES
+        ==============
+        Rewrites the eight rules to compare the boolean with `True`. The rules
+        keep their purpose — "you may only touch a record whose computed
+        permission field says so" — they just stop comparing a boolean to an
+        integer.
+
+        ⚠️ THIS IS A WORKAROUND, NOT A FIX. If upstream changes the rule name
+        or the field, this fails loudly at upgrade (the `ref` will not
+        resolve), which is what we want: a silent no-op would leave the bug
+        in place.
+    -->
+
+    <!-- Directories -->
+    <record id="dms.rule_directory_computed_create" model="ir.rule">
+        <field name="domain_force">[('permission_create', '=', True)]</field>
+    </record>
+    <record id="dms.rule_directory_computed_read" model="ir.rule">
+        <field name="domain_force">[('permission_read', '=', True)]</field>
+    </record>
+    <record id="dms.rule_directory_computed_write" model="ir.rule">
+        <field name="domain_force">[('permission_write', '=', True)]</field>
+    </record>
+    <record id="dms.rule_directory_computed_unlink" model="ir.rule">
+        <field name="domain_force">[('permission_unlink', '=', True)]</field>
+    </record>
+
+    <!-- Files -->
+    <record id="dms.rule_file_computed_create" model="ir.rule">
+        <field name="domain_force">[('permission_create', '=', True)]</field>
+    </record>
+    <record id="dms.rule_file_computed_read" model="ir.rule">
+        <field name="domain_force">[('permission_read', '=', True)]</field>
+    </record>
+    <record id="dms.rule_file_computed_write" model="ir.rule">
+        <field name="domain_force">[('permission_write', '=', True)]</field>
+    </record>
+    <record id="dms.rule_file_computed_unlink" model="ir.rule">
+        <field name="domain_force">[('permission_unlink', '=', True)]</field>
+    </record>
+</odoo>

@@ -14,8 +14,11 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+# `/lib/` — leading slash = repo root only. Without it this also matched
+# every `static/lib/` in every module, which silently excluded the vendored
+# Excalidraw bundle and the shape-library seed from `dms_excalidraw`.
+/lib/
+/lib64/
 parts/
 sdist/
 var/

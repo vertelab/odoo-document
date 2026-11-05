@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--
+        =====================================================================
+        A default DMS access group, so a fresh installation can create a
+        folder at all.
+        =====================================================================
+
+        THE PROBLEM
+        ===========
+        OCA `dms` grants the right to create a directory or a file ONLY to
+        users who are in a `dms.access.group` attached to that directory:
+
+            dms/models/dms_security_mixin.py, _get_access_groups_query():
+                SELECT dir_group_rel.aid
+                FROM dms_directory_complete_groups_rel ...
+                WHERE users.uid = %s AND dag.perm_inclusive_create
+
+        A fresh `dms` installation has ZERO access groups. Its onboarding
+        (`dms/data/onboarding_data.xml`) walks the user through Storage ->
+        Directory -> File and never mentions access groups. So the first
+        thing anyone does — create a folder — fails with:
+
+            Uh-oh! ... Administrator (id=2) doesn't have 'create' access to
+            - Directory (dms.directory)
+
+        Verified 2026-11-05 on `luke18`: after fixing the record-rule bug
+        (see `dms_rule_workaround.xml`) the error remained, because
+        `SELECT count(*) FROM dms_access_group` was 0.
+
+        WHAT THIS DOES
+        ==============
+        Creates one group, "Administrators", with full permissions and every
+        `base.group_system` member in it. That is enough for an administrator
+        to create the first root directory; from there, normal DMS practice
+        applies — a directory's `group_ids` decides who may write in it, and
+        subdirectories inherit.
+
+        ⚠️ This is NOT a blanket grant. It does not give ordinary internal
+        users write access to DMS. It only makes sure the person who
+        administers the system can get started, instead of hitting a dead end
+        with no hint about which group is missing.
+
+        ⚠️ `noupdate="1"`: an upgrade must not resurrect the group if an
+        administrator renamed it, changed its members, or deleted it on
+        purpose. The seed exists to bootstrap a NEW installation.
+    -->
+    <data noupdate="1">
+        <record id="access_group_administrators" model="dms.access.group">
+            <field name="name">Administrators</field>
+            <field name="perm_create" eval="True" />
+            <field name="perm_write" eval="True" />
+            <field name="perm_unlink" eval="True" />
+            <field
+                name="group_ids"
+                eval="[(4, ref('base.group_system'))]"
+            />
+        </record>
+    </data>
+</odoo>

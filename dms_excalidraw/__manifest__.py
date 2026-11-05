@@ -1,82 +1,77 @@
-# -*- coding: utf-8 -*-
-##############################################################################
-#
-#    Odoo, Open Source Management Solution
-#    Copyright (C) 2026- Vertel Sverige AB (<https://vertel.se>).
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
-
 {
-    'name': 'Document: DMS Excalidraw',
-    'version': '18.0.1.0.0',
-    'summary': 'Whiteboard (Excalidraw) kopplad till DMS-dokument',
-    'description': '''
-DMS Excalidraw
-==============
+    "name": "DMS Excalidraw Bridge",
+    "summary": "Open DMS whiteboards in an Excalidraw service",
+    "description": """
+Adds an "Open in Excalidraw" action to DMS files whose extension is
+`excalidraw`, and a "New whiteboard" action to DMS directories.
 
-Gör en Excalidraw-ritning till ett dokument bland alla andra — knutet till
-samma affärsobjekt som övriga DMS-filer (kund, order, projekt, uppgift).
+A whiteboard is a `dms.file`, not a model of its own: it inherits the
+directory's access groups, retention, revision history and backup, appears in
+the linked record's Documents counter, and carries its `res_model`/`res_id`
+link to the business object without any code building that link. The same
+pattern as `dms_euro_office`.
 
-Varför en brygga och inte en egen modell
-----------------------------------------
-En whiteboard är en fil, inte en post. Genom att spara ritningen som en
-``dms.file`` med ``extension = excalidraw`` ärver den allt som redan finns:
+A whiteboard is opened in a host page served by Odoo
+(`/dms_excalidraw/whiteboard/<id>`) that renders the Excalidraw editor and
+owns its callbacks, so an edit is saved back to the same `dms.file`. The page
+fills the viewport -- a whiteboard boxed into a form is not a whiteboard.
 
-  * backup (borg/restic) — DMS-filer ingår i backupen
-  * retention och legal hold
-  * revision (``document_version``)
-  * delning och behörighet (``dms.access.group``)
-  * koppling till affärsobjekt (``res_model``/``res_id``)
+Saving goes through this module's own routes, not WebDAV: `dms_webdav`'s PUT
+authenticates with Basic auth, so a same-origin page would have to hold the
+user's password in JavaScript. Odoo's `/jsonrpc` is no better -- it wants
+db+login+password in the body. These routes use the session cookie the browser
+already has, and write through the same `dms.file.content` inverse WebDAV uses.
 
-En separat modell hade krävt egen backup, egen behörighet och egen
-revisionslogg — och hade inte synts i kundens dokumentflik.
+Two tabs on the same whiteboard cannot silently overwrite each other: a save
+carries the checksum it loaded, and a mismatch is refused with a conflict
+dialog.
 
-Funktioner
-----------
-  * "New whiteboard" i DMS-filvyn — skapar en tom ``.excalidraw``-fil
-  * "Open in Excalidraw" på ``dms.file`` när ``extension = excalidraw``
-  * Ritningen öppnas i den fristående Excalidraw-tjänsten
-    (se /srv/salt/excalidraw/README.md) med filen hämtad via
-    DMS-WebDAV, och sparas tillbaka samma väg
-  * Fungerar på alla modeller som redan har DMS-koppling
-    (``res.partner``, ``sale.order``, ``project.project``, ``project.task`` …)
+The Excalidraw service URL is an `ir.config_parameter`
+(`dms_excalidraw.url`), surfaced under Settings > Documents > Excalidraw.
 
-Vad som INTE ingår
-------------------
-Realtidssamarbete. Excalidraw:s kollaborativa läge kräver en WebSocket-relay
-(y-websocket/Liveblocks). Utan den är detta en "rita, spara, öppna igen"-
-whiteboard. Det är fortfarande en riktig whiteboard — men det är inte
-Nextclouds realtidsläge.
-    ''',
-    'category': 'Productivity/Documents',
-    'author': 'Vertel Sverige AB',
-    'website': 'https://vertel.se/apps/odoo-document/dms_excalidraw',
-    'license': 'AGPL-3',
-    'maintainer': 'Vertel Sverige AB',
-    'repository': 'https://github.com/vertelab/odoo-document',
-    'depends': [
-        'dms',
-        'dms_webdav',
+A whiteboard whose scene contains `frame` elements can be PRESENTED as a slide
+deck: frames become slides in ascending y-order and elements that share a
+`customData.name` animate between them. The presentation is a mode in the same
+page, not a new document type -- the file stays `extension = excalidraw` and
+presenting never writes.
+
+The shape-library catalogue (`dms_excalidraw.library`) ships 30 libraries as
+module data, so a fresh install has something to browse with no network.
+Refreshing it from the upstream catalogue is opt-in
+(`dms_excalidraw.library_sync_enabled`, default off).
+""",
+    "author": "Vertel Sverige AB",
+    "website": "https://vertel.se",
+    "category": "Productivity/Documents",
+    "version": "18.0.2.5.0",
+    "depends": ["dms", "dms_webdav"],
+    "data": [
+        # MUST come before anything that reads a directory: it repairs the
+        # OCA `dms` record rules that deny everyone the right to create.
+        "security/dms_rule_workaround.xml",
+        "security/dms_excalidraw_library_security.xml",
+        "data/excalidraw_data.xml",
+        "data/dms_access_group_seed.xml",
+        "data/library_seed.xml",
+        "views/dms_file_view.xml",
+        "views/dms_directory_view.xml",
+        "views/res_config_settings_view.xml",
+        "views/whiteboard_page.xml",
+        "views/dms_excalidraw_wizard_view.xml",
+        "views/dms_excalidraw_library_view.xml",
+        "views/dms_document_wizard_view.xml",
+        "security/ir.model.access.csv",
     ],
-    'data': [
-        'data/excalidraw_data.xml',
-        'views/dms_file_view.xml',
-        'views/res_config_settings_view.xml',
-    ],
-    'installable': True,
-    'application': False,
-    'auto_install': False,
+    "assets": {
+        # The kanban record override must load in the BACKEND, where the
+        # kanban view lives — not in the whiteboard page's own bundle.
+        "web.assets_backend": [
+            "dms_excalidraw/static/src/xml/kanban_buttons.xml",
+            "dms_excalidraw/static/src/js/file_kanban_record.esm.js",
+            "dms_excalidraw/static/src/js/file_kanban_view.esm.js",
+        ],
+    },
+    "license": "AGPL-3",
+    "installable": True,
+    "application": False,
 }

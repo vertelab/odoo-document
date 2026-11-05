@@ -1,0 +1,299 @@
+/* --- header ----------------------------------------------------------- */
+
+/*
+ * A thin bar above the canvas. It is the only way back to Odoo: the page is a
+ * standalone tab opened by an action, so the browser's back button leaves the
+ * app entirely.
+ *
+ * Height is fixed and the canvas is offset by it, so the header never covers
+ * Excalidraw's own toolbar (which starts at y=0).
+ */
+.wb-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--wb-header-height);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 0.75rem;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 0.8125rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  color: #495057;
+}
+
+.wb-header__back,
+.wb-header__open {
+  color: #1971c2;
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.wb-header__back:hover,
+.wb-header__open:hover {
+  background: #e7f5ff;
+  text-decoration: none;
+}
+
+.wb-header__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  color: #212529;
+}
+
+/* The canvas must not start under the header. */
+/* Whiteboard host page.
+ *
+ * The canvas must fill the viewport. A whiteboard boxed into 500 px inside a
+ * form is not a whiteboard — that is why this is a standalone route and not an
+ * iframe inside the Odoo backend.
+ */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #ffffff;
+}
+
+/*
+ * The canvas starts BELOW the header.
+ *
+ * A previous version had `.wb-root { inset: 0 }` here, which put Excalidraw
+ * at y=0 — underneath the fixed header. The header then swallowed clicks on
+ * Excalidraw's top-left controls (the Library trigger among them), and the
+ * library looked broken. The offset is the header height, in one place.
+ */
+:root {
+  --wb-header-height: 2.25rem;
+}
+
+#whiteboard-root {
+  position: absolute;
+  top: var(--wb-header-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.wb-root {
+  position: absolute;
+  inset: 0;
+}
+
+/* Excalidraw needs an explicit height on its container. */
+.wb-root > .excalidraw-wrapper,
+.wb-root .excalidraw {
+  height: 100%;
+  width: 100%;
+}
+
+.wb-loading,
+.wb-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #495057;
+  gap: 0.75rem;
+}
+
+.wb-error h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* --- save indicator --------------------------------------------------- */
+
+.wb-indicator {
+  /* Bottom-left, above Excalidraw's zoom widget. It used to sit top-right,
+     which is exactly where Excalidraw puts its right-hand tool rail — the
+     save state covered the icons. The bottom-left corner is empty in
+     Excalidraw's default UI apart from the zoom controls, which sit lower. */
+  position: fixed;
+  bottom: 5.5rem;
+  left: 0.75rem;
+  top: auto;
+  right: auto;
+  z-index: 20;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  pointer-events: none;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+}
+
+.wb-indicator--dirty {
+  background: #fff3bf;
+  color: #664d03;
+}
+
+.wb-indicator--saving {
+  background: #e7f5ff;
+  color: #1864ab;
+}
+
+.wb-indicator--saved {
+  background: #ebfbee;
+  color: #2b8a3e;
+}
+
+/* A failed save must be louder than a successful one. */
+.wb-indicator--failed {
+  background: #fff5f5;
+  color: #c92a2a;
+  border: 1px solid #ffa8a8;
+  font-weight: 600;
+}
+
+.wb-indicator--conflict {
+  background: #fff4e6;
+  color: #d9480f;
+  border: 1px solid #ffd8a8;
+  font-weight: 600;
+}
+
+/* --- conflict dialog -------------------------------------------------- */
+
+.wb-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 40%);
+}
+
+.wb-modal {
+  background: #ffffff;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  max-width: 28rem;
+  box-shadow: 0 10px 40px rgb(0 0 0 / 25%);
+}
+
+.wb-modal h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: #212529;
+}
+
+.wb-modal p {
+  margin: 0 0 1.25rem;
+  color: #495057;
+  line-height: 1.5;
+  font-size: 0.9375rem;
+}
+
+.wb-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.wb-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  border: 1px solid #ced4da;
+  background: #ffffff;
+  color: #212529;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.wb-btn:hover {
+  background: #f8f9fa;
+}
+
+.wb-btn--primary {
+  background: #1971c2;
+  border-color: #1971c2;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.wb-btn--primary:hover {
+  background: #1864ab;
+}
+
+.wb-btn--ghost {
+  border-color: transparent;
+  color: #868e96;
+}
+
+/* Fatal boot error — shown instead of a white page when the bundle fails to
+   load or does not expose what the page needs. A white canvas with no
+   explanation is the worst possible failure mode: the user cannot tell
+   whether the drawing is empty or the app is broken. */
+.wb-fatal {
+  max-width: 40rem;
+  margin: 4rem auto;
+  padding: 1.5rem;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #7f1d1d;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+}
+
+.wb-fatal strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1.05rem;
+}
+
+.wb-fatal p {
+  margin: 0;
+  color: #991b1b;
+}
+
+/* --- present button ---------------------------------------------------- */
+
+/*
+ * "Present" in the header, next to "Open in Odoo".
+ *
+ * Hidden entirely when the scene has no frames — the component returns null,
+ * not a disabled button. A disabled control with no explanation is worse than
+ * no control: the user cannot tell whether the whiteboard is broken or
+ * simply has nothing to present.
+ */
+.wb-header__present {
+  font: inherit;
+  color: #1971c2;
+  background: #e7f5ff;
+  border: 1px solid #a5d8ff;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.wb-header__present:hover {
+  background: #d0ebff;
+}
+
+.wb-header__present:focus-visible {
+  outline: 2px solid #1971c2;
+  outline-offset: 1px;
+}

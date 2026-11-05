@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--
+        Name prompt for "New whiteboard".
+
+        Opened by the directory button (views/dms_directory_view.xml) instead
+        of creating the file immediately: the default name is the same on
+        every click, so a second click collided with the first file and
+        answered 404. Asking for the name first makes the collision visible
+        before anything is written.
+
+        `name_taken` is shown as a warning, not a hard error: the user may
+        still choose to create it, and the model's fallback then appends a
+        number. Blocking would be wrong: two people naming their whiteboard
+        "Kundkarta" in different directories is fine, and in the same
+        directory the fallback handles it.
+    -->
+    <record id="view_dms_excalidraw_wizard_form" model="ir.ui.view">
+        <field name="name">dms.excalidraw.wizard.form</field>
+        <field name="model">dms.excalidraw.wizard</field>
+        <field name="arch" type="xml">
+            <form string="New whiteboard">
+                <group>
+                    <field name="directory_id" readonly="1" />
+                    <field name="name" placeholder="e.g. Kundkarta" />
+                    <field name="name_taken" invisible="not name_taken" />
+                </group>
+                <div
+                    class="alert alert-warning"
+                    role="alert"
+                    invisible="not name_taken"
+                >
+                    A file with this name already exists in the directory.
+                    A number will be appended to keep both.
+                </div>
+                <footer>
+                    <button
+                        name="action_create"
+                        type="object"
+                        string="Create"
+                        class="btn-primary"
+                        data-hotkey="q"
+                    />
+                    <button string="Cancel" class="btn-secondary" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!--
+        Action for the directory button. `target="new"` so the prompt is a
+        modal over the directory, not a page navigation.
+    -->
+    <record id="action_dms_excalidraw_wizard" model="ir.actions.act_window">
+        <field name="name">New whiteboard</field>
+        <field name="res_model">dms.excalidraw.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_directory_id': active_id}</field>
+    </record>
+</odoo>

@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_dms_excalidraw_wizard_user,dms.excalidraw.wizard user,model_dms_excalidraw_wizard,base.group_user,1,1,1,1
+access_dms_document_wizard_user,dms.document.wizard user,model_dms_document_wizard,base.group_user,1,1,1,1
+access_dms_document_creator_user,dms.document.creator user,model_dms_document_creator,base.group_user,1,0,0,0
+access_dms_excalidraw_library_user,dms_excalidraw.library user,model_dms_excalidraw_library,group_dms_excalidraw_library,1,0,0,0
+access_dms_excalidraw_library_manager,dms_excalidraw.library manager,model_dms_excalidraw_library,group_dms_excalidraw_library_manager,1,1,1,1

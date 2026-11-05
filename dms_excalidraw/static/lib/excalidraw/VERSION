@@ -1,0 +1,118 @@
+@excalidraw/excalidraw 0.18.1 + react 18 + react-dom 18 — prebuilt IIFE bundle
+================================================================================
+
+Rebuilt 2026-11-03. The first build was broken; see "WHY IT WAS REBUILT".
+
+WHY A PREBUILT BUNDLE
+=====================
+`@excalidraw/excalidraw`'s `dist/prod` is **not** standalone. Its `index.js`
+imports `react`, `react-dom`, `jotai`, `roughjs`, `nanoid`, `clsx`, `fuzzy`,
+`open-color`, `tunnel-rat` and more by bare specifier — it is built for a
+bundler. Odoo 18 ships **Owl**, not React, so React cannot be borrowed from
+the backend.
+
+So the bundle is built here and committed.
+
+WHY IT WAS REBUILT
+==================
+The first build used `--global-name=ExcalidrawLib`. esbuild then emits
+
+    var ExcalidrawLib = (() => { ... })();
+
+and the entry file ALSO assigns `window.ExcalidrawLib` inside that IIFE. The
+top-level `var` shadows the assignment: the IIFE returns undefined, the var
+is set to undefined, and `window.ExcalidrawLib` stays undefined. The page
+died on `Cannot read properties of undefined (reading 'Excalidraw')` with a
+blank canvas.
+
+The first build also declared `window.React` / `window.ReactDOM` in this file
+as if the bundle exposed them. It did not — the entry only set
+`window.ExcalidrawLib = { Excalidraw }`.
+
+Both are fixed:
+  * no `--global-name` — the IIFE is anonymous, so nothing shadows the global
+  * the entry assigns `window.React` and `window.ReactDOM` explicitly
+  * `import * as` + `unwrap()` instead of relying on `__toESM(..., 1)`, which
+    nulls `.default` for these CJS packages
+
+BUILD COMMAND
+-------------
+    npm init -y
+    npm install @excalidraw/excalidraw@0.18.1 react@18 react-dom@18 esbuild
+
+    cat > entry.jsx <<'EOF'
+    import * as ExcalidrawPkg from "@excalidraw/excalidraw";
+    import * as ReactPkg from "react";
+    import * as ReactDOMPkg from "react-dom/client";
+    import "@excalidraw/excalidraw/index.css";
+
+    function unwrap(m) { return m && m.default ? m.default : m; }
+
+    var React = unwrap(ReactPkg);
+    var ReactDOM = unwrap(ReactDOMPkg);
+    var Excalidraw =
+      ExcalidrawPkg.Excalidraw ||
+      (ExcalidrawPkg.default && ExcalidrawPkg.default.Excalidraw);
+
+    window.ExcalidrawLib = { Excalidraw: Excalidraw };
+    window.React = React;
+    window.ReactDOM = ReactDOM;
+    EOF
+
+    ./node_modules/.bin/esbuild entry.jsx \
+      --bundle --format=iife \
+      --outfile=bundle.js \
+      --loader:.woff2=file --loader:.woff=file --loader:.ttf=file \
+      --asset-names=assets/[name]-[hash] \
+      --define:process.env.NODE_ENV='"production"' \
+      --conditions=production
+
+    # bundle.js  → static/lib/excalidraw/excalidraw.bundle.js
+    # bundle.css → static/lib/excalidraw/excalidraw.bundle.css
+    # assets/    → static/lib/excalidraw/assets/
+
+NOTE: `--conditions=production` is required — without it the CSS import from
+`@excalidraw/excalidraw/index.css` does not resolve and the build fails.
+
+FILE SIZES
+----------
+    excalidraw.bundle.js    14 MB   (React and ReactDOM are now explicit)
+    excalidraw.bundle.css   161 KB
+    assets/                 80 KB  (4 Assistant woff2 files)
+
+The first build was 8.4 MB because React was pulled in through the package's
+own imports rather than as an explicit dependency.
+
+WHY 0.18.1 AND NOT 19.0.0
+=========================
+`19.0.0` appears in the running container's bundle, but it is **React's**
+version (`st.version="19.0.0"` next to `useSyncExternalStore`), not
+Excalidraw's. `npm view @excalidraw/excalidraw versions` shows the latest
+published package is `0.18.1`. Verified 2026-11-02.
+
+THE BUNDLE MUST BE COMMITTED
+============================
+It is built outside the repo and copied in. On 2026-11-03 a deploy of the
+module tarball replaced the working 14 MB bundle with the old broken 8.4 MB
+one, and the only symptom was a blank canvas with no console error. Keeping
+the built file in `static/lib/excalidraw/` means every deploy ships the same
+bytes.
+
+UPGRADING
+---------
+  1. npm install @excalidraw/excalidraw@<version> react@18 react-dom@18
+  2. rebuild with the command above
+  3. copy bundle.js, bundle.css and assets/ here
+  4. update this file
+  5. verify in a browser: `window.ExcalidrawLib.Excalidraw` must be an object,
+     and the canvas must render
+
+VERIFIED 2026-11-03
+-------------------
+In a real browser against dms.azzar.org:
+  ✓ window.ExcalidrawLib = { Excalidraw: <component> }
+  ✓ window.React and window.ReactDOM are objects
+  ✓ canvas renders, toolbar renders, 30+ SVG icons
+  ✓ save returns 200 and the scene round-trips
+  ✓ library survives a reload
+  ✓ no JS errors
