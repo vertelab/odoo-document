@@ -3,6 +3,7 @@ from odoo import models
 
 
 class HrEmployee(models.Model):
+    _name = "hr.employee"
     _inherit = ["hr.employee", "dms.record.mixin"]
 
     _dms_storage_xmlid = "dms_hr_employee.hr_employee_dms_storage"

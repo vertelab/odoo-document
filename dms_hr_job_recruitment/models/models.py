@@ -3,6 +3,7 @@ from odoo import models
 
 
 class Job(models.Model):
+    _name = "hr.job"
     _inherit = ["hr.job", "dms.record.mixin"]
 
     _dms_storage_xmlid = "dms_hr_job_recruitment.hr_job_dms_storage"
@@ -10,6 +11,7 @@ class Job(models.Model):
 
 
 class Applicant(models.Model):
+    _name = "hr.applicant"
     _inherit = ["hr.applicant", "dms.record.mixin"]
 
     _dms_storage_xmlid = "dms_hr_job_recruitment.hr_applicant_dms_storage"
