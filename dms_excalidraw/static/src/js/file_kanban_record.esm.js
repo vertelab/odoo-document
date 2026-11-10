@@ -170,15 +170,38 @@ patch(FileKanbanRecord.prototype, {
         if (!capabilities.length) {
             return undefined;
         }
-        const fields = await this.env.services.orm.read(
-            "dms.file",
-            [this.props.record.data.id],
-            capabilities.map((capability) => capability.field)
-        );
-        const record = fields && fields[0];
-        if (!record) {
-            return undefined;
+        // ONE FIELD AT A TIME, and a failed read means "not installed".
+        //
+        // Reading them together looked cheaper but is wrong: Odoo throws
+        // `ValueError: Invalid field 'x' on model 'dms.file'` for a field
+        // that does not exist — it does not return undefined. With both
+        // office backends absent (dms runs excalidraw without Collabora or
+        // Euro-Office) every office click raised a 500:
+        //
+        //   RPC_ERROR ... ValueError: Invalid field
+        //   'can_open_in_euro_office' on model 'dms.file'
+        //
+        // Verified on dms 2026-11-10. An absent field is exactly the signal
+        // that its module is not installed, so the catch is the feature, not
+        // a workaround.
+        const id = this.props.record.data.id;
+        for (const capability of capabilities) {
+            let record;
+            try {
+                const fields = await this.env.services.orm.read(
+                    "dms.file",
+                    [id],
+                    [capability.field]
+                );
+                record = fields && fields[0];
+            } catch {
+                // Field does not exist -> that backend is not installed.
+                continue;
+            }
+            if (record && record[capability.field]) {
+                return capability;
+            }
         }
-        return capabilities.find((capability) => Boolean(record[capability.field]));
+        return undefined;
     },
 });
