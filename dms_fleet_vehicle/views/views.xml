@@ -12,9 +12,10 @@
             <field string="Documents" name="doc_count" widget="statinfo"/>
           </button>
         </xpath>
-        <field name="name" position="after">
-          <field name="dms_directory_id" invisible="1"/>
-        </field>
+        <!-- Odoo 18: fleet.vehicle-formularet har inget <field name="name">
+             att ankra pa — faltet togs bort i 18.0. Xpath:en togs bort
+             2026-11-13 (lant3); dms_directory_id ar redan osynligt via
+             knappens invisible-villkor ovan. -->
       </field>
     </record>
   </data>
