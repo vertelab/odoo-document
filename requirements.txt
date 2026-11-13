@@ -1,2 +1,14 @@
 yt
 paramiko
+
+# ── Saknade beroenden — inventering 2026-11-13 ──────────────────────────────
+# Se /srv/salt/odoo/REQUIREMENTS-AUDIT-2026-11-13.md.
+#
+# dms_webpage/daemon/sync_directory.py importerar inotify + odoorpc på
+# modulnivå. Daemonen startas av systemd (dms_webpage), inte av Odoo — men
+# filen ligger i modulen och importeras när Odoo laddar modulen.
+inotify
+odoorpc
+
+# document_sftp — rich används för terminalutskrift i SFTP-servern
+rich
