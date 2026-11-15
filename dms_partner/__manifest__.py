@@ -21,7 +21,7 @@
 
 {
     'name': 'Document: DMS Partner',
-    'version': '18.0.1.1.0',
+    'version': '1.1.0',
     'summary': 'DMS Partner.',
     'description': '''
 DMS Partner

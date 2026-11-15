@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Dokumenthantering i Vertel',
-    'version': '18.0.1.0.0',
+    'version': '1.0.0',
     'summary': 'Onboardingskurs: dokument, DMS och WebDAV',
     'description': """
 Lär dig strukturera dokument, montera WebDAV som nätverksdisk och hantera versioner.

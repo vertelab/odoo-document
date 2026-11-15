@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Document: AI',
-    'version': '18.0.1.1.0',
+    'version': '1.1.0',
     'summary': 'OKF-indexering av dms.file och dms.directory + förlage-markering',
     'category': 'Hidden',
     'author': 'Vertel AB',
