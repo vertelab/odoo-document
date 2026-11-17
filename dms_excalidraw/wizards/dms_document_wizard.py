@@ -147,6 +147,24 @@ class DmsDocumentCreator(models.AbstractModel):
         }
 
 
+    def _get_template(self):
+        """Return the record the new document starts from, or None.
+
+        A creator module may extend the sources -- `dms_document_office`
+        adds Euro-Office forms -- by overriding this instead of copying
+        `action_create`. The wizard passes whatever comes back straight to
+        `create_document`, and each creator tells the templates apart by
+        model name.
+        """
+        if self.template_source == "dms":
+            if not self.template_id:
+                raise UserError(
+                    _("Choose a DMS template, or switch to a blank document.")
+                )
+            return self.template_id
+        return None
+
+
 class DmsDocumentWizard(models.TransientModel):
     """Ask for name, type and template before the file is created.
 
@@ -188,12 +206,6 @@ class DmsDocumentWizard(models.TransientModel):
         domain="[('is_document_template', '=', True), "
         "('extension', '=', document_type)]",
         help="A document in DMS marked as a template.",
-    )
-    office_template_id = fields.Many2one(
-        "euro_office.odoo.templates",
-        string="Euro-Office form template",
-        help="A fillable PDF form from Euro-Office Templates. The form is "
-        "used as the starting point; filling it in is done in the editor.",
     )
     category_id = fields.Many2one(
         "dms.category",
@@ -250,21 +262,19 @@ class DmsDocumentWizard(models.TransientModel):
     def _selection_template_source(self):
         """What the new document starts from.
 
-        `blank`        the shipped empty file
-        `dms`          a `dms.file` marked `is_document_template`
-        `office_form`  a fillable form from `euro_office.odoo.templates`
+        `blank`  the shipped empty file
+        `dms`    a `dms.file` marked `is_document_template`
 
-        The third option only appears when that module is installed: it is
-        a different feature (Odoo fields inside a PDF form), not another
-        way to store a blank document. Keeping them apart in the UI avoids
-        the impression that they are interchangeable.
+        A creator module may add more sources by overriding this and
+        `_get_template()`. `dms_document_office` adds `office_form` (a
+        fillable PDF from Euro-Office Templates) that way -- the field it
+        needs belongs there, because its comodel is not a dependency of
+        this module.
         """
         sources = [
             ("blank", _("Blank document")),
             ("dms", _("DMS template")),
         ]
-        if "euro_office.odoo.templates" in self.env:
-            sources.append(("office_form", _("Euro-Office form")))
         return sources
 
     @api.model
@@ -347,8 +357,6 @@ class DmsDocumentWizard(models.TransientModel):
         """Only the field for the chosen source stays filled."""
         if self.template_source != "dms":
             self.template_id = False
-        if self.template_source != "office_form":
-            self.office_template_id = False
 
     def action_create(self):
         """Create the document and open it."""
@@ -361,19 +369,7 @@ class DmsDocumentWizard(models.TransientModel):
                 )
             )
 
-        template = None
-        if self.template_source == "dms":
-            if not self.template_id:
-                raise UserError(
-                    _("Choose a DMS template, or switch to a blank document.")
-                )
-            template = self.template_id
-        elif self.template_source == "office_form":
-            if not self.office_template_id:
-                raise UserError(
-                    _("Choose a Euro-Office form, or switch to a blank document.")
-                )
-            template = self.office_template_id
+        template = self._get_template()
 
         # Access is a property of the DIRECTORY in DMS, not of the file. So
         # "set it yourself" means adding groups to the folder — which affects

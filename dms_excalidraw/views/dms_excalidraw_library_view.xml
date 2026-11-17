@@ -92,7 +92,7 @@
         <field name="name">dms_excalidraw.library.search</field>
         <field name="model">dms_excalidraw.library</field>
         <field name="arch" type="xml">
-            <search string="Search libraries">
+            <search>
                 <field name="name" />
                 <field name="authors" />
                 <field name="upstream_id" />
@@ -107,7 +107,7 @@
                     name="never_synced"
                     domain="[('last_sync', '=', False)]"
                 />
-                <group expand="0" string="Group by">
+                <group>
                     <filter
                         string="Active"
                         name="group_active"

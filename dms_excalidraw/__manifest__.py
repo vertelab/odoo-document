@@ -46,9 +46,6 @@ Refreshing it from the upstream catalogue is opt-in
     "version": "2.7.0",
     "depends": ["dms", "dms_webdav"],
     "data": [
-        # MUST come before anything that reads a directory: it repairs the
-        # OCA `dms` record rules that deny everyone the right to create.
-        "security/dms_rule_workaround.xml",
         "security/dms_excalidraw_library_security.xml",
         "data/excalidraw_data.xml",
         "data/dms_access_group_seed.xml",

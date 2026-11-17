@@ -46,9 +46,13 @@ Refreshing it from the upstream catalogue is opt-in
     "version": "2.7.0",
     "depends": ["dms", "dms_webdav"],
     "data": [
+        # #if VERSION < "20.0"
         # MUST come before anything that reads a directory: it repairs the
         # OCA `dms` record rules that deny everyone the right to create.
+        # 20.0: the OCA fork fixed the rules themselves (ir.access.csv with
+        # the computed-permission domains), so the workaround is not needed.
         "security/dms_rule_workaround.xml",
+        # #endif
         "security/dms_excalidraw_library_security.xml",
         "data/excalidraw_data.xml",
         "data/dms_access_group_seed.xml",

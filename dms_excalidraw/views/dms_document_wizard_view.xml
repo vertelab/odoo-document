@@ -28,12 +28,6 @@
                         required="template_source == 'dms'"
                         options="{'no_create': True, 'no_open': True}"
                     />
-                    <field
-                        name="office_template_id"
-                        invisible="template_source != 'office_form'"
-                        required="template_source == 'office_form'"
-                        options="{'no_create': True, 'no_open': True}"
-                    />
                 </group>
                 <group string="Organisation">
                     <field name="category_id" options="{'no_create': True}" />
