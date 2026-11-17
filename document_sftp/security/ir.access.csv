@@ -1,0 +1,2 @@
+id,name,model_id,group_id/id,operation,domain
+access_document_sftp_root_by_model,access_document_sftp_root_by_model,document.sftp.root.by_model,base.group_user,crud,

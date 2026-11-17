@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--
+        The shipped catalogue seed.
+
+        WHY THESE 30 LIBRARIES
+        ======================
+        Chosen for Vertel's customers — hosting, ERP and integration work — not
+        by upstream popularity. The groups, in order:
+
+          * Cloud architecture (6): AWS serverless, AWS architecture, Azure,
+            GCP, Google icons, cloud design patterns.
+          * Architecture and modelling (6): C4, hexagonal, software
+            architecture, architecture diagram components, enterprise
+            integration patterns, message queue components.
+          * UML and process (4): UML & ER shapes, UML component diagram, BPMN,
+            flow chart symbols.
+          * Network and infrastructure (5): network topology, network elements,
+            network locations, fibre network, racks and servers.
+          * Data and system design (3): database, system design components,
+            data flow.
+          * Facilities and shop floor (2): architecture floor plan symbols,
+            P&ID.
+          * Development and UI (4): dev ops icons, technology logos,
+            wireframing placeholders, decision flow control.
+
+        DELIBERATELY EXCLUDED: DnD, football, chickens, biology, math teacher.
+        They are fine libraries; they are not what a customer draws an
+        integration diagram with.
+
+        WHY THE FILES ARE COMMITTED
+        ===========================
+        `source_url` points at the module's own static path, so a fresh install
+        has a browsable catalogue with NO network access (spec: "A fresh
+        install has a browsable catalogue"). Sync is opt-in and separate.
+
+        The files were fetched 2026-11-05 from
+        raw.githubusercontent.com/excalidraw/excalidraw-libraries/main/libraries/
+        and are MIT-licensed by their authors; the author and licence position
+        is in the `authors` field of each record.
+
+        ⚠️ A THIRD OF THESE ARE FORMAT v1
+        =================================
+        10 of the 30 are `version: 1` with a `library` key (a list of bare
+        element arrays) instead of `version: 2` with `libraryItems`. Both load
+        in Excalidraw 0.18.1 — its own loader migrates v1 — but the module's
+        parser must accept both or a third of the catalogue is invisible.
+        See `_parse_library` in models/dms_excalidraw_library.py.
+
+        `noupdate="1"`: an upgrade must not resurrect a library an
+        administrator deliberately archived, and must not overwrite an edited
+        `source_url`.
+    -->
+    <data noupdate="1">
+        <record id="library_seed_1pcNHEgp9Dy" model="dms_excalidraw.library">
+            <field name="name">AWS Serverless Icons</field>
+            <field name="description">A collection of icons of AWS serverless services. This collection contains the icons of the following services: Lambda, API Gateway, AppSync, DynamoDB, EventBridge, Cognito, S3, Kinesis, SNS, SQS, SES, CloudFront, CloudWatch, Step Functions and Amplify.</field>
+            <field name="authors">Slobodan Stojanović (https://slobodan.me)</field>
+            <field name="upstream_id">1pcNHEgp9Dy</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/1pcNHEgp9Dy/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/1pcNHEgp9Dy/preview.png</field>
+            <field name="item_count">15</field>
+            <field name="byte_size">164769</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_2ZWlTmLYsLv" model="dms_excalidraw.library">
+            <field name="name">AWS Architecture Icons</field>
+            <field name="description">A collection of AWS Icons</field>
+            <field name="authors">Narhari Motivaras (https://github.com/Narhari-motivaras)</field>
+            <field name="upstream_id">2ZWlTmLYsLv</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/2ZWlTmLYsLv/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/2ZWlTmLYsLv/preview.jpg</field>
+            <field name="item_count">4</field>
+            <field name="byte_size">43204</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_5YhgvRl6h7f" model="dms_excalidraw.library">
+            <field name="name">Azure cloud services icons</field>
+            <field name="description">Collection of icons from different Azure cloud services.</field>
+            <field name="authors">Youri Tjang (https://github.com/youritjang), bothzoli (https://github.com/bothzoli)</field>
+            <field name="upstream_id">5YhgvRl6h7f</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/5YhgvRl6h7f/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/5YhgvRl6h7f/preview.jpg</field>
+            <field name="item_count">19</field>
+            <field name="byte_size">140777</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_1rNfPL1yUT4" model="dms_excalidraw.library">
+            <field name="name">GCP Icons</field>
+            <field name="description">Google Cloud Platform product icons.</field>
+            <field name="authors">Clément Bosc (https://github.com/clementbosc)</field>
+            <field name="upstream_id">1rNfPL1yUT4</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/1rNfPL1yUT4/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/1rNfPL1yUT4/preview.jpg</field>
+            <field name="item_count">83</field>
+            <field name="byte_size">796220</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_3R8mpAUUZqi" model="dms_excalidraw.library">
+            <field name="name">C4 Architecture</field>
+            <field name="description">C4 Simon's Brown concept elements based on https://c4model.com/</field>
+            <field name="authors">Dmitry Burnyshev</field>
+            <field name="upstream_id">3R8mpAUUZqi</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/3R8mpAUUZqi/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/3R8mpAUUZqi/preview.jpg</field>
+            <field name="item_count">10</field>
+            <field name="byte_size">86301</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_9CN5lxMi2iu" model="dms_excalidraw.library">
+            <field name="name">Shapes for UML &amp; ER Diagrams</field>
+            <field name="description">An opinionated selection of shapes for UML &amp; ER diagrams.</field>
+            <field name="authors">BjoernKW (https://github.com/BjoernKW)</field>
+            <field name="upstream_id">9CN5lxMi2iu</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/9CN5lxMi2iu/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/9CN5lxMi2iu/preview.png</field>
+            <field name="item_count">21</field>
+            <field name="byte_size">122032</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_5AFQOIRuFn5" model="dms_excalidraw.library">
+            <field name="name">Network topology icons</field>
+            <field name="description">Several of the most common network topology icons.</field>
+            <field name="authors">dwelle (https://twitter.com/dluzar)</field>
+            <field name="upstream_id">5AFQOIRuFn5</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/5AFQOIRuFn5/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/5AFQOIRuFn5/preview.jpg</field>
+            <field name="item_count">10</field>
+            <field name="byte_size">142936</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_19VTGHFdd8d" model="dms_excalidraw.library">
+            <field name="name">Network elements</field>
+            <field name="description">Several common network element icons.</field>
+            <field name="authors">samu_x86</field>
+            <field name="upstream_id">19VTGHFdd8d</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/19VTGHFdd8d/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/19VTGHFdd8d/preview.jpg</field>
+            <field name="item_count">5</field>
+            <field name="byte_size">86627</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_3meNH105BDX" model="dms_excalidraw.library">
+            <field name="name">Architecture floor plan symbols</field>
+            <field name="description">Some furnitures an others symbols to help in architecture planning</field>
+            <field name="authors">Arqtangeles (https://github.com/Arqtangeles)</field>
+            <field name="upstream_id">3meNH105BDX</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/3meNH105BDX/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/3meNH105BDX/preview.png</field>
+            <field name="item_count">42</field>
+            <field name="byte_size">371638</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_3wNGI8ycyjj" model="dms_excalidraw.library">
+            <field name="name">Database</field>
+            <field name="description">A collection of icons and graphics for drawing database infrastructures in the cloud and on-premises. Initially created for Oracle databases to draw Lab environments, DB Security and Backup &amp; Recovery use cases.</field>
+            <field name="authors">Stefan Oehrli (https://github.com/oehrlis)</field>
+            <field name="upstream_id">3wNGI8ycyjj</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/3wNGI8ycyjj/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/3wNGI8ycyjj/preview.png</field>
+            <field name="item_count">39</field>
+            <field name="byte_size">608632</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_5UnObEPtf2z" model="dms_excalidraw.library">
+            <field name="name">bpmn</field>
+            <field name="description">icon of bpmn diagram</field>
+            <field name="authors">Aoustin Frederic (https://github.com/fraoustin/excalidraw-bpmn)</field>
+            <field name="upstream_id">5UnObEPtf2z</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/5UnObEPtf2z/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/5UnObEPtf2z/preview.jpg</field>
+            <field name="item_count">34</field>
+            <field name="byte_size">117669</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_4SlkJRmBgDQ" model="dms_excalidraw.library">
+            <field name="name">System Design Components</field>
+            <field name="description">Components useful in interviews and elsewhere to build high-level system diagrams.</field>
+            <field name="authors">Rohan Pithadiya (https://github.com/Rohanpithadiya)</field>
+            <field name="upstream_id">4SlkJRmBgDQ</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/4SlkJRmBgDQ/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/4SlkJRmBgDQ/preview.png</field>
+            <field name="item_count">24</field>
+            <field name="byte_size">218048</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_5yBptTxQ1J8" model="dms_excalidraw.library">
+            <field name="name">Racks and Servers / Components</field>
+            <field name="description">Quick diagrams for datacenter layout and server / component documentation</field>
+            <field name="authors">Jorge Godoy (https://github.com/jgodoy)</field>
+            <field name="upstream_id">5yBptTxQ1J8</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/5yBptTxQ1J8/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/5yBptTxQ1J8/preview.jpg</field>
+            <field name="item_count">5</field>
+            <field name="byte_size">63936</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_6eXYj0j5qij" model="dms_excalidraw.library">
+            <field name="name">Hexagonal Architecture</field>
+            <field name="description">Useful to diagram and learn more about Hexagonal (aka Ports and Adapters) Architecture by Alistair Cockburn and implementation by Jakub Nabrdalik. More information: https://gist.github.com/corlaez/32707a1c41485d056c00251206435c89</field>
+            <field name="authors">Armando Cordova Pelaez (https://github.com/corlaez)</field>
+            <field name="upstream_id">6eXYj0j5qij</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/6eXYj0j5qij/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/6eXYj0j5qij/preview.png</field>
+            <field name="item_count">27</field>
+            <field name="byte_size">572432</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_JtMDpqcYZa" model="dms_excalidraw.library">
+            <field name="name">Cloud Design Patterns</field>
+            <field name="description">A collection of cloud design patterns components (as defined in https://docs.microsoft.com/en-us/azure/architecture/patterns/). Use to describe cloud applications concepts.</field>
+            <field name="authors">Michel Caradec (https://github.com/michelcaradec)</field>
+            <field name="upstream_id">JtMDpqcYZa</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/JtMDpqcYZa/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/JtMDpqcYZa/preview.png</field>
+            <field name="item_count">24</field>
+            <field name="byte_size">168026</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_mzQjGLHnDi" model="dms_excalidraw.library">
+            <field name="name">Software Architecture</field>
+            <field name="description">Collection of software architecture components: microservice, database, cache, event bus or pipeline, documents or code, browser, and mobile device</field>
+            <field name="authors">Youri Tjang (https://github.com/youritjang)</field>
+            <field name="upstream_id">mzQjGLHnDi</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/mzQjGLHnDi/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/mzQjGLHnDi/preview.png</field>
+            <field name="item_count">7</field>
+            <field name="byte_size">44591</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_AQUTjX9KhpF" model="dms_excalidraw.library">
+            <field name="name">Enterprise Integration Patterns</field>
+            <field name="description">Mostly complete representation of the icons from the excellent Enterprise Integration Patterns book by Gregor Hohpe and Bobby Woolf</field>
+            <field name="authors">Stuart Campbell (https://figtechnology.solutions)</field>
+            <field name="upstream_id">AQUTjX9KhpF</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/AQUTjX9KhpF/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/AQUTjX9KhpF/preview.jpg</field>
+            <field name="item_count">42</field>
+            <field name="byte_size">302190</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_7l1SFTaDhqc" model="dms_excalidraw.library">
+            <field name="name">Message Queue components</field>
+            <field name="description">Components for Message Queue diagrams (such as for IBM MQ)</field>
+            <field name="authors">Andrew Ruan (https://github.com/coexist)</field>
+            <field name="upstream_id">7l1SFTaDhqc</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/7l1SFTaDhqc/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/7l1SFTaDhqc/preview.jpg</field>
+            <field name="item_count">6</field>
+            <field name="byte_size">33890</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_icrZZOlOr9" model="dms_excalidraw.library">
+            <field name="name">Dev Ops Icons</field>
+            <field name="description">A collection of icons for Dev Ops work, including the hashistack: Nomad, Consul, Vault and Packer; Rundeck, Ansible, Jira, VScode, Elasticsearch, Ubuntu, Teams, Thanos, Traefik, Loki, Kubernetes, Openshift, Docker, Terraform, Slurm, Confluence, Github Actions, OpenFaaS and Gitea</field>
+            <field name="authors">Mark Sharpley (https://www.marksharpley.co.uk)</field>
+            <field name="upstream_id">icrZZOlOr9</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/icrZZOlOr9/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/icrZZOlOr9/preview.png</field>
+            <field name="item_count">29</field>
+            <field name="byte_size">882412</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_7UYcWMYC4Pg" model="dms_excalidraw.library">
+            <field name="name">Wireframing placeholders</field>
+            <field name="description">Content placeholders for wireframe diagrams</field>
+            <field name="authors">xxxDeveloper (https://github.com/xxxDeveloper)</field>
+            <field name="upstream_id">7UYcWMYC4Pg</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/7UYcWMYC4Pg/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/7UYcWMYC4Pg/preview.jpg</field>
+            <field name="item_count">10</field>
+            <field name="byte_size">80392</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_73c4J61D8Ke" model="dms_excalidraw.library">
+            <field name="name">Data Flow</field>
+            <field name="description">For Data Flow diagrams</field>
+            <field name="authors">Wilian Martinez (https://github.com/wmartzh)</field>
+            <field name="upstream_id">73c4J61D8Ke</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/73c4J61D8Ke/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/73c4J61D8Ke/preview.jpg</field>
+            <field name="item_count">4</field>
+            <field name="byte_size">14589</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_5EQHJmvPfDg" model="dms_excalidraw.library">
+            <field name="name">Decision flow control</field>
+            <field name="description">Yes/no condition boxes for diagramming.</field>
+            <field name="authors">James Wiens (https://github.com/aretecode)</field>
+            <field name="upstream_id">5EQHJmvPfDg</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/5EQHJmvPfDg/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/5EQHJmvPfDg/preview.png</field>
+            <field name="item_count">8</field>
+            <field name="byte_size">88121</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_1O2hCC0BCYH" model="dms_excalidraw.library">
+            <field name="name">Network locations</field>
+            <field name="description">Locations for network macro designs. This library allows for representing main corporate offices / headquarters, offices, cities, houses and datacenters.</field>
+            <field name="authors">Jorge Godoy (https://github.com/jgodoy)</field>
+            <field name="upstream_id">1O2hCC0BCYH</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/1O2hCC0BCYH/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/1O2hCC0BCYH/preview.jpg</field>
+            <field name="item_count">5</field>
+            <field name="byte_size">410697</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_14YYbMMoFJ9" model="dms_excalidraw.library">
+            <field name="name">Fibre Network</field>
+            <field name="description">Useful Fibre Network Assets</field>
+            <field name="authors">FibreNinja</field>
+            <field name="upstream_id">14YYbMMoFJ9</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/14YYbMMoFJ9/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/14YYbMMoFJ9/preview.jpg</field>
+            <field name="item_count">3</field>
+            <field name="byte_size">65734</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_3eRknTpFfyN" model="dms_excalidraw.library">
+            <field name="name">Architecture diagram components</field>
+            <field name="description">Collection of common components for architecture diagrams.</field>
+            <field name="authors">Anna Pastushko (https://www.linkedin.com/in/annpastushko)</field>
+            <field name="upstream_id">3eRknTpFfyN</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/3eRknTpFfyN/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/3eRknTpFfyN/preview.jpg</field>
+            <field name="item_count">11</field>
+            <field name="byte_size">98113</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_Aqkp5tXQHd6" model="dms_excalidraw.library">
+            <field name="name">Technology Logos</field>
+            <field name="description">Collection of technology logos mostly from the cloud-native space. Featuring: Kubernetes, Docker, git, Cloud Foundry, Terraform, Spring, Quarkus, Micronaut, Knative, Camunda, Azure, Kafka, Kotlin, OpenStack, paketo.io, Neo4J, Redis</field>
+            <field name="authors">Matthias Haeussler (https://twitter.com/maeddes)</field>
+            <field name="upstream_id">Aqkp5tXQHd6</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/Aqkp5tXQHd6/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/Aqkp5tXQHd6/preview.png</field>
+            <field name="item_count">18</field>
+            <field name="byte_size">254479</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_94sCXDtBAOl" model="dms_excalidraw.library">
+            <field name="name">Google Icons</field>
+            <field name="description">Icons for all Google Cloud Platform and Google Workspace products. The icons were extracted from Google Architecture Drawing Tool (https://googlecloudcheatsheet.withgoogle.com/architecture), enlarged and outlined - making them readable from the library view. All unique icons found were included in this library. The library was ordered alphabetically.</field>
+            <field name="authors">Marcus Guidoti (https://github.com/mguidoti)</field>
+            <field name="upstream_id">94sCXDtBAOl</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/94sCXDtBAOl/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/94sCXDtBAOl/preview.jpg</field>
+            <field name="item_count">139</field>
+            <field name="byte_size">4916000</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_finfin__flow_chart_symbols" model="dms_excalidraw.library">
+            <field name="name">Flow Chart Symbols</field>
+            <field name="description">Common symbols used in flow chart, including: Start / End, Process, Decision, Document, Multiple Document, Manaual Input, 
+Predefined Process, Input / Output, And, Or, Database, Preparation / Initialization, 
+Delay, Connector, Off-page Connector</field>
+            <field name="authors">Fin (https://www.facebook.com/thingsaboutwebdev/)</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/finfin__flow-chart-symbols/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/finfin__flow-chart-symbols/preview.jpg</field>
+            <field name="item_count">15</field>
+            <field name="byte_size">57673</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_jordangeurtsen__uml_component_diagram" model="dms_excalidraw.library">
+            <field name="name">UML Component Diagram</field>
+            <field name="description">Different UML components used for making a component diagram. 
+Component diagram shows components, provided and required interfaces, ports, and relationships between them. 
+This type of diagrams is used in Component-Based Development (CBD) to describe systems with Service-Oriented Architecture (SOA).
+Component-based development is based on assumptions that previously constructed components could be reused and that components could be replaced by some other "equivalent" or "conformant" components, if needed.</field>
+            <field name="authors">Jordan Geurtsen (https://github.com/JordanGeurtsen)</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/jordangeurtsen__uml-component-diagram/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/jordangeurtsen__uml-component-diagram/preview.jpg</field>
+            <field name="item_count">6</field>
+            <field name="byte_size">22036</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="library_seed_kbentekik__piping_and_instrumentation_diagram_p_id" model="dms_excalidraw.library">
+            <field name="name">Piping and instrumentation diagram P&amp;ID</field>
+            <field name="description">Basic symbols to quickly sketch a piping and instrumentation diagram.
+Used in chemical process industry</field>
+            <field name="authors">Kbentekik (https://github.com/Kbentekik)</field>
+            <field name="source_url">/dms_excalidraw/static/lib/libraries/kbentekik__piping-and-instrumentation-diagram-p-id/library.excalidrawlib</field>
+            <field name="preview_url">/dms_excalidraw/static/lib/libraries/kbentekik__piping-and-instrumentation-diagram-p-id/preview.jpg</field>
+            <field name="item_count">28</field>
+            <field name="byte_size">223165</field>
+            <field name="active" eval="True" />
+        </record>
+    </data>
+</odoo>

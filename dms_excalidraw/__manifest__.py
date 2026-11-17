@@ -60,7 +60,7 @@ Refreshing it from the upstream catalogue is opt-in
         "views/dms_excalidraw_wizard_view.xml",
         "views/dms_excalidraw_library_view.xml",
         "views/dms_document_wizard_view.xml",
-        "security/ir.model.access.csv",
+        "security/ir.access.csv",
     ],
     "assets": {
         # The kanban record override must load in the BACKEND, where the

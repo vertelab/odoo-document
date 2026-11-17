@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--
+        Catalogue views.
+
+        The list is the administrator's view: what is in the catalogue, where
+        it comes from, and whether the sync has touched it. Search is by name
+        and author because those are the two things a person knows about a
+        library ("the AWS one", "the one by Jumping Rivers").
+
+        The form exists so a library can be inspected and corrected without
+        going through the database. `source_url` is editable only for a
+        library manager (see the security group) — it is a URL the browser
+        will fetch with the user's session.
+
+        `active=False` records are hidden by default; the "Archived" filter is
+        how you find a library that disappeared upstream.
+    -->
+    <record id="view_dms_excalidraw_library_list" model="ir.ui.view">
+        <field name="name">dms_excalidraw.library.list</field>
+        <field name="model">dms_excalidraw.library</field>
+        <field name="arch" type="xml">
+            <list string="Excalidraw libraries">
+                <!--
+                    "Sync now" is admin-only. The button is hidden for a
+                    library user by the view's `groups` attribute rather than
+                    by the action: a non-admin must not even see a control
+                    that would raise a UserError.
+                -->
+                <header>
+                    <button
+                        name="action_sync_now"
+                        type="object"
+                        string="Sync now"
+                        icon="fa-refresh"
+                        groups="group_dms_excalidraw_library_manager"
+                        confirm="Fetch the upstream catalogue index and update the library list? Libraries removed upstream are deactivated, not deleted."
+                    />
+                </header>
+                <field name="name" />
+                <field name="authors" optional="show" />
+                <field name="item_count" optional="show" />
+                <field name="byte_size" optional="hide" />
+                <field name="upstream_id" optional="hide" />
+                <field name="last_sync" optional="show" />
+                <field name="active" optional="hide" />
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dms_excalidraw_library_form" model="ir.ui.view">
+        <field name="name">dms_excalidraw.library.form</field>
+        <field name="model">dms_excalidraw.library</field>
+        <field name="arch" type="xml">
+            <form string="Excalidraw library">
+                <sheet>
+                    <widget
+                        name="web_ribbon"
+                        title="Archived"
+                        bg_color="text-bg-danger"
+                        invisible="active"
+                    />
+                    <div class="oe_title">
+                        <label for="name" />
+                        <h1>
+                            <field name="name" placeholder="e.g. AWS architecture" />
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Catalogue">
+                            <field name="authors" />
+                            <field name="item_count" />
+                            <field name="byte_size" />
+                            <field name="last_sync" />
+                            <field name="active" />
+                        </group>
+                        <group string="Source">
+                            <field name="upstream_id" />
+                            <field name="source_url" widget="url" />
+                            <field name="preview_url" widget="url" />
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1" colspan="2" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dms_excalidraw_library_search" model="ir.ui.view">
+        <field name="name">dms_excalidraw.library.search</field>
+        <field name="model">dms_excalidraw.library</field>
+        <field name="arch" type="xml">
+            <search string="Search libraries">
+                <field name="name" />
+                <field name="authors" />
+                <field name="upstream_id" />
+                <filter
+                    string="Archived"
+                    name="inactive"
+                    domain="[('active', '=', False)]"
+                />
+                <separator />
+                <filter
+                    string="Never synced"
+                    name="never_synced"
+                    domain="[('last_sync', '=', False)]"
+                />
+                <group expand="0" string="Group by">
+                    <filter
+                        string="Active"
+                        name="group_active"
+                        context="{'group_by': 'active'}"
+                    />
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dms_excalidraw_library" model="ir.actions.act_window">
+        <field name="name">Excalidraw libraries</field>
+        <field name="res_model">dms_excalidraw.library</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_dms_excalidraw_library_search" />
+        <field
+            name="help"
+        >The shared catalogue of shape libraries. Seeded libraries ship with the module and need no network; the rest can be pulled from the upstream catalogue when sync is enabled.</field>
+    </record>
+
+    <!--
+        No menuitem: the xmlid of DMS's configuration menu is not verified in
+        this checkout (the OCA `dms` source is not available here), and a wrong
+        parent xmlid does not fail the upgrade — it renders as a broken menu.
+        The action is reachable from Settings > Technical > Actions and is
+        linked from the settings block once the parent xmlid is confirmed on a
+        database with `dms` installed. See task 1.4.
+    -->
+</odoo>

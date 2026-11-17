@@ -46,7 +46,7 @@
         #   ParseError: while parsing document_sftp/demo/res_users.xml:4
         #   Exception: Cannot update missing record 'base.user_demo'
         # It is correctly declared under "demo" above.
-        "security/ir.model.access.csv",
+        "security/ir.access.csv",
         "views/res_users.xml",
         "data/ir_config_parameter.xml",
         "data/ir_cron.xml",

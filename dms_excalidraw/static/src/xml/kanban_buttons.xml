@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <!--
+        "New document" i Filer-vyns kontrollpanel.
+
+        VARFÖR EN MALL OCH INTE EN VY
+        DMS:s Filer-vy har `js_class="file_kanban"` och en egen
+        `buttonTemplate` (`dms.KanbanButtons`). En `<header>` i XML-vyn
+        avvisas av Odoo:s schema, och en `binding_model_id` syns inte
+        eftersom vyn inte renderar standard-Action-menyn.
+
+        Så knappen läggs i samma mall som DMS redan använder för Scan och
+        Upload. Den ärver `dms.KanbanButtons`, som i sin tur ärver
+        `web.KanbanView.Buttons` — samma knapprad, ett tillägg.
+    -->
+    <t
+        t-name="dms_excalidraw.KanbanButtons"
+        t-inherit="dms.KanbanButtons"
+        t-inherit-mode="primary"
+    >
+        <!--
+            Ingen extra knapp: Odoo:s egen "New" öppnar nu wizarden
+            (se file_kanban_view.esm.js → onCreate). Att lägga en andra
+            knapp bredvid hade gett två knappar som gör samma sak.
+        -->
+        <xpath expr="//div" position="inside" />
+    </t>
+</templates>

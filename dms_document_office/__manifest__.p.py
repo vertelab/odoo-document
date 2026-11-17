@@ -59,7 +59,11 @@ no second permission model.
     "version": "1.0.1",
     "depends": ["dms", "dms_excalidraw"],
     "data": [
+        # #if VERSION >= "20.0"
+        "security/ir.access.csv",
+        # #else
         "security/ir.model.access.csv",
+        # #endif
     ],
     "license": "AGPL-3",
     "installable": True,

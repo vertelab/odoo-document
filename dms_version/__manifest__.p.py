@@ -11,7 +11,11 @@
     "license": "LGPL-3",
     "depends": ["dms"],
     "data": [
+        # #if VERSION >= "20.0"
+        "security/ir.access.csv",
+        # #else
         "security/ir.model.access.csv",
+        # #endif
         "views/dms_file_views.xml",
         "data/ir_cron_data.xml",
     ],

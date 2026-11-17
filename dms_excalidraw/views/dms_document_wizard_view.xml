@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--
+        "New document" — name, type and template in one dialog.
+
+        The type list is populated from `dms.document.creator`, so installing
+        a module that can create documents adds its formats here without this
+        view changing.
+
+        `template_id` is filtered to templates of the SELECTED type: a Word
+        template must not be offered for a whiteboard. The domain is repeated
+        in the model's onchange so a template is dropped when the type
+        changes underneath it.
+    -->
+    <record id="view_dms_document_wizard_form" model="ir.ui.view">
+        <field name="name">dms.document.wizard.form</field>
+        <field name="model">dms.document.wizard</field>
+        <field name="arch" type="xml">
+            <form string="New document">
+                <group>
+                    <field name="directory_id" readonly="1" />
+                    <field name="document_type" widget="radio" />
+                    <field name="name" placeholder="e.g. Kundkarta" />
+                    <field name="template_source" widget="radio" />
+                    <field
+                        name="template_id"
+                        invisible="template_source != 'dms'"
+                        required="template_source == 'dms'"
+                        options="{'no_create': True, 'no_open': True}"
+                    />
+                    <field
+                        name="office_template_id"
+                        invisible="template_source != 'office_form'"
+                        required="template_source == 'office_form'"
+                        options="{'no_create': True, 'no_open': True}"
+                    />
+                </group>
+                <group string="Organisation">
+                    <field name="category_id" options="{'no_create': True}" />
+                    <field
+                        name="tag_ids"
+                        widget="many2many_tags"
+                        options="{'color_field': 'color', 'no_create_edit': True}"
+                    />
+                </group>
+                <group string="Access">
+                    <!--
+                        Access belongs to the DIRECTORY in DMS, not to the
+                        file: `dms.file` has no ACL field of its own. So this
+                        section shows what the folder already grants, and
+                        lets the user add to it — which changes the folder,
+                        not just this document. The help text says so.
+                    -->
+                    <field name="inherit_access" />
+                    <field
+                        name="inherited_group_ids"
+                        widget="many2many_tags"
+                        readonly="1"
+                        invisible="not inherit_access"
+                    />
+                    <field
+                        name="group_ids"
+                        widget="many2many_tags"
+                        invisible="inherit_access"
+                        options="{'no_create': True}"
+                    />
+                </group>
+                <group>
+                    <field name="name_taken" invisible="not name_taken" />
+                </group>
+                <div
+                    class="alert alert-warning"
+                    role="alert"
+                    invisible="not name_taken"
+                >
+                    A file with this name already exists in the directory.
+                    A number will be appended to keep both.
+                </div>
+                <footer>
+                    <button
+                        name="action_create"
+                        type="object"
+                        string="Create"
+                        class="btn-primary"
+                        data-hotkey="q"
+                    />
+                    <button string="Cancel" class="btn-secondary" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!--
+        Action for the "New document" buttons. `target="new"` so the prompt is
+        a modal over whatever the user is looking at.
+    -->
+    <record id="action_dms_document_wizard" model="ir.actions.act_window">
+        <field name="name">New document</field>
+        <field name="res_model">dms.document.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_directory_id': active_id}</field>
+    </record>
+
+    <!--
+        Mark a document as a template. A template is a normal `dms.file`:
+        it inherits the directory's access groups, retention and backup, and
+        is maintained like any other document. No parallel store.
+    -->
+    <record id="view_dms_file_form_template" model="ir.ui.view">
+        <field name="name">dms.file.form.template</field>
+        <field name="model">dms.file</field>
+        <field name="inherit_id" ref="dms.view_dms_file_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group" position="inside">
+                <field name="is_document_template" />
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Filter in the file list, so templates can be maintained as a set. -->
+    <record id="view_dms_file_search_template" model="ir.ui.view">
+        <field name="name">dms.file.search.template</field>
+        <field name="model">dms.file</field>
+        <field name="inherit_id" ref="dms.search_dms_file" />
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='filter_user']" position="after">
+                <separator />
+                <filter
+                    name="document_templates"
+                    string="Templates"
+                    domain="[('is_document_template', '=', True)]"
+                />
+                <filter
+                    name="not_templates"
+                    string="Not templates"
+                    domain="[('is_document_template', '=', False)]"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>

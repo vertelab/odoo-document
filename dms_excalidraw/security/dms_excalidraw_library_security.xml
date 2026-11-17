@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--
+        Access for the shape-library catalogue.
+
+        WHY A MODULE GROUP AND NOT `dms.access.group`
+        =============================================
+        A catalogue library is shared reference data, not a document. It has no
+        folder to inherit from, so it cannot use `dms.access.group` — that
+        model is keyed on directories. This is the module's own group.
+
+        Read is for every internal user: a library is a source of shapes, and
+        withholding it from someone who can already open a whiteboard would
+        only make the picker look broken.
+
+        Write is for administrators only. A non-admin must not be able to
+        point `source_url` at an arbitrary host, because the browser then
+        fetches that URL with the user's session — the catalogue is a
+        same-origin fetch list, and editing it is a privilege.
+    -->
+    <record id="group_dms_excalidraw_library" model="res.groups">
+        <field name="name">Excalidraw library catalogue</field>
+        <field name="category_id" ref="base.module_category_productivity_documents" />
+        <field
+            name="comment"
+        >Browse the shared catalogue of Excalidraw shape libraries and load them into a whiteboard. Editing the catalogue (sync, source URLs) is restricted to administrators.</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]" />
+    </record>
+
+    <record id="group_dms_excalidraw_library_manager" model="res.groups">
+        <field name="name">Excalidraw library manager</field>
+        <field name="category_id" ref="base.module_category_productivity_documents" />
+        <field
+            name="comment"
+        >Maintain the Excalidraw library catalogue: enable upstream sync, run "Sync now", and edit library records.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dms_excalidraw_library'))]" />
+    </record>
+
+    <!-- Administrators are library managers by default. -->
+    <record id="base.group_system" model="res.groups">
+        <field
+            name="implied_ids"
+            eval="[(4, ref('group_dms_excalidraw_library_manager'))]"
+        />
+    </record>
+
+    <!--
+        Administrators are also DMS Managers.
+
+        WHY THIS IS HERE AND NOT IN `dms`
+        =================================
+        OCA `dms` grants `create` on `dms.directory` and `dms.file` only to
+        `dms.group_dms_user`; `base.group_user` gets read-only
+        (`access_dms_directory_base_user, ... 1,0,0,0`). `dms.group_dms_manager`
+        implies `group_dms_user`, but `dms/security/security.xml` only puts
+        `base.user_root` and `base.user_admin` in it — and only when `dms` is
+        first installed.
+
+        The practical result: an Administrator who was created later, or whose
+        groups were re-saved, gets "Du har inte 'skapa' tillgång till
+        Directory (dms.directory)" the moment they try to create a folder.
+        That is a dead end in the UI with no hint about which group is
+        missing, and it is the first thing anyone hits when they open
+        Documents.
+
+        So this module makes the implication explicit and idempotent: whoever
+        is in `base.group_system` is in `dms.group_dms_manager`. It runs on
+        every upgrade, which is what fixes an installation that already
+        drifted.
+
+        ⚠️ This is deliberately narrow: it grants DMS Manager to
+        ADMINISTRATORS ONLY. It does not give every internal user write access
+        to DMS — `dms` requires someone to add a user to Documents on purpose,
+        and that stays true.
+
+        ⚠️ If `dms` is not installed, `ref('dms.group_dms_manager')` would
+        fail. It cannot: `depends = ["dms", "dms_webdav"]` in the manifest
+        guarantees the group exists before this file loads.
+    -->
+    <record id="base.group_system" model="res.groups">
+        <field
+            name="implied_ids"
+            eval="[(4, ref('dms.group_dms_manager'))]"
+        />
+    </record>
+</odoo>

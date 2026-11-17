@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--
+        Excalidraw settings under Settings > Documents.
+
+        The values are ir.config_parameter, not company fields (design D7): the
+        service URL is per-installation infrastructure, and it is read from
+        Python where a settings record would need a sudo() lookup anyway. The
+        settings view is a surface over those parameters, nothing more.
+
+        The block is appended to the existing `Documents` app block that
+        dms/res_config_settings.xml declares (name="dms"). Inheriting with an
+        xpath on that app keeps the two settings next to File Upload rather
+        than in a second Documents app.
+
+        The two fields this view references must exist on res.config.settings
+        with these exact names and config_parameter mappings:
+
+            dms_excalidraw_url            config_parameter="dms_excalidraw.url"
+            dms_excalidraw_webdav_path    config_parameter="dms_excalidraw.webdav_path"
+
+        which is the convention dms itself uses (documents_binary_max_size ->
+        dms.binary_max_size).
+
+        ⚠️ INHERIT `dms.res_config_settings_view_form`, NOT THE BASE FORM.
+        The base form (`base.res_config_settings_view_form`) does not contain
+        the `//app[@name='dms']` node — it is contributed by dms's own
+        settings view — so an xpath on it fails with "cannot be located in
+        parent view" (verified 2026-11-05).
+
+        The price is that Odoo re-validates the whole `res.config.settings`
+        view chain on every `-u`. If any view in that chain names a field the
+        registry does not have, the upgrade of THIS module fails with a
+        ParseError that points at the other module's field. That happened on
+        2026-11-05: `ai_agent_core`'s settings view declared
+        `ai_api_default_coworker_id` while its model still declared the
+        removed `ai_api_default_provider_id`, and every settings-view upgrade
+        died until the model field was committed (odoo-ai bf0951c6).
+
+        Nothing to do here — but if a ParseError names a field from another
+        module, look at that module first, not at this file.
+    -->
+    <record id="res_config_settings_view_form_excalidraw" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.dms.excalidraw</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="dms.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='dms']" position="inside">
+                <block title="Excalidraw">
+                    <setting
+                        string="Excalidraw URL"
+                        help="Base URL of the Excalidraw service, published under the same host as DMS (e.g. https://dms.azzar.org/whiteboard). Opening a whiteboard fails with an error naming this setting while it is empty."
+                    >
+                        <field name="dms_excalidraw_url" placeholder="https://dms.example.org/whiteboard" />
+                    </setting>
+                    <setting
+                        string="Library sync"
+                        help="Allow the shape-library catalogue to be refreshed from the upstream Excalidraw catalogue (raw.githubusercontent.com). Off by default — the shipped catalogue works without it."
+                    >
+                        <field name="dms_excalidraw_library_sync_enabled" />
+                    </setting>
+                    <setting
+                        string="Max library size"
+                        help="A library larger than this is refused when opened, with its size named."
+                    >
+                        <field name="dms_excalidraw_library_max_bytes" />
+                    </setting>
+                    <setting
+                        string="WebDAV Path"
+                        help="Path prefix under which DMS serves WebDAV. The whiteboard file is fetched by the browser from this path, using the user's own session."
+                    >
+                        <field name="dms_excalidraw_webdav_path" placeholder="/webdav" />
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

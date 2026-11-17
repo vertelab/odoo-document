@@ -8,7 +8,7 @@
     "license": "AGPL-3",
     "depends": ["dms", "mail"],
     "data": [
-        "security/ir.model.access.csv",
+        "security/ir.access.csv",
         "views/res_config_settings.xml",
         "data/ir_cron.xml",
     ],

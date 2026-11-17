@@ -1,0 +1,6 @@
+id,name,model_id,group_id/id,operation,domain
+access_dms_excalidraw_wizard_user,dms.excalidraw.wizard user,dms.excalidraw.wizard,base.group_user,crud,
+access_dms_document_wizard_user,dms.document.wizard user,dms.document.wizard,base.group_user,crud,
+access_dms_document_creator_user,dms.document.creator user,dms.document.creator,base.group_user,r,
+access_dms_excalidraw_library_user,dms_excalidraw.library user,dms_excalidraw.library,group_dms_excalidraw_library,r,
+access_dms_excalidraw_library_manager,dms_excalidraw.library manager,dms_excalidraw.library,group_dms_excalidraw_library_manager,crud,

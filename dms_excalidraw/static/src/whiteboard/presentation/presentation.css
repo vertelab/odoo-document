@@ -1,0 +1,116 @@
+/*
+ * Presentation mode.
+ *
+ * PORTED FROM `excalidraw-app/presentation/Presentation.scss` (MIT,
+ * commit `0cfb548`, 2025-07-21), converted from SCSS to plain CSS.
+ *
+ * WHAT CHANGED
+ * ============
+ * 1. **SCSS nesting is flattened** — the page has no build step, so there is
+ *    no Sass compiler. Each nested rule is written out with its full selector.
+ *
+ * 2. **The nav-arrow cursors are NOT ported.** Upstream inlines two long
+ *    SVG data-URI cursors on the overlay halves. They are ~2 KB of escaped
+ *    XML each, and they only render as a direction cue on hover — which a
+ *    presenter on a projector never sees. The overlays use the default
+ *    cursor instead. If the cue turns out to matter, the upstream artwork is
+ *    in `Presentation.scss` at commit `0cfb548`.
+ *
+ * 3. **`DuplicationHandler` is NOT ported.** It is a React component
+ *    (37 lines) that assigns `customData.name = element.id` to every element
+ *    so that elements pair between frames even when the author never named
+ *    them. We do not run it: it mutates the document on every change, which
+ *    would make every presentation look like an edit and be saved back to
+ *    DMS. The pairing rule is documented instead (task 4.1) — an author who
+ *    wants animation gives the two shapes the same name.
+ */
+
+/* The deck fills the viewport, black around the slide. */
+.wb-presentation {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #000;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+/* The canvas is not an editing surface here. */
+.wb-presentation canvas {
+  cursor: default !important;
+}
+
+/*
+ * Click targets for "previous" and "next".
+ *
+ * 40 % / 60 % rather than 50 / 50: the forward direction is the one a
+ * presenter misses, so it gets the larger target. They sit above the canvas
+ * (z-index) so a click never reaches the editor underneath.
+ */
+.wb-presentation__overlays {
+  position: absolute;
+  z-index: 1000;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.wb-presentation__overlay {
+  height: 100%;
+}
+
+.wb-presentation__overlay:first-child {
+  flex: 0 0 40%;
+}
+
+.wb-presentation__overlay:last-child {
+  flex: 0 0 60%;
+}
+
+/*
+ * The slide counter.
+ *
+ * Bottom-centre, small and dim: it must be readable by the presenter and
+ * invisible to the audience. The y-ordering of frames is not otherwise
+ * discoverable, so this is the only feedback that the deck is in the right
+ * order (task 2.2).
+ */
+.wb-presentation__counter {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1001;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  background: rgb(0 0 0 / 55%);
+  color: #fff;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* "No frames" — the Present button should be hidden in this case, so this
+ * only appears if the scene changed underneath an open deck. */
+.wb-presentation__empty {
+  color: #dee2e6;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  text-align: center;
+  padding: 2rem;
+}
+
+.wb-presentation__empty h1 {
+  font-size: 1.25rem;
+  margin: 0 0 0.5rem;
+}
+
+.wb-presentation__empty p {
+  margin: 0;
+  font-size: 0.875rem;
+  opacity: 0.75;
+}

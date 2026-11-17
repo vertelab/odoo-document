@@ -8,7 +8,7 @@
     "license": "AGPL-3",
     "depends": ["dms", "web", "http_routing"],
     "data": [
-        "security/ir.model.access.csv",
+        "security/ir.access.csv",
     ],
     "installable": True,
     "application": False,

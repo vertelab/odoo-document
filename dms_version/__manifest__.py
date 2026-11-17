@@ -11,7 +11,7 @@
     "license": "LGPL-3",
     "depends": ["dms"],
     "data": [
-        "security/ir.model.access.csv",
+        "security/ir.access.csv",
         "views/dms_file_views.xml",
         "data/ir_cron_data.xml",
     ],

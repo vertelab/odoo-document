@@ -4,7 +4,8 @@ from urllib.parse import urlparse
 
 from odoo import http
 from odoo.http import request
-from odoo.service import db
+# 20.0: odoo.service.db is gone; list_dbs lives in odoo.modules.db.
+from odoo.modules.db import list_dbs
 
 _logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ def _basic_auth():
     except Exception:
         return _unauthorized()
     credential = {"type": "password", "login": login, "password": password}
-    for db_name in db.exp_list():
+    for db_name in list_dbs(force=True):
         try:
             auth_info = request.session.authenticate(db_name, credential)
             if auth_info.get("uid"):
