@@ -13,7 +13,7 @@ _logger = logging.getLogger(__name__)
 
 
 def install_hook(env):
-    hostkey = env["ir.config_parameter"].get_param("dms_sftp.hostkey")
+    hostkey = env["ir.config_parameter"].get_str("dms_sftp.hostkey")
     parameters = etree.parse(
         tools.file_open("dms_sftp/data/ir_config_parameter.xml")
     )
@@ -24,7 +24,7 @@ def install_hook(env):
         _logger.info("Generating SFTP host key for database %s", env.cr.dbname)
         key = io.StringIO()
         ECDSAKey.generate().write_private_key(key)
-        env["ir.config_parameter"].set_param("dms_sftp.hostkey", key.getvalue())
+        env["ir.config_parameter"].set_str("dms_sftp.hostkey", key.getvalue())
         key.close()
 
 

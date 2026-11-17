@@ -127,7 +127,7 @@ class DmsFile(models.Model):
         url = (
             self.env["ir.config_parameter"]
             .sudo()
-            .get_param("dms_excalidraw.url", "")
+            .get_str("dms_excalidraw.url", "")
         )
         if not url or not url.strip():
             raise UserError(
@@ -143,7 +143,7 @@ class DmsFile(models.Model):
         return (
             self.env["ir.config_parameter"]
             .sudo()
-            .get_param("dms_excalidraw.webdav_path", "/webdav")
+            .get_str("dms_excalidraw.webdav_path", "/webdav")
         )
 
     def open_in_excalidraw_action(self):

@@ -7,16 +7,13 @@ from odoo import fields, models
 class ResUsers(models.Model):
     _inherit = 'res.users'
 
+    # 20.0: SELF_WRITEABLE_FIELDS/SELF_READABLE_FIELDS are gone. A field a
+    # user may change on their own record declares it on the field instead.
     authorized_keys = fields.Text(
         'Authorized keys',
-        help='An authorized key file as in ~/.ssh/authorized_keys')
-
-    def _register_hook(self):
-        if 'authorized_keys' not in self.SELF_WRITEABLE_FIELDS:
-            self.SELF_WRITEABLE_FIELDS.append('authorized_keys')
-            self.SELF_READABLE_FIELDS.append('authorized_keys')
-        return super(ResUsers, self)._register_hook()
-
+        help='An authorized key file as in ~/.ssh/authorized_keys',
+        user_writeable=True,
+    )
 
     def _verify_sftp_user(self, password):
         assert password

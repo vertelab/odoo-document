@@ -78,7 +78,7 @@ class DmsExcalidrawLibrarySync(models.Model):
         value = (
             self.env["ir.config_parameter"]
             .sudo()
-            .get_param(SYNC_ENABLED_PARAM, "False")
+            .get_str(SYNC_ENABLED_PARAM, "False")
         )
         return str(value).strip().lower() in ("1", "true", "yes", "on")
 
@@ -87,7 +87,7 @@ class DmsExcalidrawLibrarySync(models.Model):
         raw = (
             self.env["ir.config_parameter"]
             .sudo()
-            .get_param(SYNC_TIMEOUT_PARAM, str(DEFAULT_TIMEOUT))
+            .get_str(SYNC_TIMEOUT_PARAM, str(DEFAULT_TIMEOUT))
         )
         try:
             return max(1, int(raw))

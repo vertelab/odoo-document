@@ -251,7 +251,7 @@ class DmsExcalidrawLibrary(models.Model):
         raw = (
             self.env["ir.config_parameter"]
             .sudo()
-            .get_param(self._MAX_BYTES_PARAM, str(self._DEFAULT_MAX_BYTES))
+            .get_str(self._MAX_BYTES_PARAM, str(self._DEFAULT_MAX_BYTES))
         )
         try:
             return int(raw)

@@ -22,8 +22,8 @@ def install_hook(env):
     
     if socket.getfqdn().endswith('odoo-community.org'):  # pragma: no cover
         # we need a different default listeing address on runbot
-        env['ir.config_parameter'].set_param('document_sftp.bind', '%s:0' % socket.getfqdn())
-    hostkey = env['ir.config_parameter'].get_param('document_sftp.hostkey')
+        env['ir.config_parameter'].set_str('document_sftp.bind', '%s:0' % socket.getfqdn())
+    hostkey = env['ir.config_parameter'].get_str('document_sftp.hostkey')
     parameters = etree.parse(
         tools.file_open('document_sftp/data/ir_config_parameter.xml'))
     default_value = None
@@ -33,7 +33,7 @@ def install_hook(env):
         _logger.info('Generating host key for database %s', env.cr.dbname)
         key = io.StringIO()
         ECDSAKey.generate().write_private_key(key)
-        env['ir.config_parameter'].set_param('document_sftp.hostkey', key.getvalue())
+        env['ir.config_parameter'].set_str('document_sftp.hostkey', key.getvalue())
         key.close()
 
 

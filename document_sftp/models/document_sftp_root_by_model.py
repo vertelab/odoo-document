@@ -128,7 +128,7 @@ class DocumentSFTPRootByModel(models.Model):
 
     # cron job to upload to odoo frequently
     def _upload_attachments_to_crm(self):
-        document_sftp_path = self.env['ir.config_parameter'].sudo().get_param('document_sftp.path')
+        document_sftp_path = self.env['ir.config_parameter'].sudo().get_str('document_sftp.path')
         team_id = self.env['crm.team'].search([])
 
         for rec in team_id:
