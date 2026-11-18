@@ -345,7 +345,7 @@ class TestLibrarySync(BaseCommon):
     # 3.1 Sync is opt-in
     # ------------------------------------------------------------------
     def test_3_1_no_outbound_request_when_sync_is_disabled(self):
-        self.config.set_param("dms_excalidraw.library_sync_enabled", "False")
+        self.config.set_str("dms_excalidraw.library_sync_enabled", "False")
         self._install_index([{"id": "x", "name": "X", "source": "x/x.excalidrawlib"}])
 
         with self.assertRaises(UserError):

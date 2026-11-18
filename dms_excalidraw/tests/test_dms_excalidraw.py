@@ -98,7 +98,7 @@ class TestDmsExcalidraw(BaseCommon):
         )
 
     def _set_url(self, url):
-        self.config_model.set_param("dms_excalidraw.url", url or "")
+        self.config_model.set_str("dms_excalidraw.url", url or "")
 
     # ------------------------------------------------------------------
     # 8.1 Extension controls the flag

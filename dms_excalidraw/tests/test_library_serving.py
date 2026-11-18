@@ -43,7 +43,7 @@ class TestLibraryServing(BaseCommon):
     def test_5_4_an_oversized_library_is_refused_and_named(self):
         """A library over the cap answers with an error NAMING it and its size."""
         library = self._seeded()
-        self.env["ir.config_parameter"].sudo().set_param(
+        self.env["ir.config_parameter"].sudo().set_str(
             "dms_excalidraw.library_max_bytes", "1024"
         )
         result = library.action_load()
@@ -60,7 +60,7 @@ class TestLibraryServing(BaseCommon):
 
     def test_5_4c_a_broken_cap_falls_back_instead_of_crashing(self):
         """A non-numeric parameter must not take the picker down."""
-        self.env["ir.config_parameter"].sudo().set_param(
+        self.env["ir.config_parameter"].sudo().set_str(
             "dms_excalidraw.library_max_bytes", "not-a-number"
         )
         self.assertEqual(self.Library._max_bytes(), 2 * 1024 * 1024)
