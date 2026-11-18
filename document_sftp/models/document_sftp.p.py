@@ -36,21 +36,13 @@ class DocumentSFTP(models.AbstractModel):
         # https://github.com/rspivak/sftpserver/blob/master/src/sftpserver
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        # #if VERSION >= "20.0"
         host, port = self.env['ir.config_parameter'].get_str('document_sftp.bind', 'localhost:0').split(':')
-        # #else
-        host, port = self.env['ir.config_parameter'].get_param('document_sftp.bind', 'localhost:0').split(':')
-        # #endif
         _logger.info('Binding to %s:%s', host, port)
         server_socket.bind((host, int(port)))
         host_real, port_real = server_socket.getsockname()
         _logger.info('Listening to SFTP connections on %s:%s', host_real, port_real)
         if host_real != host or port_real != port:
-            # #if VERSION >= "20.0"
             self.env['ir.config_parameter'].set_str('document_sftp.bind', '%s:%s' % (host_real, port_real))
-            # #else
-            self.env['ir.config_parameter'].set_param('document_sftp.bind', '%s:%s' % (host_real, port_real))
-            # #endif
         server_socket.listen(5)
         server_socket.settimeout(2)
 
@@ -62,15 +54,9 @@ class DocumentSFTP(models.AbstractModel):
                     _channels.pop(0)
                 continue
 
-            # #if VERSION >= "20.0"
 
             key = self.env['ir.config_parameter'].get_str('document_sftp.hostkey')
 
-            # #else
-
-            key = self.env['ir.config_parameter'].get_param('document_sftp.hostkey')
-
-            # #endif
             host_key = paramiko.Ed25519Key.from_private_key(StringIO(key))
             
             transport = DocumentSFTPTransport(self.env.cr, conn)
@@ -109,7 +95,11 @@ class DocumentSFTP(models.AbstractModel):
         # so we never start background threads during module installation /
         # registry loading (race condition — "cursor already closed").
         from odoo.service.server import server
+        # #if VERSION >= "20.0"
+        cr = self.env.cr
+        # #else
         cr = self._cr
+        # #endif
         if cr.dbname not in _db2thread:
             stop = threading.Event()
             _db2thread[cr.dbname] = (None, stop)

@@ -95,7 +95,7 @@ class DocumentSFTP(models.AbstractModel):
         # so we never start background threads during module installation /
         # registry loading (race condition — "cursor already closed").
         from odoo.service.server import server
-        cr = self._cr
+        cr = self.env.cr
         if cr.dbname not in _db2thread:
             stop = threading.Event()
             _db2thread[cr.dbname] = (None, stop)
