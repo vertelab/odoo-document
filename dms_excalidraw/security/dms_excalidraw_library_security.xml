@@ -18,6 +18,7 @@
         fetches that URL with the user's session — the catalogue is a
         same-origin fetch list, and editing it is a privilege.
     -->
+
     <record id="group_dms_excalidraw_library" model="res.groups">
         <field name="name">Excalidraw library catalogue</field>
         <field name="category_id" ref="base.module_category_productivity_documents" />

@@ -194,7 +194,7 @@ class DmsDocumentCreatorOffice(models.AbstractModel):
             )
             return None
 
-        # `datas` is base64 already — dms.file.content expects base64 too.
+        # `dms.file.content` expects base64 in both editions.
         return attachment.datas
 
     # ------------------------------------------------------------------

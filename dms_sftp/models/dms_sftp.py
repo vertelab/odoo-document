@@ -34,9 +34,10 @@ class DmsSftp(models.AbstractModel):
     def __run_server(self, stop):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        host, port = self.env["ir.config_parameter"].get_param(
+        bind = self.env["ir.config_parameter"].get_param(
             "dms_sftp.bind", "localhost:2222"
-        ).split(":")
+        )
+        host, port = bind.split(":")
         _logger.info("SFTP binding to %s:%s", host, port)
         server_socket.bind((host, int(port)))
         server_socket.listen(5)
@@ -50,7 +51,9 @@ class DmsSftp(models.AbstractModel):
                     _channels.pop(0)
                 continue
 
+
             key = self.env["ir.config_parameter"].get_param("dms_sftp.hostkey")
+
             host_key = paramiko.ECDSAKey.from_private_key(StringIO(key))
 
             transport = DmsSftpTransport(self.env.cr.dbname, conn)

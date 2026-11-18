@@ -56,7 +56,7 @@ no second permission model.
     "author": "Vertel Sverige AB",
     "website": "https://vertel.se",
     "category": "Productivity/Documents",
-    "version": "18.0.1.0.1",
+    "version": "1.0.1",
     "depends": ["dms", "dms_excalidraw"],
     "data": [
         "security/ir.model.access.csv",

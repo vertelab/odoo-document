@@ -43,11 +43,13 @@ Refreshing it from the upstream catalogue is opt-in
     "author": "Vertel Sverige AB",
     "website": "https://vertel.se",
     "category": "Productivity/Documents",
-    "version": "18.0.2.7.0",
+    "version": "2.7.0",
     "depends": ["dms", "dms_webdav"],
     "data": [
         # MUST come before anything that reads a directory: it repairs the
         # OCA `dms` record rules that deny everyone the right to create.
+        # 20.0: the OCA fork fixed the rules themselves (ir.access.csv with
+        # the computed-permission domains), so the workaround is not needed.
         "security/dms_rule_workaround.xml",
         "security/dms_excalidraw_library_security.xml",
         "data/excalidraw_data.xml",

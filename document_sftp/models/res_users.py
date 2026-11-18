@@ -17,7 +17,6 @@ class ResUsers(models.Model):
             self.SELF_READABLE_FIELDS.append('authorized_keys')
         return super(ResUsers, self)._register_hook()
 
-
     def _verify_sftp_user(self, password):
         assert password
         self.env.cr.execute(

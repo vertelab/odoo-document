@@ -23,7 +23,7 @@
 #
 {
     'name': 'DMS: Sync Rclone',
-    'version': '18.0.1.0.0',
+    'version': '1.0.0',
     'summary': "Syncs documents with an rclone remote.",
     'category': '', # Technical Settings|Localization|Payroll Localization|Account Charts|User types|Invoicing|Sales|Human Resources|Operations|Marketing|Manufacturing|Website|Theme|Administration|Appraisals|Sign|Helpdesk|Administration|Extra Rights|Other Extra Rights|
     'description': '''
@@ -38,11 +38,11 @@ Sync Rclone
         - Extends Odoo: Builds on dms.directory.
     ''',
     #'sequence': 1,
-    'author': 'Vertel Sverige AB',
+    'author': 'Vertel AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_sync_rclone',
     'images': ['static/description/banner.png'], # 560x280
     'license': 'AGPL-3',
-    'depends': ["fs_attachment_s3", "dms"],
+    'depends': ["fs_storage_s3","dms"],
      #"external_dependencies": {
      #   "bin": ["openssl",], 
      #   "python": ["acme_tiny", "IPy",],
