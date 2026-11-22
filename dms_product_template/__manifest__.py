@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    Odoo SA, Open Source Management Solution, third party addon
-#    Copyright (C) 2022- Vertel AB (<https://vertel.se>).
+#    Copyright (C) 2022- Vertel Sverige AB (<https://vertel.se>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -21,7 +21,7 @@
 
 {
     'name': 'Document: DMS Product Template',
-    'version': '1.0.0',
+    'version': '1.1.1',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Short (1 phrase/line) summary of the modules purpose, used as subtitle on modules listing or apps.openerp.com.''s purpose, used as subtitle on modules listing or apps.openerp.com',
     'description': '''
@@ -36,14 +36,13 @@ DMS Product Template
         - Extends Odoo: Builds on product.template.
     ''',
     'category': 'Technical',
-    'description': 'Long description of module''s purpose.',
     #'sequence': '1',
-    'author': 'Vertel AB',
+    'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_product_template',
     'images': ['static/description/banner.png'], # 560x280 px.
     'license': 'AGPL-3',
     'contributor': '',
-    'maintainer': 'Vertel AB',
+    'maintainer': 'Vertel Sverige AB',
     'repository': 'https://github.com/vertelab/odoo-document',
 
     # Categories can be used to filter modules in modules listing
@@ -51,10 +50,12 @@ DMS Product Template
     # for the full list
 
     # any module necessary for this one to work correctly
-    'depends': ['product','dms',],
+    'depends': ['product','dms', 'dms_record'],
+    'auto_install': True,
 
     # always loaded
     'data': [
+        'data/product_template_data.xml',
         # 'security/ir.model.access.csv',
         'views/views.xml',
     ],

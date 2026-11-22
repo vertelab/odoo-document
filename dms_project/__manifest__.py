@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    Odoo SA, Open Source Management Solution, third party addon
-#    Copyright (C) 2022- Vertel AB (<https://vertel.se>).
+#    Copyright (C) 2022- Vertel Sverige AB (<https://vertel.se>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -21,7 +21,7 @@
 
 {
     'name': 'Document: DMS Project',
-    'version': '1.0.0',
+    'version': '1.1.1',
     'summary': 'DMS Project.',
     'description': '''
 DMS Project
@@ -36,20 +36,23 @@ DMS Project
     ''',
     'category': 'Technical',
     'description': 'Creates the Link between Project/Task and DMS',
-    'author': 'Vertel AB',
+    'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-document/dms_project',
     'images': ['static/description/banner.png'],  # 560x280 px.
     'license': 'AGPL-3',
     'contributor': '',
-    'maintainer': 'Vertel AB',
+    'maintainer': 'Vertel Sverige AB',
     'repository': 'https://github.com/vertelab/odoo-document',
     # any module necessary for this one to work correctly
-    'depends': ['project', 'dms'],
+    'depends': ['project', 'dms', 'dms_record'],
+    'auto_install': True,
 
     # always loaded
     'data': [
+        'data/project_data.xml',
         'views/views.xml',
         'views/dms_directory.xml',
         'views/dms_file.xml',
     ],
+    'post_init_hook': 'post_init_hook',
 }

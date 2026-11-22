@@ -1,26 +1,10 @@
 # -*- coding: utf-8 -*-
+from odoo import models
 
-from odoo import models, fields, api
-import logging
-_logger = logging.getLogger(__name__)
 
-class Event(models.Model):
-    _inherit = "hr.expense"
-    doc_count = fields.Integer(compute='_compute_attached_docs_count', string="Doc count")
+class HrExpense(models.Model):
+    _name = "hr.expense"
+    _inherit = ["hr.expense", "dms.record.mixin"]
 
-    def _compute_attached_docs_count(self):
-        Document = self.env['dms.file']
-        for expense in self:
-            expense.doc_count = Document.search_count([
-                '&',
-                ('res_model', '=', 'hr.expense'), ('res_id', '=', expense.id),
-            ])
-
-    def dms_tree_view(self):
-            action = self.env['ir.actions.act_window']._for_xml_id('dms.action_dms_file')
-            action['domain'] = str([
-                '&',
-                ('res_model', '=', 'hr.expense'),
-                ('res_id', 'in', self.ids),        
-            ])
-            return action
+    _dms_storage_xmlid = "dms_hr_expense.hr_expense_dms_storage"
+    _dms_access_mode = "inherit"
