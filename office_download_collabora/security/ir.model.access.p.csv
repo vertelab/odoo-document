@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_office_download_link_user,office.download.link user,model_office_download_link,base.group_user,1,0,0,0
+access_office_download_link_system,office.download.link system,model_office_download_link,base.group_system,1,1,1,1

@@ -21,7 +21,7 @@
 
 {
     'name': 'Document: DMS Account Asset',
-    'version': '18.0.1.0.0',
+    "version": "18.0.1.0.0",
     'summary': 'A document directory for every fixed asset.',
     'description': '''
 Document: DMS Account Asset
