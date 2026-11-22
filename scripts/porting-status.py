@@ -270,9 +270,27 @@ def _clip(text: str, limit: int) -> str:
     return cut.rstrip(".,;:") + " …"
 
 
-def repo_type(repo: str) -> str:
-    """Repo-typ för läsaren: OCA, Vertel eller core — inte fullt repnamn (D2)."""
-    if repo in ("kärnan", "core", ""):
+#: Moduler som är kända OCA-moduler men bor i ett repo som inte är klonat
+#: här. Utan den här listan klassas de som "core" — vilket säger att kärnan
+#: äger dem, och det är fel: det är OCA:s arbete som ska inväntas eller forkas.
+KNOWN_OCA_MODULES = {
+    "dms", "dms_field", "dms_storage", "dms_user_role",
+    "fs_storage", "fs_attachment", "fs_attachment_s3", "fs_storage_s3",
+    "storage_backend", "storage_file", "storage_image", "storage_media",
+    "helpdesk_mgmt", "contract", "account_asset_management",
+}
+
+
+def repo_type(repo: str, module: str = "") -> str:
+    """Repo-typ för läsaren: OCA, Vertel eller core — inte fullt repnamn (D2).
+
+    Ett tomt repo betyder "modulen finns inte i något klonat repo". Det är
+    INTE samma sak som kärnan: en känd OCA-modul vars repo saknas här ska
+    läsas som OCA-arbete, inte som en kärnmodul som borde finnas.
+    """
+    if not repo:
+        return "OCA" if module in KNOWN_OCA_MODULES else "core"
+    if repo in ("kärnan", "core"):
         return "core"
     for prefix, label in REPO_TYPES:
         if repo.startswith(prefix):
@@ -285,7 +303,7 @@ def blocked_by(dep: str, edition: str) -> str:
     klass, repo = classify(dep, edition)
     if not klass:
         return f"{dep} (?)"
-    return f"{dep} ({repo_type(repo)})"
+    return f"{dep} ({repo_type(repo, dep)})"
 
 
 REASON_CODES = (
