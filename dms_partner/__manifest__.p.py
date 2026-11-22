@@ -21,11 +21,7 @@
 
 {
     'name': 'Document: DMS Partner',
-    # #if VERSION >= "19.0"
     'version': '1.1.1',
-    # #else
-    'version': '18.0.1.1.1',
-    # #endif
     'summary': 'DMS Partner.',
     'description': '''
 DMS Partner

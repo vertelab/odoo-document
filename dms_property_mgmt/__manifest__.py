@@ -21,7 +21,7 @@
 
 {
     'name': 'Document: DMS Property',
-    'version': '18.0.1.1.1',
+    'version': '1.1.1',
     'summary': 'DMS Property.',
     'description': '''
 DMS Property

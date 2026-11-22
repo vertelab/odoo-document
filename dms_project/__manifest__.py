@@ -21,7 +21,7 @@
 
 {
     'name': 'Document: DMS Project',
-    'version': '18.0.1.1.1',
+    'version': '1.1.1',
     'summary': 'DMS Project.',
     'description': '''
 DMS Project
