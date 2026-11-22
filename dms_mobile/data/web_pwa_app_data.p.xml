@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    Register the capture app with web_pwa_push.
+
+    web_pwa_push serves /pwa/capture and /pwa/upload; this row tells it
+    which key to answer on and which model method receives the files. The
+    module never touches the camera page itself.
+
+    noupdate="1": an operator may disable the app or change the accept
+    types, and an upgrade must not undo that.
+-->
+<odoo>
+    <data noupdate="1">
+        <record id="pwa_app_dms_capture" model="web.pwa.app">
+            <field name="key">dms-capture</field>
+            <field name="name">DMS Camera</field>
+            <field name="description">Fota in ett dokument i DMS</field>
+            <field name="start_url">/dms/mobile</field>
+            <field name="scope">/dms/</field>
+            <field name="icon_url">/web_pwa_push/icon192x192.png</field>
+            <field name="sequence">30</field>
+            <field name="capture_enabled" eval="True" />
+            <field name="capture_model">dms.file</field>
+            <field name="capture_method">pwa_capture_store</field>
+            <field name="capture_accept">image/*,application/pdf</field>
+        </record>
+    </data>
+</odoo>

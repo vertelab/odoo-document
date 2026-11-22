@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright (C) 2026 Vertel Sverige AB
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl.html). -->
+<odoo>
+
+    <!--
+      Hooks onto the app block dms itself creates (dms/res_config_settings.xml).
+      Anchoring on //app[@name='dms'] rather than inventing a block id: an
+      xpath that matches nothing aborts the whole upgrade.
+    -->
+    <record id="res_config_settings_view_form_clamav" model="ir.ui.view">
+        <field name="name">res.config.settings.form.inherit.clamav</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="dms.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='dms']" position="inside">
+                <block title="Antivirus">
+                    <setting
+                        id="dms_clamav_setting"
+                        string="Scan Uploads"
+                        help="Scan every uploaded file with ClamAV before it is stored."
+                    >
+                        <field name="dms_clamav_enabled" />
+                        <div
+                            class="text-muted"
+                            invisible="not dms_clamav_enabled"
+                        >
+                            <field name="dms_clamav_host" />
+                            <field name="dms_clamav_port" />
+                            <div class="mt-2">
+                                If clamd cannot be reached the file is stored
+                                and a warning is logged (fail-open). A ClamAV
+                                restart must not stop document handling.
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

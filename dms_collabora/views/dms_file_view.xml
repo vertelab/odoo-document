@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--
+        "Open in Collabora" på dms.file-formuläret.
+
+        Samma form som dms_euro_office:s knapp: en server action (så den även
+        nås från Action-menyn) plus en header-knapp som refererar den.
+        `binding_view_types` är `form` — åtgärden öppnar EN fil, och en
+        list-/kanban-vy har flera markerade poster som default
+        (`ensure_one()` skulle ge ValueError).
+    -->
+    <record id="action_open_in_collabora" model="ir.actions.server">
+        <field name="name">Open in Collabora</field>
+        <field name="model_id" ref="dms.model_dms_file" />
+        <field name="binding_model_id" ref="dms.model_dms_file" />
+        <field name="binding_view_types">form</field>
+        <field name="state">code</field>
+        <field name="code">
+            action = records.open_in_collabora_action()
+        </field>
+    </record>
+
+    <record id="view_dms_file_form_collabora" model="ir.ui.view">
+        <field name="name">dms.file.form.collabora</field>
+        <field name="model">dms.file</field>
+        <field name="inherit_id" ref="dms.view_dms_file_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <field name="can_open_in_collabora" invisible="1" />
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button
+                    name="%(action_open_in_collabora)d"
+                    type="action"
+                    string="Open in Collabora"
+                    class="btn-primary"
+                    invisible="not can_open_in_collabora"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>

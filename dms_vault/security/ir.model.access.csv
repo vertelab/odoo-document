@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_dms_vault_user,dms.vault user,model_dms_vault,base.group_user,1,0,0,0
+access_dms_vault_manager,dms.vault manager,model_dms_vault,dms.group_dms_manager,1,1,1,1
+access_dms_vault_key_user,dms.vault.key user,model_dms_vault_key,base.group_user,1,0,0,0
+access_dms_vault_key_manager,dms.vault.key manager,model_dms_vault_key,dms.group_dms_manager,1,1,1,1
+access_dms_vault_member_wizard,dms.vault.member.wizard,model_dms_vault_member_wizard,dms.group_dms_manager,1,1,1,1
+access_dms_vault_migrate_wizard,dms.vault.migrate.wizard,model_dms_vault_migrate_wizard,dms.group_dms_manager,1,1,1,1

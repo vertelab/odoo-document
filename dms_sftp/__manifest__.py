@@ -1,0 +1,21 @@
+{
+    "name": "DMS SFTP",
+    "summary": "Access OCA DMS documents via SFTP",
+    "version": "1.0.0",
+    "category": "Document Management",
+    "author": "Vertel AB",
+    "website": "https://vertel.se/apps/odoo-document/dms_sftp",
+    "license": "AGPL-3",
+    "depends": ["dms", "mail"],
+    "data": [
+        "security/ir.model.access.csv",
+        "views/res_config_settings.xml",
+        "data/ir_cron.xml",
+    ],
+    "external_dependencies": {
+        "python": ["paramiko"],
+    },
+    "post_init_hook": "install_hook",
+    "installable": True,
+    "application": False,
+}

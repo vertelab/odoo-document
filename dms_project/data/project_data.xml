@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!--
+            One storage for project documents.
+
+            save_type='attachment' + inherit_access_from_parent_record=True is
+            what makes a document inherit the project's own ir.rule. Both are
+            required: dms.security.mixin._get_domain_by_inheritance() hardcodes
+            them, so a filestore storage never inherits.
+
+            Note what "inherit" means here: project.project defaults to
+            privacy_visibility='portal', and its rule for internal users is
+            ['|', ('privacy_visibility', '!=', 'followers'),
+                  ('message_partner_ids', 'in', [user.partner_id.id])]
+            So with the default, every internal user sees every project's
+            documents. Set privacy_visibility='followers' on a project to make
+            this genuinely per-project.
+        -->
+        <record id="project_documents_storage" model="dms.storage">
+            <field name="name">Project documents</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="save_type">attachment</field>
+            <field name="inherit_access_from_parent_record">True</field>
+            <field name="model_ids"
+                   eval="[(6, 0, [ref('project.model_project_project')])]"/>
+        </record>
+
+        <record id="project_documents_directory" model="dms.directory">
+            <field name="name">Project documents</field>
+            <field name="is_root_directory">True</field>
+            <field name="storage_id" ref="project_documents_storage"/>
+            <field name="model_id" ref="project.model_project_project"/>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright (C) 2026 Vertel Sverige AB
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl.html). -->
+<odoo>
+
+    <record id="dms_directory_view_form_inherit_trash" model="ir.ui.view">
+        <field name="name">dms.directory.form.inherit.trash</field>
+        <field name="model">dms.directory</field>
+        <field name="inherit_id" ref="dms.view_dms_directory_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Trash">
+                    <field name="deletion_delay" />
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

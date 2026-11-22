@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    Euro-Office desktop downloads.
+
+    CRITICAL: these point at Nextcloud's signed builds, not at Euro-Office's own
+    releases page. Euro-Office's README:
+
+        Signed builds are available as Nextcloud Office, which also offers APT
+        and DNF package repositories. Unsigned community builds are published on
+        the releases page of this repository.
+
+    An unsigned .exe is unusable for a business customer — SmartScreen warns and
+    IT refuses. The Nextcloud repository is the only signed path.
+
+    Every note says "Nextcloud branding" so a customer who clicks Euro-Office and
+    meets Nextcloud Office understands it is the same program.
+
+    noupdate="1": URLs are corrected in the UI when a vendor ships a new build.
+-->
+<odoo>
+    <data noupdate="1">
+
+        <record id="link_euro_office_windows" model="office.download.link">
+            <field name="name">Euro-Office for Windows</field>
+            <field name="platform">windows</field>
+            <field name="os_family">Windows 10 / 11 (64-bit)</field>
+            <field name="url">https://github.com/nextcloud-releases/Office-DesktopEditors/releases/latest</field>
+            <field name="package_format">.msi</field>
+            <field name="note">Signed build published by Nextcloud, so the installer and the app carry Nextcloud Office branding. Same program as Euro-Office.</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="link_euro_office_macos" model="office.download.link">
+            <field name="name">Euro-Office for macOS</field>
+            <field name="platform">macos</field>
+            <field name="os_family">macOS (Intel and Apple silicon)</field>
+            <field name="url">https://github.com/nextcloud-releases/Office-DesktopEditors/releases/latest</field>
+            <field name="package_format">.dmg</field>
+            <field name="note">Signed build published by Nextcloud, so the installer and the app carry Nextcloud Office branding. Same program as Euro-Office.</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="link_euro_office_linux_deb" model="office.download.link">
+            <field name="name">Euro-Office for Linux (Debian/Ubuntu)</field>
+            <field name="platform">linux</field>
+            <field name="os_family">Debian / Ubuntu (x86_64 and arm64)</field>
+            <field name="url">https://github.com/nextcloud-releases/Office-DesktopEditors/releases/latest</field>
+            <field name="package_format">.deb</field>
+            <field name="note">Signed build published by Nextcloud (Nextcloud Office branding). An APT repository is also available from Nextcloud.</field>
+            <field name="sequence">30</field>
+        </record>
+
+        <record id="link_euro_office_linux_rpm" model="office.download.link">
+            <field name="name">Euro-Office for Linux (RHEL/Fedora)</field>
+            <field name="platform">linux</field>
+            <field name="os_family">RHEL / Fedora (x86_64 and arm64)</field>
+            <field name="url">https://github.com/nextcloud-releases/Office-DesktopEditors/releases/latest</field>
+            <field name="package_format">.rpm</field>
+            <field name="note">Signed build published by Nextcloud (Nextcloud Office branding). A DNF repository is also available from Nextcloud.</field>
+            <field name="sequence">40</field>
+        </record>
+
+    </data>
+</odoo>
