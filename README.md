@@ -20,7 +20,7 @@ Genererad av `scripts/porting-status.py` — handredigera inte.
 |---|---|---|
 | `dms_account_asset` | A document directory for every fixed asset. | blocked by dms (OCA) |
 | `dms_account_move` | Short (1 phrase/line) summary of the modules purpose, used as subtitle on … | blocked by dms (OCA) |
-| `dms_ai` | OKF-indexering av dms.file och dms.directory + förlage-markering | blocked by ai_agent_core (Vertel); dms (OCA) |
+| `dms_ai` | OKF-indexering av dms.file och dms.directory + förlage-markering | blocked by dms (OCA) |
 | `dms_calendar_event` | Short (1 phrase/line) summary of the modules purpose, used as subtitle on … | blocked by dms (OCA) |
 | `dms_clamav` | Scan every DMS file write with ClamAV before it is stored | blocked by dms (OCA) |
 | `dms_collabora` | Open DMS office documents in Collabora Online | blocked by disabled: no reason in manifest |

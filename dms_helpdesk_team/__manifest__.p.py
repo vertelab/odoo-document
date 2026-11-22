@@ -21,11 +21,7 @@
 
 {
     'name': 'Document: DMS Helpdesk Team',
-    # #if VERSION >= "19.0"
     'version': '1.1.1',
-    # #else
-    'version': '18.0.1.1.1',
-    # #endif
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Short summary of the modules purpose.''s purpose.',
     'category': 'Technical',
