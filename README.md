@@ -215,3 +215,57 @@ sudo checkmodule -d dms_test -m dms_sale_order -t -l test
 
 `post_install` tests only run when the module is **updated**, not when it is
 installed. Bump `version` in the manifest to force the update.
+
+## Porteringsstatus — Odoo 18.0
+
+Den här grenen är Odoo 18.0. Tabellen beskriver bara 18.0.
+
+Genererad av `scripts/porting-status.py` — handredigera inte.
+
+| Modul | Beskrivning | Porteringsstatus |
+|---|---|---|
+| `dms_account_analytic_account` | Short (1 phrase/line) summary of the modules purpose, used as subtitle on … | blocked by dms (core) |
+| `dms_account_asset` | A document directory for every fixed asset. | blocked by dms (core) |
+| `dms_account_move` | Short (1 phrase/line) summary of the modules purpose, used as subtitle on … | blocked by dms (core) |
+| `dms_ai` | OKF-indexering av dms.file och dms.directory + förlage-markering | blocked by dms (core) |
+| `dms_calendar_event` | Short (1 phrase/line) summary of the modules purpose, used as subtitle on … | blocked by dms (core) |
+| `dms_clamav` | Scan every DMS file write with ClamAV before it is stored | blocked by dms (core) |
+| `dms_collabora` | Open DMS office documents in Collabora Online | blocked by dms (core); collabora_odoo (core) |
+| `dms_contract` | A document directory for every contract. | blocked by dms (core) |
+| `dms_crm_lead` | Short (1 phrase/line) summary of the modules purpose, used as subtitle on … | blocked by dms (core) |
+| `dms_crm_team` | Short (1 phrase/line) summary of the modules purpose, used as subtitle on … | blocked by dms (core) |
+| `dms_document_markdown` | Read .md files from DMS as documents, not as source | blocked by dms (core) |
+| `dms_document_office` | Create Word, Excel and PowerPoint documents from DMS | blocked by dms (core) |
+| `dms_duplicate_filenames` | Short (1 phrase/line) summary of the modules purpose, used as subtitle on … | blocked by dms (core) |
+| `dms_event` | Short (1 phrase/line) summary of the modules purpose, used as subtitle on … | blocked by dms (core) |
+| `dms_excalidraw` | Open DMS whiteboards in an Excalidraw service | blocked by dms (core) |
+| `dms_extract` | Extract text from dms.file content into the OKF body | ok |
+| `dms_fleet_vehicle` | Short (1 phrase/line) summary of the modules purpose, used as subtitle on … | blocked by dms (core) |
+| `dms_helpdesk_team` | Short summary of the modules purpose.s purpose. | blocked by helpdesk_mgmt (core); dms (core) |
+| `dms_helpdesk_ticket` | Short (1 phrase/line) summary of the modules purpose, used as subtitle on … | blocked by dms (core); helpdesk_mgmt (core) |
+| `dms_hierarchy` | DMS Hierarchy. | blocked by dms (core) |
+| `dms_hr_employee` | Short (1 phrase/line) summary of the modules purpose, used as subtitle on … | blocked by dms (core) |
+| `dms_hr_expense` | Short (1 phrase/line) summary of the modules purpose, used as subtitle on … | blocked by dms (core) |
+| `dms_hr_job_recruitment` | Short (1 phrase/line) summary of the modules purpose, used as subtitle on … | blocked by dms (core) |
+| `dms_mobile` | Photograph a document straight into a DMS directory | blocked by dms (core); dms_field (core) |
+| `dms_oca_fixes` | Three OCA/dms fixes as overrides instead of source patches | blocked by dms (core); dms_field (core) |
+| `dms_partner` | DMS Partner =========== DMS Partner. Features: - UI Integration: Extends 1 … | blocked by dms (core) |
+| `dms_product_template` | Short (1 phrase/line) summary of the modules purpose, used as subtitle on … | blocked by dms (core) |
+| `dms_project` | Creates the Link between Project/Task and DMS | blocked by dms (core) |
+| `dms_property_mgmt` | DMS Property. | blocked by dms (core) |
+| `dms_purchase` | Short (1 phrase/line) summary of the modules purpose, used as subtitle on … | blocked by dms (core) |
+| `dms_record` | Shared primitive: one DMS directory per record. | blocked by dms (core) |
+| `dms_repair_order` | Short (1 phrase/line) summary of the modules purpose, used as subtitle on … | blocked by dms (core) |
+| `dms_sale_order` | Short (1 phrase/line) summary of the modules purpose, used as subtitle on … | blocked by dms (core) |
+| `dms_sftp` | Access OCA DMS documents via SFTP | blocked by dms (core) |
+| `dms_slide` | A document directory for every course and every lesson. | blocked by dms (core) |
+| `dms_sync_rclone` | Syncs documents with an rclone remote. | blocked by fs_storage_s3 (core); dms (core) |
+| `dms_trash` | Soft delete with a per-directory retention delay | blocked by dms (core) |
+| `dms_vault` | Encrypt the bytes of a DMS directory before they reach storage | blocked by dms (core) |
+| `dms_version` | Keep a version history of every DMS file write | blocked by dms (core) |
+| `dms_webdav` | Access OCA DMS documents via WebDAV | blocked by dms (core) |
+| `document_onboarding` | Onboardingskurs: dokument, DMS och WebDAV | ok |
+| `document_sftp` | Access your documents via SFTP. | ok |
+| `document_version` | Manage version management on documents. | blocked by dms (core) |
+| `office_download_collabora` | Download links for the Collabora Office desktop suite | blocked by dms (core) |
+| `office_download_euro_office` | Download links for the Euro-Office desktop suite | blocked by dms (core) |
