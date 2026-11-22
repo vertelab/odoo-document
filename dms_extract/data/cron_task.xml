@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        Kön för textutvinning (dms-content-extraction D2).
+
+        VARFÖR cron.task OCH INTE ir.cron: cron_tick-motorn finns just för
+        att slippa per-modul ir.cron-aritmetik. `dms_version` använder
+        ir.cron, men det är undantaget som bekräftar regeln — den modulen
+        föregår motorn.
+
+        VARFÖR min-kadens: en uppladdning ska bli sökbar inom några minuter,
+        inte nästa timme. Kön är billig när den är tom (urvalet är ett
+        indexerat sök på extract_state) och dräneras i batchar om
+        `dms_extract.batch_size` per tick.
+    -->
+    <record id="cron_task_dms_extract" model="cron.task">
+        <field name="name">DMS: extract document text</field>
+        <field name="technical_name">dms_extract</field>
+        <field name="module">dms_extract</field>
+        <field name="model_name">dms.file</field>
+        <field name="method_name">_cron_extract_pending</field>
+        <field name="cadence">min</field>
+        <field name="sequence">40</field>
+        <!-- Utan active=True skapas posten inaktiv (cron.task:s default) och
+             kön kör aldrig. Samma fälla som ai_agent_core:s crons undviker
+             genom att sätta flaggan explicit. -->
+        <field name="active" eval="True"/>
+    </record>
+
+</odoo>

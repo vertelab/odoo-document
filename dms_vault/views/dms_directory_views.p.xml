@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright (C) 2026 Vertel Sverige AB
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl.html). -->
+<odoo>
+
+    <record id="view_dms_directory_form_vault" model="ir.ui.view">
+        <field name="name">dms.directory.form.vault</field>
+        <field name="model">dms.directory</field>
+        <field name="inherit_id" ref="dms.view_dms_directory_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='settings']/group[2]" position="inside">
+                <field name="is_vault" />
+                <field name="vault_id" invisible="not is_vault" />
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,47 @@
+<odoo>
+    <data>
+        <record id="view_slide_channel_form" model="ir.ui.view">
+            <field name="name">slide.channel.form</field>
+            <field name="model">slide.channel</field>
+            <field name="inherit_id" ref="website_slides.view_slide_channel_form"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="dms_directory_id" invisible="1"/>
+                </field>
+                <div name="button_box" position="inside">
+                    <button type="object" class="oe_stat_button" icon="fa-file-text-o"
+                            name="action_open_dms_files" invisible="not dms_directory_id">
+                        <div class="o_form_field o_stat_info">
+                            <span class="o_stat_value">
+                                <field name="doc_count"/>
+                            </span>
+                            <span class="o_stat_text">Documents</span>
+                        </div>
+                    </button>
+                </div>
+            </field>
+        </record>
+
+        <record id="view_slide_slide_form" model="ir.ui.view">
+            <field name="name">slide.slide.form</field>
+            <field name="model">slide.slide</field>
+            <field name="inherit_id" ref="website_slides.view_slide_slide_form"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="dms_directory_id" invisible="1"/>
+                </field>
+                <div name="button_box" position="inside">
+                    <button type="object" class="oe_stat_button" icon="fa-file-text-o"
+                            name="action_open_dms_files" invisible="not dms_directory_id">
+                        <div class="o_form_field o_stat_info">
+                            <span class="o_stat_value">
+                                <field name="doc_count"/>
+                            </span>
+                            <span class="o_stat_text">Documents</span>
+                        </div>
+                    </button>
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>
