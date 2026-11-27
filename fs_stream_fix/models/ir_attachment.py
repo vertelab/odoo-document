@@ -19,39 +19,49 @@ class IrAttachment(models.Model):
         """Returnera en data-stream för bilagor som ligger i objektlagring.
 
         Odoos original gör `os.stat()` på en lokal fil. Med S3 finns ingen
-        sådan fil. Vi bygger i stället en `data`-stream från `raw`, som
-        `fs_attachment` redan läser via `_file_read()` mot S3.
+        sådan fil. Vi bygger streamen själva i stället för att anropa
+        super(), eftersom super() kraschar innan vi hinner ersätta den.
         """
         self.ensure_one()
 
         if not self.store_fname:
             return super()._to_http_stream()
 
-        # Bara om store_fname pekar på en konfigurerad fs.storage.
-        # Annars är det en vanlig lokal filestore och originalmetoden
-        # fungerar som den ska.
         if not self._is_file_from_a_storage(self.store_fname):
             return super()._to_http_stream()
 
         try:
             data = self.raw
-        except Exception:  # noqa: BLE001 — fall tillbaka på original
+        except Exception as exc:
             _logger.warning(
-                "Kunde inte läsa bilaga %s från objektlagring, "
-                "faller tillbaka på lokal filestore",
-                self.id,
-                exc_info=True,
+                "fs_stream_fix: FEL vid läsning av %s: %s", self.id, exc, exc_info=True
             )
             return super()._to_http_stream()
 
-        if data is None:
+        if not data:
+            _logger.warning(
+                "fs_stream_fix: TOM DATA för %s (store_fname=%s, file_size=%s)",
+                self.id, self.store_fname, self.file_size,
+            )
             return super()._to_http_stream()
 
-        stream = super()._to_http_stream()
+        # Bygg streamen själva — anropa INTE super(), den gör os.stat()
+        # på en lokal sökväg som inte finns.
+        from odoo.http import Stream
+        from werkzeug.wrappers import Response
+
+        stream = Stream(
+            mimetype=self.mimetype or 'application/octet-stream',
+            download_name=self.name,
+            etag=self.checksum,
+            public=self.public,
+        )
         stream.type = 'data'
         stream.data = data
         stream.size = len(data)
         stream.last_modified = self.write_date
-        # path ska inte användas när type='data'
         stream.path = None
+        _logger.info(
+            "fs_stream_fix: data-stream %s bytes för %s", len(data), self.id
+        )
         return stream
